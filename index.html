@@ -902,8 +902,11 @@ const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected'
 
 // ── DB MAPPING ────────────────────────────────────────────────
 const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.ext_id||null,an:r.anstoss||null});
-const mapei=r=>({id:r.id,sid:r.spiel_id,typ:r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:r.status,ts:r.created_at});
-const todb=e=>({spiel_id:e.sid,typ:e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:e.s||'o'});
+// App-interne Kurz-Codes <-> DB-Langformen (DB-CHECK: typ IN suche/biete/tausch, status IN offen/erledigt)
+const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
+const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
+const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':'o'),ts:r.created_at});
+const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':'offen')});
 
 // ── SUPABASE ──────────────────────────────────────────────────
 async function initSB(){
