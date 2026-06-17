@@ -1,0 +1,15 @@
+{
+  "name": "FourStands Ticket-Börse",
+  "short_name": "FourStands",
+  "description": "FC St. Pauli Fanclub FourStands – Ticket-Suche, -Angebote und -Tausch",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0d0a",
+  "theme_color": "#0f0d0a",
+  "lang": "de",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
