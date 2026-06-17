@@ -29,6 +29,19 @@
   --r4:#2ECC71; --r5:#3498DB; --r6:#9B59B6;
 }
 
+/* ─── LIGHT THEME (Toggle) ───────────────────────────── */
+body.light {
+  --bg:#f4f1ea; --sf:#ffffff; --sf2:#f3eee5; --bd:#ddd2c2;
+  --tx:#211a13; --mu:#6f6357;
+}
+body.light .topbar  { background:#ece5da; border-bottom-color:#ddd2c2; }
+body.light .nav-wrap { background:#ffffff; border-bottom-color:#ddd2c2; }
+body.light .card:hover { background:#f6f2ea; }
+body.light .tag-su, body.light .form-heading.su, body.light .meta-sig, body.light .stat-n.s, body.light .nb.su.active { color:#1d4ed8; }
+body.light .tag-bi, body.light .form-heading.bi, body.light .stat-n.b, body.light .nb.bi.active { color:#15803d; }
+body.light .tag-ta, body.light .form-heading.ta, body.light .stat-n.t, body.light .nb.ta.active { color:#c2410c; }
+body.light .tag-match, body.light .match-banner { color:#b45309; }
+
 /* ─── RESET & BASE ───────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -734,6 +747,7 @@ pre {
     <div class="conn-dot off" id="cd"></div>
     <span id="cl">Verbindung</span>
   </div>
+  <button class="admin-btn" id="thbtn" onclick="toggleTheme()">☀ Hell</button>
   <button class="admin-btn" onclick="shareApp()">↗ Teilen</button>
   <button class="admin-btn" onclick="showHelp()">? Hilfe</button>
   <button class="admin-btn" id="abtn" onclick="toggleAdmin()">🔒 Admin</button>
@@ -758,15 +772,15 @@ pre {
         <ellipse cx="40" cy="30" rx="26" ry="24" fill="var(--sk)"/>
         <rect x="20" y="47" width="40" height="11" rx="2" fill="var(--sk)"/>
         <!-- eyes -->
-        <ellipse cx="29" cy="28" rx="7.5" ry="8.5" fill="var(--bg)"/>
-        <ellipse cx="51" cy="28" rx="7.5" ry="8.5" fill="var(--bg)"/>
+        <ellipse cx="29" cy="28" rx="7.5" ry="8.5" fill="#0f0d0a"/>
+        <ellipse cx="51" cy="28" rx="7.5" ry="8.5" fill="#0f0d0a"/>
         <!-- nose -->
-        <polygon points="37,41 43,41 40,48" fill="var(--bg)"/>
+        <polygon points="37,41 43,41 40,48" fill="#0f0d0a"/>
         <!-- tooth gaps -->
-        <rect x="28" y="47" width="3" height="8" fill="var(--bg)"/>
-        <rect x="37" y="47" width="3" height="8" fill="var(--bg)"/>
-        <rect x="47" y="47" width="3" height="8" fill="var(--bg)"/>
-        <rect x="56" y="47" width="3" height="8" fill="var(--bg)"/>
+        <rect x="28" y="47" width="3" height="8" fill="#0f0d0a"/>
+        <rect x="37" y="47" width="3" height="8" fill="#0f0d0a"/>
+        <rect x="47" y="47" width="3" height="8" fill="#0f0d0a"/>
+        <rect x="56" y="47" width="3" height="8" fill="#0f0d0a"/>
       </svg>
     </div>
     <div class="logo-block">
@@ -868,7 +882,7 @@ let sb=null, ch=null, cm='off';
 let st={sp:[],ei:[],aktiv:null};
 let cur='ov', sf={su:false,bi:false,ta:false};
 let dtgt=null, adm=false, ptgt=null, pbuf='';
-let showDone=false, onlyMine=false, showArchiv=false;
+let showDone=false, onlyMine=false, showArchiv=false, theme='dark';
 let me={nm:'',si:''};
 
 // ── STORAGE ───────────────────────────────────────────────────
@@ -876,10 +890,13 @@ const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} }
 const ldcfg=()=>{ try{const r=localStorage.getItem(KC);if(r)cfg={...cfg,...JSON.parse(r)};}catch(e){} };
 const svbck=()=>{ try{localStorage.setItem(KB,JSON.stringify(st));}catch(e){} };
 const ldbck=()=>{ try{const r=localStorage.getItem(KB);if(r)st=JSON.parse(r);}catch(e){} };
-const KM='fs-me', KH='fs-help';
+const KM='fs-me', KH='fs-help', KT='fs-theme';
 const svme=()=>{ try{localStorage.setItem(KM,JSON.stringify(me));}catch(e){} };
 const ldme=()=>{ try{const r=localStorage.getItem(KM);if(r)me={...me,...JSON.parse(r)};}catch(e){} };
 const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const ldtheme=()=>{ try{const t=localStorage.getItem(KT); if(t==='light'||t==='dark')theme=t;}catch(e){} };
+function applyTheme(){ document.body.classList.toggle('light', theme==='light'); const b=document.getElementById('thbtn'); if(b)b.textContent=theme==='light'?'🌙 Dunkel':'☀ Hell'; }
+function toggleTheme(){ theme=theme==='light'?'dark':'light'; try{localStorage.setItem(KT,theme);}catch(e){} applyTheme(); }
 
 // ── HELPERS ───────────────────────────────────────────────────
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -1487,7 +1504,7 @@ async function shareApp(){
 
 // ── INIT ──────────────────────────────────────────────────────
 (async()=>{
-  ldcfg(); ldbck(); ldme();
+  ldcfg(); ldbck(); ldme(); ldtheme(); applyTheme();
   if(st.sp.length&&!st.aktiv) st.aktiv=st.sp[0].id;
   upadm(); ren(); go('ov');
   await initSB();
