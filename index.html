@@ -884,6 +884,7 @@ function fmt(iso){
          d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
 }
 const brei=sp=>sp ? (sp.typ==='heim'?HEIM:AUSW) : [...HEIM,...AUSW];
+const anHM=s=>{ if(!s||!s.an||s.an.length<16) return ''; const t=s.an.slice(11,16); return t==='00:00'?'':t; };
 const gsp=()=>st.sp.find(s=>s.id===st.aktiv)||null;
 const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
              .sort((a,b)=>new Date(a.ts)-new Date(b.ts));
@@ -900,7 +901,7 @@ const mids=()=>mats().flatMap(m=>m.t==='sb'?[m.s.id,m.b.id]:[m.t1.id,m.t2.id]);
 const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected':''}>${b}</option>`).join('');
 
 // ── DB MAPPING ────────────────────────────────────────────────
-const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at});
+const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.ext_id||null,an:r.anstoss||null});
 const mapei=r=>({id:r.id,sid:r.spiel_id,typ:r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:r.status,ts:r.created_at});
 const todb=e=>({spiel_id:e.sid,typ:e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:e.s||'o'});
 
@@ -1124,7 +1125,7 @@ function ren(){
   const sel=document.getElementById('spsel');
   sel.innerHTML=!st.sp.length
     ?'<option value="">— Noch kein Spiel angelegt —</option>'
-    :st.sp.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${s.ge} — ${new Date(s.da).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}</option>`).join('');
+    :st.sp.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${s.ge} — ${new Date(s.da).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
   // Counts
   ['su','bi','ta'].forEach(t=>{
     const n=gei(t).length;
@@ -1156,7 +1157,7 @@ function ren(){
           <div class="card-heading">${s.ge}</div>
           <div class="card-meta">
             <span class="meta-name">${s.typ==='heim'?'Heimspiel':'Auswärtsspiel'}</span>
-            <span class="meta-time">${new Date(s.da).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</span>
+            <span class="meta-time">${new Date(s.da).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}${anHM(s)?' · '+anHM(s)+' Uhr':''}</span>
           </div>
         </div>
         <div class="card-acts">
@@ -1183,6 +1184,8 @@ CREATE TABLE public.spiele (
   gegner text NOT NULL,
   datum date NOT NULL,
   typ text NOT NULL CHECK (typ IN ('heim','auswaerts')),
+  ext_id text,
+  anstoss text,
   created_at timestamptz DEFAULT now()
 );
 CREATE TABLE public.eintraege (
@@ -1207,7 +1210,9 @@ CREATE POLICY "FourStands" ON public.eintraege
   FOR ALL TO anon USING (true) WITH CHECK (true);
 -- 3. Real-time aktivieren
 ALTER PUBLICATION supabase_realtime ADD TABLE public.spiele;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.eintraege;`;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.eintraege;
+-- 4. Eindeutige ID für automatische Termin-Updates (OpenLigaDB)
+CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);`;
 
   const cc=cm==='live'?'ok':cm==='local'?'lc':'er';
   const ct=cm==='live'?'✓ Verbunden mit Supabase – Real-time aktiv'
@@ -1253,6 +1258,18 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.eintraege;`;
         </div>
         <button class="btn-primary" onclick="svCfgR()">Verbinden</button>
         ${cfg.url?`<button class="btn-secondary" onclick="clrCfg()" style="margin-left:8px">Trennen</button>`:''}
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-section-title">🔄 Termine aktualisieren</div>
+      <div class="setup-block">
+        <p>Holt Spieltermine & Anstoßzeiten der <strong style="color:var(--tx)">2. Bundesliga 2026/27</strong> automatisch von <a href="https://www.openligadb.de" target="_blank">OpenLigaDB</a>: neue Paarungen werden eingetragen, bei bestehenden Spielen Datum/Uhrzeit aktualisiert, Platzhalter durch die echten Gegner ersetzt.</p>
+        <button class="btn-primary" onclick="updTermine()">🔄 Jetzt aktualisieren</button>
+        <p style="font-size:11px;color:var(--mu);margin-top:10px">Einmalige Voraussetzung (im Supabase-SQL-Editor ausführen) — erweitert die Tabelle um <code style="background:var(--sf2);padding:0 4px">ext_id</code> &amp; <code style="background:var(--sf2);padding:0 4px">anstoss</code>. DFB-Pokal wird nicht automatisch aktualisiert.</p>
+        <pre id="sqlMig">ALTER TABLE public.spiele ADD COLUMN IF NOT EXISTS ext_id text;
+ALTER TABLE public.spiele ADD COLUMN IF NOT EXISTS anstoss text;
+CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);</pre>
       </div>
     </div>
 
@@ -1316,6 +1333,51 @@ async function dDSP(id){
   try{ await dbDSP(id); ren(); toast('✓ Spiel gelöscht'); }
   catch(e){ toast('Fehler: '+e.message,true); }
 }
+
+// ── TERMINE-UPDATE (OpenLigaDB) ───────────────────────────────
+const OLDB_LEAGUE='bl2', OLDB_SEASON='2026';
+const isStP=t=>(((t&&t.teamName)||'').toLowerCase().includes('pauli'));
+async function updTermine(){
+  if(cm!=='live'||!sb){ toast('Bitte zuerst mit Supabase verbinden',true); return; }
+  try{
+    sld(true);
+    const res=await fetch(`https://api.openligadb.de/getmatchdata/${OLDB_LEAGUE}/${OLDB_SEASON}`);
+    if(!res.ok) throw new Error('OpenLigaDB HTTP '+res.status);
+    const data=await res.json();
+    if(!Array.isArray(data)||!data.length){ toast('Noch keine Termine bei OpenLigaDB hinterlegt',true); return; }
+    const heute=new Date(); heute.setHours(0,0,0,0);
+    const games=data.filter(m=>isStP(m.team1)||isStP(m.team2)).map(m=>{
+      const heim=isStP(m.team1), opp=heim?m.team2:m.team1, dt=m.matchDateTime||'';
+      return { ext:'oldb-'+m.matchID, gegner:(opp&&opp.teamName)||'Unbekannt',
+               anstoss:dt||null, datum:dt?dt.slice(0,10):null,
+               typ:heim?'heim':'auswaerts', st:(m.group&&m.group.groupOrderID)||null };
+    }).filter(g=>g.datum && new Date(g.datum)>=heute);
+    if(!games.length){ toast('Keine kommenden St.-Pauli-Termine gefunden',true); return; }
+    const{data:cur,error}=await sb.from('spiele').select('id,gegner,datum,typ,ext_id,anstoss');
+    if(error) throw error;
+    const byExt={}; (cur||[]).forEach(r=>{ if(r.ext_id) byExt[r.ext_id]=r; });
+    let nUpd=0; const toInsert=[];
+    for(const g of games){
+      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:g.anstoss,ext_id:g.ext};
+      const ex=byExt[g.ext];
+      if(ex){
+        if(ex.datum!==g.datum||ex.anstoss!==g.anstoss||ex.gegner!==g.gegner||ex.typ!==g.typ){
+          const{error:e2}=await sb.from('spiele').update(row).eq('id',ex.id); if(e2)throw e2; nUpd++;
+        }
+        continue;
+      }
+      const ph=g.st?(cur||[]).find(r=>!r.ext_id&&new RegExp('(^|\\D)'+g.st+'\\.\\s*Spieltag').test(r.gegner||'')):null;
+      if(ph){ const{error:e3}=await sb.from('spiele').update(row).eq('id',ph.id); if(e3)throw e3; ph.ext_id=g.ext; nUpd++; }
+      else toInsert.push(row);
+    }
+    let nNew=0;
+    if(toInsert.length){ const{error:e4}=await sb.from('spiele').insert(toInsert); if(e4)throw e4; nNew=toInsert.length; }
+    await ldall(); ren();
+    toast(`✓ Termine: ${nNew} neu, ${nUpd} aktualisiert`);
+  }catch(e){ console.warn('updTermine',e); toast('Update fehlgeschlagen: '+(e.message||e),true); }
+  finally{ sld(false); }
+}
+
 async function addE(typ){
   const p=typ;
   const nm=document.getElementById(`${p}-n`).value.trim();
