@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FourStands – Ticket-Börse | FC St. Pauli</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ─── FCSP COLOUR TOKENS ─────────────────────────────── */
+:root {
+  --bg:       #0f0d0a;   /* warm near-black                */
+  --sf:       #181410;   /* card / surface                 */
+  --sf2:      #211b14;   /* input / deep surface           */
+  --bd:       #2e2318;   /* warm border                    */
+  --red:      #EC1B24;   /* FCSP primary red               */
+  --red-d:    #c0141b;   /* red dark                       */
+  --brn:      #6B3A2A;   /* FCSP Braun                     */
+  --brn-l:    #8B5040;   /* Braun light                    */
+  --sk:       #F5F0E8;   /* skull / warm white             */
+  --tx:       #EDE8DE;   /* body text                      */
+  --mu:       #7A6E64;   /* muted text                     */
+  --su:       #3B82F6;   /* Suche  – blue                  */
+  --bi:       #22C55E;   /* Biete  – green                 */
+  --ta:       #F97316;   /* Tausch – orange                */
+  --ma:       #FBBF24;   /* match  – gold                  */
+  /* FOUR STANDS rainbow */
+  --r1:#E63946; --r2:#F4A261; --r3:#F7DC6F;
+  --r4:#2ECC71; --r5:#3498DB; --r6:#9B59B6;
+}
+
+/* ─── RESET & BASE ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--tx);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ─── UTILITY ────────────────────────────────────────── */
+.up   { text-transform: uppercase; }
+.cond { font-family: 'Barlow Condensed', sans-serif; }
+.bbn  { font-family: 'Bebas Neue', sans-serif; }
+.muted { color: var(--mu); }
+
+/* ─── FCSP-STYLE TOP BAR ─────────────────────────────── */
+.topbar {
+  background: #070503;
+  border-bottom: 1px solid #1a1208;
+  padding: 4px 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+.topbar-item {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--mu);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.conn-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.conn-dot.live   { background: var(--bi); box-shadow: 0 0 5px var(--bi); animation: blink 2s infinite; }
+.conn-dot.local  { background: var(--ma); }
+.conn-dot.off    { background: #ff5252; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+/* ─── HEADER ─────────────────────────────────────────── */
+.hdr {
+  background: #070503;
+  border-bottom: 3px solid var(--red);
+  padding: 16px 20px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.hdr-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+.skull-svg { flex-shrink: 0; }
+.logo-block { flex: 1; }
+.logo-four, .logo-stands {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 4px;
+  line-height: .95;
+  font-size: 28px;
+}
+.logo-four span, .logo-stands span { display: inline-block; }
+.logo-eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--mu);
+  margin-top: 4px;
+}
+.hdr-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.admin-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 4px 12px;
+  border-radius: 0;
+  border: 1px solid var(--brn);
+  background: transparent;
+  color: var(--mu);
+  cursor: pointer;
+  transition: all .15s;
+}
+.admin-btn:hover { border-color: var(--red); color: var(--tx); }
+.admin-btn.on {
+  background: var(--bi);
+  border-color: var(--bi);
+  color: #000;
+}
+
+/* ─── NAVIGATION ─────────────────────────────────────── */
+.nav-wrap {
+  background: #0c0a07;
+  border-bottom: 1px solid var(--bd);
+  position: sticky;
+  top: 71px;  /* below sticky header */
+  z-index: 99;
+}
+.nav {
+  display: flex;
+  overflow-x: auto;
+  max-width: 980px;
+  margin: 0 auto;
+  scrollbar-width: none;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nb {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--mu);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 12px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.nb:hover { color: var(--tx); }
+.nb.active { color: var(--tx); border-bottom-color: var(--red); }
+.nb.su.active { border-bottom-color: var(--su); color: #93c5fd; }
+.nb.bi.active { border-bottom-color: var(--bi); color: #86efac; }
+.nb.ta.active { border-bottom-color: var(--ta); color: #fdba74; }
+.nbadge {
+  display: inline-block;
+  background: var(--bd);
+  color: var(--mu);
+  font-family: 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  border-radius: 2px;
+  padding: 0 5px;
+  margin-left: 5px;
+  line-height: 16px;
+}
+.nav-lock { font-size: 9px; margin-left: 3px; opacity: .4; }
+
+/* ─── MAIN CONTENT AREA ──────────────────────────────── */
+.main { padding: 16px; max-width: 980px; margin: 0 auto; }
+
+/* ─── SPIEL SELECTOR ─────────────────────────────────── */
+.spiel-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--red);
+}
+.spiel-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  color: var(--mu);
+  flex-shrink: 0;
+}
+.spiel-sel {
+  flex: 1;
+  min-width: 160px;
+  background: var(--sf2);
+  border: 1px solid var(--bd);
+  color: var(--tx);
+  padding: 6px 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ─── STATS ROW ──────────────────────────────────────── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--bd);
+  border: 1px solid var(--bd);
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--sf);
+  padding: 10px 14px;
+  text-align: center;
+}
+.stat-n {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  line-height: 1;
+}
+.stat-n.s { color: var(--su); }
+.stat-n.b { color: var(--bi); }
+.stat-n.t { color: var(--ta); }
+.stat-l {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--mu);
+  margin-top: 2px;
+}
+
+/* ─── MATCH BANNER ───────────────────────────────────── */
+.match-banner {
+  background: var(--sf);
+  border-left: 3px solid var(--ma);
+  padding: 8px 14px;
+  margin-bottom: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .5px;
+  color: var(--ma);
+}
+
+/* ─── CARD GRID ──────────────────────────────────────── */
+.card-grid { display: flex; flex-direction: column; gap: 1px; background: var(--bd); border: 1px solid var(--bd); }
+.card {
+  background: var(--sf);
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  transition: background .12s;
+}
+.card:hover { background: #1d1710; }
+.card.is-match { border-left: 3px solid var(--ma); }
+.card.done { opacity: .35; }
+.card-nr {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--bd);
+  text-align: center;
+  line-height: 1;
+  padding-top: 2px;
+  border-right: 1px solid var(--bd);
+  padding-right: 8px;
+}
+
+/* ─── TYPE TAGS (FCSP category style) ───────────────── */
+.tag {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2.5px;
+  padding: 2px 8px;
+  margin-bottom: 5px;
+  border-left: 2px solid;
+}
+.tag-su { color: #93c5fd; border-color: var(--su); background: #3b82f610; }
+.tag-bi { color: #86efac; border-color: var(--bi); background: #22c55e10; }
+.tag-ta { color: #fdba74; border-color: var(--ta); background: #f9731610; }
+.tag-match { color: var(--ma); border-color: var(--ma); background: #fbbf2410; margin-left: 6px; }
+
+.card-heading {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.card-tgg {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  color: var(--mu);
+  margin-bottom: 3px;
+}
+.card-tgg span { color: var(--ta); font-weight: 700; }
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+.meta-name { font-weight: 600; font-size: 13px; }
+.meta-sig {
+  font-size: 12px;
+  color: #60a5fa;
+  text-decoration: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .5px;
+}
+.meta-sig:hover { text-decoration: underline; }
+.meta-time {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: var(--mu);
+  letter-spacing: .5px;
+}
+.meta-anz { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: var(--mu); }
+.card-note { font-size: 12px; color: var(--mu); margin-top: 4px; font-style: italic; }
+.card-acts { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.btn-done {
+  background: none;
+  border: 1px solid #22c55e40;
+  color: #86efac;
+  padding: 3px 10px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.btn-done:hover { background: #22c55e15; }
+.btn-del {
+  background: none;
+  border: none;
+  color: var(--mu);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  transition: color .15s;
+}
+.btn-del:hover { color: var(--red); }
+
+/* ─── EMPTY STATE ────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--mu);
+  border: 1px solid var(--bd);
+}
+.empty-ico { font-size: 30px; display: block; margin-bottom: 10px; }
+
+/* ─── FORMS ──────────────────────────────────────────── */
+.form-panel {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-top: 2px solid var(--red);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.form-panel.su { border-top-color: var(--su); }
+.form-panel.bi { border-top-color: var(--bi); }
+.form-panel.ta { border-top-color: var(--ta); }
+.form-panel.sp { border-top-color: var(--red); }
+.form-heading {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+}
+.form-heading.su { color: #93c5fd; }
+.form-heading.bi { color: #86efac; }
+.form-heading.ta { color: #fdba74; }
+.form-heading.sp { color: var(--tx); }
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.fg { display: flex; flex-direction: column; gap: 4px; }
+.fg label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--mu);
+}
+.fg input, .fg select {
+  background: var(--sf2);
+  border: 1px solid var(--bd);
+  border-bottom: 1px solid #4a3828;
+  color: var(--tx);
+  padding: 8px 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  transition: border-color .15s;
+}
+.fg input:focus, .fg select:focus {
+  outline: none;
+  border-bottom-color: var(--red);
+}
+.fg input::placeholder { color: var(--mu); }
+
+/* ─── BUTTONS ────────────────────────────────────────── */
+.btn-primary {
+  background: var(--red);
+  color: #fff;
+  border: none;
+  padding: 9px 20px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all .15s;
+}
+.btn-primary:hover { background: var(--red-d); }
+.btn-primary.su { background: var(--su); }
+.btn-primary.su:hover { background: #2563eb; }
+.btn-primary.ta { background: var(--ta); }
+.btn-primary.ta:hover { background: #ea6c10; }
+.btn-secondary {
+  background: transparent;
+  color: var(--mu);
+  border: 1px solid var(--bd);
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all .15s;
+}
+.btn-secondary:hover { border-color: var(--tx); color: var(--tx); }
+
+/* ─── TOGGLE BUTTON ──────────────────────────────────── */
+.toggler {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--mu);
+  padding: 10px 16px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-align: left;
+  transition: all .15s;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toggler::before { content: '+'; font-size: 18px; color: var(--red); font-weight: 300; }
+.toggler.open::before { content: '−'; }
+.toggler:hover { border-color: var(--red); color: var(--tx); }
+
+/* ─── DIVIDER ────────────────────────────────────────── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--mu);
+}
+.section-divider::before, .section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bd);
+}
+
+/* ─── MODALS ─────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-top: 3px solid var(--red);
+  padding: 24px;
+  max-width: 460px;
+  width: 100%;
+}
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: var(--tx);
+  margin-bottom: 10px;
+}
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+
+/* ─── PIN PAD ────────────────────────────────────────── */
+.pin-display {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin: 20px 0 24px;
+}
+.pd {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--bd);
+  transition: background .12s;
+}
+.pd.fill { background: var(--red); }
+.pd.err  { background: #ff5252; }
+.pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-width: 240px;
+  margin: 0 auto;
+}
+.pk {
+  background: var(--sf2);
+  border: 1px solid var(--bd);
+  color: var(--tx);
+  padding: 15px 0;
+  cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  text-align: center;
+  transition: all .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pk:hover { background: var(--bd); border-color: var(--red); }
+.pk:active { transform: scale(.93); }
+.pk.clr { color: var(--ta); font-family: 'Barlow', sans-serif; font-size: 18px; }
+.pk.cnl { color: var(--mu); font-family: 'Barlow', sans-serif; font-size: 16px; }
+.pin-hint {
+  text-align: center;
+  margin-top: 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: var(--mu);
+  letter-spacing: .5px;
+  line-height: 1.6;
+}
+
+/* ─── SETUP TAB ──────────────────────────────────────── */
+.setup-section { margin-bottom: 24px; }
+.setup-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--mu);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--bd);
+  margin-bottom: 12px;
+}
+.setup-block {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  padding: 14px;
+  margin-bottom: 8px;
+}
+.step-nr {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  padding: 1px 10px;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.setup-block p { font-size: 12px; color: var(--mu); line-height: 1.7; margin-bottom: 8px; }
+.setup-block a { color: var(--red); }
+.setup-block a:hover { text-decoration: underline; }
+pre {
+  background: #070503;
+  border: 1px solid var(--bd);
+  padding: 14px;
+  font-size: 11px;
+  color: #b0a090;
+  overflow-x: auto;
+  line-height: 1.6;
+  font-family: 'Courier New', monospace;
+  white-space: pre;
+  margin-bottom: 8px;
+}
+.btn-copy {
+  background: transparent;
+  border: 1px solid var(--bd);
+  color: var(--mu);
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  transition: all .15s;
+}
+.btn-copy:hover { border-color: var(--red); color: var(--tx); }
+.conn-status {
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  border-left: 3px solid;
+}
+.conn-status.ok  { background: #22c55e0d; border-color: var(--bi); color: #86efac; }
+.conn-status.lc  { background: #fbbf240d; border-color: var(--ma); color: var(--ma); }
+.conn-status.er  { background: #ff52520d; border-color: #ff5252;   color: #ff5252; }
+.info-box {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--brn);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--mu);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.info-box strong { color: var(--tx); }
+
+/* ─── LOADING / TOAST ────────────────────────────────── */
+#load-bar {
+  height: 2px;
+  background: linear-gradient(90deg, var(--red-d), var(--red), var(--red-d));
+  background-size: 200% 100%;
+  animation: ld 1s linear infinite;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+}
+@keyframes ld { 0%{background-position:0%} 100%{background-position:-200%} }
+.toast {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-left: 3px solid var(--bi);
+  padding: 10px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  z-index: 500;
+  transform: translateY(60px); opacity: 0;
+  transition: all .3s;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.err  { border-left-color: var(--red); }
+
+/* ─── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 480px) {
+  .logo-four, .logo-stands { font-size: 22px; }
+  .stats { grid-template-columns: repeat(3,1fr); }
+  .stat-n { font-size: 22px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .hdr { padding: 12px 14px 10px; }
+}
+</style>
+</head>
+<body>
+
+<div id="load-bar" style="display:none"></div>
+<div id="toast" class="toast"></div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-item">
+    <div class="conn-dot off" id="cd"></div>
+    <span id="cl">Verbindung</span>
+  </div>
+  <button class="admin-btn" id="abtn" onclick="toggleAdmin()">🔒 Admin</button>
+</div>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="skull-svg">
+      <svg viewBox="0 0 80 80" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+        <!-- crossbones -->
+        <line x1="6" y1="74" x2="40" y2="52" stroke="var(--sk)" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="6"  cy="74" r="6" fill="var(--sk)"/>
+        <circle cx="40" cy="52" r="5" fill="var(--sk)"/>
+        <line x1="74" y1="74" x2="40" y2="52" stroke="var(--sk)" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="74" cy="74" r="6" fill="var(--sk)"/>
+        <line x1="6"  y1="46" x2="40" y2="52" stroke="var(--sk)" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="6"  cy="46" r="6" fill="var(--sk)"/>
+        <line x1="74" y1="46" x2="40" y2="52" stroke="var(--sk)" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="74" cy="46" r="6" fill="var(--sk)"/>
+        <!-- skull dome -->
+        <ellipse cx="40" cy="30" rx="26" ry="24" fill="var(--sk)"/>
+        <rect x="20" y="47" width="40" height="11" rx="2" fill="var(--sk)"/>
+        <!-- eyes -->
+        <ellipse cx="29" cy="28" rx="7.5" ry="8.5" fill="var(--bg)"/>
+        <ellipse cx="51" cy="28" rx="7.5" ry="8.5" fill="var(--bg)"/>
+        <!-- nose -->
+        <polygon points="37,41 43,41 40,48" fill="var(--bg)"/>
+        <!-- tooth gaps -->
+        <rect x="28" y="47" width="3" height="8" fill="var(--bg)"/>
+        <rect x="37" y="47" width="3" height="8" fill="var(--bg)"/>
+        <rect x="47" y="47" width="3" height="8" fill="var(--bg)"/>
+        <rect x="56" y="47" width="3" height="8" fill="var(--bg)"/>
+      </svg>
+    </div>
+    <div class="logo-block">
+      <div class="logo-four">
+        <span style="color:var(--r1)">F</span><span style="color:var(--r2)">O</span><span style="color:var(--r3)">U</span><span style="color:var(--r4)">R</span>
+      </div>
+      <div class="logo-stands">
+        <span style="color:var(--r5)">S</span><span style="color:var(--r6)">T</span><span style="color:var(--r1)">A</span><span style="color:var(--r2)">N</span><span style="color:var(--r4)">D</span><span style="color:var(--r5)">S</span>
+      </div>
+      <div class="logo-eyebrow">FC St. Pauli Fanclub &nbsp;·&nbsp; Ticket-Börse</div>
+    </div>
+  </div>
+</header>
+
+<!-- NAVIGATION -->
+<div class="nav-wrap">
+  <nav class="nav">
+    <button class="nb active"   onclick="go('ov')">Übersicht</button>
+    <button class="nb su"       onclick="go('su')">Suche  <span class="nbadge" id="c-su">0</span></button>
+    <button class="nb bi"       onclick="go('bi')">Biete  <span class="nbadge" id="c-bi">0</span></button>
+    <button class="nb ta"       onclick="go('ta')">Tausch <span class="nbadge" id="c-ta">0</span></button>
+    <button class="nb" id="n-sp" onclick="go('sp')">Spiele <span class="nav-lock" id="lk-sp">🔒</span></button>
+    <button class="nb" id="n-se" onclick="go('se')">Setup  <span class="nav-lock" id="lk-se">🔒</span></button>
+  </nav>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="spiel-bar" id="spbar">
+    <span class="spiel-lbl">Aktuelles Spiel</span>
+    <select class="spiel-sel" id="spsel" onchange="spChg()"></select>
+  </div>
+
+  <div class="stats" id="strow">
+    <div class="stat"><div class="stat-n s" id="st-s">0</div><div class="stat-l">Suchen</div></div>
+    <div class="stat"><div class="stat-n b" id="st-b">0</div><div class="stat-l">Angebote</div></div>
+    <div class="stat"><div class="stat-n t" id="st-t">0</div><div class="stat-l">Tausche</div></div>
+  </div>
+
+  <div id="mbnr"></div>
+  <div id="tab-ov"></div>
+  <div id="tab-su" style="display:none"></div>
+  <div id="tab-bi" style="display:none"></div>
+  <div id="tab-ta" style="display:none"></div>
+  <div id="tab-sp" style="display:none"></div>
+  <div id="tab-se" style="display:none"></div>
+</div>
+
+<!-- DELETE MODAL -->
+<div id="dm" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Eintrag löschen?</div>
+    <p style="color:var(--mu);font-size:13px;line-height:1.6">Dieser Eintrag wird unwiderruflich gelöscht — für alle Mitglieder sichtbar.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeDM()">Abbrechen</button>
+      <button class="btn-primary" onclick="cfmDel()" style="background:#c62828">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div id="pm" class="overlay" style="display:none">
+  <div class="modal" style="max-width:300px;text-align:center">
+    <div class="modal-title" style="text-align:center">Admin-Bereich</div>
+    <p id="pmsg" style="color:var(--mu);font-size:12px">4-stelligen PIN eingeben</p>
+    <div class="pin-display">
+      <div class="pd" id="pd0"></div><div class="pd" id="pd1"></div>
+      <div class="pd" id="pd2"></div><div class="pd" id="pd3"></div>
+    </div>
+    <div class="pin-pad">
+      <button class="pk" onclick="pi('1')">1</button>
+      <button class="pk" onclick="pi('2')">2</button>
+      <button class="pk" onclick="pi('3')">3</button>
+      <button class="pk" onclick="pi('4')">4</button>
+      <button class="pk" onclick="pi('5')">5</button>
+      <button class="pk" onclick="pi('6')">6</button>
+      <button class="pk" onclick="pi('7')">7</button>
+      <button class="pk" onclick="pi('8')">8</button>
+      <button class="pk" onclick="pi('9')">9</button>
+      <button class="pk clr" onclick="pc()">⌫</button>
+      <button class="pk" onclick="pi('0')">0</button>
+      <button class="pk cnl" onclick="pcnl()">✕</button>
+    </div>
+    <p class="pin-hint">Standard-PIN: <strong>0000</strong><br>Im Setup ändern nach Anmeldung</p>
+  </div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────
+const HEIM=['Nordkurve','Südtribüne','Gegengerade','Haupttribüne'];
+const AUSW=['Sitzplatz','Stehplatz'];
+const KC='fs-cfg4', KB='fs-bck4';
+const DPIN='0000';
+
+let cfg={url:'',key:'',pin:DPIN};
+let lastConnErr='';
+let sb=null, ch=null, cm='off';
+let st={sp:[],ei:[],aktiv:null};
+let cur='ov', sf={su:false,bi:false,ta:false};
+let dtgt=null, adm=false, ptgt=null, pbuf='';
+
+// ── STORAGE ───────────────────────────────────────────────────
+const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} };
+const ldcfg=()=>{ try{const r=localStorage.getItem(KC);if(r)cfg={...cfg,...JSON.parse(r)};}catch(e){} };
+const svbck=()=>{ try{localStorage.setItem(KB,JSON.stringify(st));}catch(e){} };
+const ldbck=()=>{ try{const r=localStorage.getItem(KB);if(r)st=JSON.parse(r);}catch(e){} };
+
+// ── HELPERS ───────────────────────────────────────────────────
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function fmt(iso){
+  if(!iso)return'';
+  const d=new Date(iso),df=Math.floor((Date.now()-d)/60000);
+  if(df<1)return'gerade eben';
+  if(df<60)return`vor ${df} Min.`;
+  if(df<1440)return`vor ${Math.floor(df/60)} Std.`;
+  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+
+         d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+const brei=sp=>sp ? (sp.typ==='heim'?HEIM:AUSW) : [...HEIM,...AUSW];
+const gsp=()=>st.sp.find(s=>s.id===st.aktiv)||null;
+const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
+             .sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+
+function mats(){
+  const ms=[], su=gei('su'), bi=gei('bi'), ta=gei('ta');
+  su.forEach(s=>bi.forEach(b=>{if(b.br===s.br)ms.push({t:'sb',s,b});}));
+  ta.forEach((t1,i)=>ta.forEach((t2,j)=>{
+    if(i<j&&t1.br===t2.tg&&t2.br===t1.tg)ms.push({t:'tt',t1,t2});
+  }));
+  return ms;
+}
+const mids=()=>mats().flatMap(m=>m.t==='sb'?[m.s.id,m.b.id]:[m.t1.id,m.t2.id]);
+const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected':''}>${b}</option>`).join('');
+
+// ── DB MAPPING ────────────────────────────────────────────────
+const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at});
+const mapei=r=>({id:r.id,sid:r.spiel_id,typ:r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:r.status,ts:r.created_at});
+const todb=e=>({spiel_id:e.sid,typ:e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:e.s||'o'});
+
+// ── SUPABASE ──────────────────────────────────────────────────
+async function initSB(){
+  if(!cfg.url||!cfg.key){cm='local';upconn();return;}
+  // Strip common URL suffixes users accidentally paste
+  const cleanUrl=cfg.url
+    .replace(/\/rest\/v1\/?$/,'')
+    .replace(/\/auth\/v1\/?$/,'')
+    .replace(/\/+$/,'');
+  try{
+    sb=window.supabase.createClient(cleanUrl, cfg.key);
+    // Test connection with a simple query
+    const{error}=await sb.from('spiele').select('id').limit(1);
+    if(error) throw new Error('DB-Fehler: '+error.message);
+    await ldall(); subRT(); cm='live';
+    lastConnErr='';
+  }catch(e){
+    console.warn('Supabase Fehler:',e);
+    lastConnErr=e.message||String(e);
+    ldbck(); cm='local'; sb=null;
+  }
+  upconn();
+}
+async function ldall(){
+  sld(true);
+  try{
+    const{data,error}=await sb.from('spiele').select('*').order('datum',{ascending:true});
+    if(error)throw error;
+    st.sp=(data||[]).map(mapsp);
+    if(!st.aktiv&&st.sp.length)st.aktiv=st.sp[0].id;
+    if(st.aktiv)await ldei();
+  }finally{sld(false);}
+}
+async function ldei(){
+  if(!st.aktiv||!sb)return;
+  const{data,error}=await sb.from('eintraege').select('*')
+    .eq('spiel_id',st.aktiv).order('created_at',{ascending:true});
+  if(error)throw error;
+  st.ei=[...st.ei.filter(e=>e.sid!==st.aktiv),...(data||[]).map(mapei)];
+}
+function subRT(){
+  if(ch)sb.removeChannel(ch);
+  ch=sb.channel('fs5')
+    .on('postgres_changes',{event:'*',schema:'public',table:'spiele'},async()=>{await ldall();ren();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'eintraege'},async()=>{await ldei();ren();})
+    .subscribe();
+}
+
+// ── DB ACTIONS ────────────────────────────────────────────────
+async function dbASP(g,d,t){
+  if(sb){
+    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t}).select().single();
+    if(error)throw error;
+    const s=mapsp(data); st.sp.push(s); st.aktiv=s.id; await ldei(); return s;
+  }
+  const s={id:uid(),ge:g,da:d,typ:t,ts:new Date().toISOString()};
+  st.sp.push(s); st.aktiv=s.id; svbck(); return s;
+}
+async function dbDSP(id){
+  if(sb){const{error}=await sb.from('spiele').delete().eq('id',id);if(error)throw error;}
+  st.sp=st.sp.filter(s=>s.id!==id);
+  st.ei=st.ei.filter(e=>e.sid!==id);
+  if(st.aktiv===id)st.aktiv=st.sp[0]?.id||null;
+  if(!sb)svbck();
+}
+async function dbAE(e){
+  if(sb){
+    const{data,error}=await sb.from('eintraege').insert(todb(e)).select().single();
+    if(error)throw error; st.ei.push(mapei(data));
+  }else{ e.ts=new Date().toISOString(); st.ei.push(e); svbck(); }
+}
+async function dbDN(id){
+  if(sb){const{error}=await sb.from('eintraege').update({status:'erledigt'}).eq('id',id);if(error)throw error;}
+  const e=st.ei.find(e=>e.id===id); if(e)e.s='erledigt'; if(!sb)svbck();
+}
+async function dbDE(id){
+  if(sb){const{error}=await sb.from('eintraege').delete().eq('id',id);if(error)throw error;}
+  st.ei=st.ei.filter(e=>e.id!==id); if(!sb)svbck();
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────
+const sld=v=>document.getElementById('load-bar').style.display=v?'block':'none';
+function toast(msg,err=false){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.className='toast'+(err?' err':''),2600);
+}
+function upconn(){
+  const d=document.getElementById('cd'),l=document.getElementById('cl');
+  if(cm==='live'){ d.className='conn-dot live'; l.textContent='Live'; l.style.color='#86efac'; }
+  else if(cm==='local'){ d.className='conn-dot local'; l.textContent='Lokal'; l.style.color='var(--ma)'; }
+  else{ d.className='conn-dot off'; l.textContent='Offline'; l.style.color='#ff5252'; }
+}
+function upadm(){
+  const b=document.getElementById('abtn');
+  const ls=document.getElementById('lk-sp'), lk=document.getElementById('lk-se');
+  if(adm){
+    b.textContent='🔓 Admin'; b.className='admin-btn on';
+    if(ls)ls.style.display='none'; if(lk)lk.style.display='none';
+  }else{
+    b.textContent='🔒 Admin'; b.className='admin-btn';
+    if(ls)ls.style.display='inline'; if(lk)lk.style.display='inline';
+  }
+}
+
+// ── PIN ───────────────────────────────────────────────────────
+function toggleAdmin(){
+  if(adm){ adm=false; upadm(); toast('Admin abgemeldet'); if(['sp','se'].includes(cur))go('ov'); }
+  else{ ptgt=null; openPin(); }
+}
+function openPin(tgt=null){
+  ptgt=tgt; pbuf=''; updPin();
+  document.getElementById('pmsg').textContent='4-stelligen PIN eingeben';
+  document.getElementById('pm').style.display='flex';
+}
+function updPin(){ for(let i=0;i<4;i++){ const d=document.getElementById('pd'+i); d.className='pd'+(i<pbuf.length?' fill':''); } }
+function pi(x){ if(pbuf.length>=4)return; pbuf+=x; updPin(); if(pbuf.length===4)setTimeout(chkPin,90); }
+function pc(){ if(pbuf.length){ pbuf=pbuf.slice(0,-1); updPin(); } }
+function pcnl(){ pbuf=''; document.getElementById('pm').style.display='none'; ptgt=null; }
+function chkPin(){
+  if(pbuf===(cfg.pin||DPIN)){
+    adm=true; document.getElementById('pm').style.display='none'; upadm(); toast('✓ Admin-Modus aktiv');
+    if(ptgt){ const t=ptgt; ptgt=null; go(t); }
+  }else{
+    for(let i=0;i<4;i++)document.getElementById('pd'+i).className='pd err';
+    setTimeout(()=>{ pbuf=''; updPin(); document.getElementById('pmsg').textContent='Falscher PIN – nochmal:'; },700);
+    toast('Falscher PIN',true);
+  }
+}
+
+// ── RENDER: CARD ──────────────────────────────────────────────
+function cardH(e,nr,mi){
+  const isM=mi.includes(e.id);
+  const sig=e.si?`<a class="meta-sig" href="https://signal.me/#p/${encodeURIComponent(e.si)}" target="_blank">📱 ${e.si}</a>`:'';
+  const az=e.az>1?`<span class="meta-anz">${e.az}× Tickets</span>`:'';
+  const tg=e.typ==='ta'?`<div class="card-tgg">Tausche gegen: <span>${e.tg||'—'}</span></div>`:'';
+  const mB=isM?`<span class="tag tag-match">⚡ Match</span>`:'';
+  const lb=e.typ==='su'?'Suche':e.typ==='bi'?'Biete':'Tausch';
+  const doneBtn=e.s==='o'
+    ?`<button class="btn-done" onclick="mkDn('${e.id}')">✓ Erledigt</button>`
+    :`<span style="font-family:'Barlow Condensed';font-size:10px;font-weight:800;letter-spacing:1.5px;color:#86efac;text-transform:uppercase">✓ ERLEDIGT</span>`;
+  return`<div class="card ${isM?'is-match':''} ${e.s==='erledigt'?'done':''}">
+    <div class="card-nr">${nr}</div>
+    <div>
+      <div><span class="tag tag-${e.typ}">${lb}</span>${mB}</div>
+      <div class="card-heading">${e.br}</div>
+      ${tg}
+      <div class="card-meta">
+        <span class="meta-name">👤 ${e.nm}</span>
+        ${sig}${az}
+        <span class="meta-time">${fmt(e.ts)}</span>
+      </div>
+      ${e.no?`<div class="card-note">💬 ${e.no}</div>`:''}
+    </div>
+    <div class="card-acts">
+      ${doneBtn}
+      <button class="btn-del" onclick="sDel('${e.id}')">×</button>
+    </div>
+  </div>`;
+}
+
+function cgrp(typs){
+  const mi=mids();
+  const all=st.ei.filter(e=>e.sid===st.aktiv&&typs.includes(e.typ)&&e.s==='o')
+              .sort((a,b)=>new Date(a.ts)-new Date(b.ts));
+  if(!all.length)return`<div class="empty"><span class="empty-ico">📭</span>Keine offenen Einträge</div>`;
+  const nr={su:0,bi:0,ta:0};
+  return`<div class="card-grid">${all.map(e=>{nr[e.typ]++;return cardH(e,nr[e.typ],mi);}).join('')}</div>`;
+}
+
+// ── RENDER: FORMS ─────────────────────────────────────────────
+function fSu(sp){ return`
+<button class="toggler${sf.su?' open':''}" onclick="tf('su')">${sf.su?'Formular ausblenden':'Ich suche ein Ticket eintragen'}</button>
+${sf.su?`<div class="form-panel su">
+  <div class="form-heading su">🔍 Ticket suchen</div>
+  <div class="form-grid">
+    <div class="fg"><label>Name *</label><input id="su-n" placeholder="Max Mustermann"></div>
+    <div class="fg"><label>Signal-Kontakt</label><input id="su-si" placeholder="+49 123 … oder @handle"></div>
+    <div class="fg"><label>Bereich *</label><select id="su-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>Anzahl</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Notiz</label><input id="su-no" placeholder="z.B. Rollstuhlplatz, mit Kind…"></div>
+  </div>
+  <button class="btn-primary su" onclick="addE('su')">🔍 In Warteschlange eintragen</button>
+</div>`:''}`;
+}
+function fBi(sp){ return`
+<button class="toggler${sf.bi?' open':''}" onclick="tf('bi')">${sf.bi?'Formular ausblenden':'Ich habe ein Ticket abzugeben'}</button>
+${sf.bi?`<div class="form-panel bi">
+  <div class="form-heading bi">🎟️ Ticket anbieten</div>
+  <div class="form-grid">
+    <div class="fg"><label>Name *</label><input id="bi-n" placeholder="Max Mustermann"></div>
+    <div class="fg"><label>Signal-Kontakt</label><input id="bi-si" placeholder="+49 123 … oder @handle"></div>
+    <div class="fg"><label>Bereich *</label><select id="bi-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>Anzahl</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Notiz</label><input id="bi-no" placeholder="z.B. Preis, Treffpunkt…"></div>
+  </div>
+  <button class="btn-primary" onclick="addE('bi')">🎟️ Ticket eintragen</button>
+</div>`:''}`;
+}
+function fTa(sp){ return`
+<button class="toggler${sf.ta?' open':''}" onclick="tf('ta')">${sf.ta?'Formular ausblenden':'Ich möchte tauschen'}</button>
+${sf.ta?`<div class="form-panel ta">
+  <div class="form-heading ta">🔄 Tauschangebot</div>
+  <div class="form-grid">
+    <div class="fg"><label>Name *</label><input id="ta-n" placeholder="Max Mustermann"></div>
+    <div class="fg"><label>Signal-Kontakt</label><input id="ta-si" placeholder="+49 123 … oder @handle"></div>
+    <div class="fg"><label>Ich habe *</label><select id="ta-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>Ich möchte *</label><select id="ta-g">${bopt(sp)}</select></div>
+    <div class="fg" style="grid-column:1/-1"><label>Notiz</label><input id="ta-no" placeholder="z.B. Reihe, Sektor…"></div>
+  </div>
+  <button class="btn-primary ta" onclick="addE('ta')">🔄 Tausch eintragen</button>
+</div>`:''}`;
+}
+
+// ── RENDER: MAIN ──────────────────────────────────────────────
+function ren(){
+  const sp=gsp();
+  // Spiel selector
+  const sel=document.getElementById('spsel');
+  sel.innerHTML=!st.sp.length
+    ?'<option value="">— Noch kein Spiel angelegt —</option>'
+    :st.sp.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${s.ge} — ${new Date(s.da).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}</option>`).join('');
+  // Counts
+  ['su','bi','ta'].forEach(t=>{
+    const n=gei(t).length;
+    document.getElementById('c-'+t).textContent=n;
+    const k=t==='su'?'s':t==='bi'?'b':'t';
+    document.getElementById('st-'+k).textContent=n;
+  });
+  // Match banners
+  document.getElementById('mbnr').innerHTML=mats().map(m=>
+    m.t==='sb'
+      ?`<div class="match-banner">🎯 MATCH · ${m.s.nm} sucht ${m.s.br} ↔ ${m.b.nm} bietet ${m.b.br}</div>`
+      :`<div class="match-banner">🔄 TAUSCH-MATCH · ${m.t1.nm} (${m.t1.br}→${m.t1.tg}) ↔ ${m.t2.nm} (${m.t2.br}→${m.t2.tg})</div>`
+  ).join('');
+
+  const noSp=`<div class="empty"><span class="empty-ico">📅</span>Bitte zuerst ein Spiel anlegen</div>`;
+
+  // Tab contents
+  document.getElementById('tab-ov').innerHTML=!sp ? noSp : cgrp(['su','bi','ta']);
+  document.getElementById('tab-su').innerHTML=!sp ? noSp : fSu(sp)+cgrp(['su']);
+  document.getElementById('tab-bi').innerHTML=!sp ? noSp : fBi(sp)+cgrp(['bi']);
+  document.getElementById('tab-ta').innerHTML=!sp ? noSp : fTa(sp)+cgrp(['ta']);
+
+  // Spiele
+  const spL=!st.sp.length
+    ?`<div class="empty"><span class="empty-ico">📅</span>Noch keine Spiele angelegt</div>`
+    :st.sp.map(s=>`<div class="card">
+        <div class="card-nr" style="font-size:20px;padding-top:2px">${s.typ==='heim'?'🏟':'✈'}</div>
+        <div>
+          <div class="card-heading">${s.ge}</div>
+          <div class="card-meta">
+            <span class="meta-name">${s.typ==='heim'?'Heimspiel':'Auswärtsspiel'}</span>
+            <span class="meta-time">${new Date(s.da).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</span>
+          </div>
+        </div>
+        <div class="card-acts">
+          <button class="btn-del" onclick="dDSP('${s.id}')">×</button>
+        </div>
+      </div>`).join('');
+  document.getElementById('tab-sp').innerHTML=`
+    <div class="form-panel sp">
+      <div class="form-heading sp">Neues Spiel anlegen</div>
+      <div class="form-grid">
+        <div class="fg"><label>Gegner *</label><input id="sp-g" placeholder="z.B. Hamburger SV"></div>
+        <div class="fg"><label>Datum *</label><input type="date" id="sp-d"></div>
+        <div class="fg"><label>Spieltyp</label><select id="sp-t"><option value="heim">🏟️ Heimspiel</option><option value="auswaerts">✈️ Auswärtsspiel</option></select></div>
+      </div>
+      <button class="btn-primary" onclick="dASP()">Spiel anlegen</button>
+    </div>
+    <div class="section-divider">Alle Spiele</div>
+    <div class="card-grid">${spL}</div>`;
+
+  // Setup
+  const SQL=`-- 1. Tabellen anlegen
+CREATE TABLE public.spiele (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  gegner text NOT NULL,
+  datum date NOT NULL,
+  typ text NOT NULL CHECK (typ IN ('heim','auswaerts')),
+  created_at timestamptz DEFAULT now()
+);
+CREATE TABLE public.eintraege (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  spiel_id uuid REFERENCES public.spiele(id) ON DELETE CASCADE,
+  typ text NOT NULL CHECK (typ IN ('suche','biete','tausch')),
+  bereich text NOT NULL,
+  tausch_gegen text,
+  name text NOT NULL,
+  signal_kontakt text,
+  anzahl integer DEFAULT 1,
+  notiz text,
+  status text DEFAULT 'offen' CHECK (status IN ('offen','erledigt')),
+  created_at timestamptz DEFAULT now()
+);
+-- 2. Zugriff ohne Login erlauben
+ALTER TABLE public.spiele ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.eintraege ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "FourStands" ON public.spiele
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "FourStands" ON public.eintraege
+  FOR ALL TO anon USING (true) WITH CHECK (true);
+-- 3. Real-time aktivieren
+ALTER PUBLICATION supabase_realtime ADD TABLE public.spiele;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.eintraege;`;
+
+  const cc=cm==='live'?'ok':cm==='local'?'lc':'er';
+  const ct=cm==='live'?'✓ Verbunden mit Supabase – Real-time aktiv'
+           :cm==='local'?'⚠ Lokaler Modus – Daten nur auf diesem Gerät'
+           :'✗ Nicht verbunden';
+
+  document.getElementById('tab-se').innerHTML=`
+    <div class="conn-status ${cc}">${ct}</div>
+    ${lastConnErr ? `<div style="background:#ff52520d;border:1px solid #ff525240;border-left:3px solid #ff5252;padding:10px 14px;margin-bottom:12px;font-family:'Barlow Condensed';font-size:11px;letter-spacing:.5px;color:#ff9090;">
+      <strong style="display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:2px">Verbindungsfehler</strong>
+      ${lastConnErr}
+      <div style="margin-top:8px;color:var(--mu)">Häufige Ursachen: URL enthält noch <code style="background:#1a0808;padding:1px 5px">/rest/v1/</code> am Ende → wird automatisch entfernt beim erneuten Verbinden. Oder: falscher API-Key.</div>
+    </div>` : ''}
+    <div class="info-box">
+      <strong>Wie das funktioniert:</strong> Die HTML-Datei liegt auf GitHub Pages oder Netlify — statisch, keine eigene IP, kein Server, kostenlos.
+      Alle Mitglieder öffnen dieselbe URL. Daten liegen in Supabase (Cloud-Datenbank, kostenlos).
+      Zugangskontrolle: geheime URL + Admin-PIN für Verwaltungsfunktionen.
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-section-title">🔑 Admin-PIN ändern</div>
+      <div class="setup-block">
+        <p>Schützt Spiele-Anlage und Setup. Standard: <strong style="color:var(--tx)">0000</strong>. Wird lokal gespeichert (pro Gerät).</p>
+        <div class="form-grid" style="max-width:380px">
+          <div class="fg"><label>Neuer PIN (4 Ziffern)</label><input id="np1" type="password" maxlength="4" inputmode="numeric" placeholder="z.B. 2810"></div>
+          <div class="fg"><label>Wiederholen</label><input id="np2" type="password" maxlength="4" inputmode="numeric" placeholder="Wiederholen"></div>
+        </div>
+        <button class="btn-primary" onclick="chgPin()">PIN speichern</button>
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-section-title">☁️ Supabase Verbindung</div>
+      <div class="setup-block">
+        <p>Tragt hier eure Supabase-Daten ein. Alle Mitglieder mit denselben Daten teilen dieselbe Börse in Echtzeit.</p>
+        <div class="form-grid">
+          <div class="fg">
+            <label>Project URL</label>
+            <input id="cf-u" placeholder="https://xxxxx.supabase.co" value="${cfg.url}">
+            <span style="font-size:10px;color:var(--mu);margin-top:3px;font-family:'Barlow Condensed';letter-spacing:.5px">Nur Basis-URL — kein <code style="background:var(--sf2);padding:0 4px">/rest/v1/</code> am Ende</span>
+          </div>
+          <div class="fg"><label>Anon Public Key</label><input id="cf-k" type="password" placeholder="eyJhbGci…" value="${cfg.key}"></div>
+        </div>
+        <button class="btn-primary" onclick="svCfgR()">Verbinden</button>
+        ${cfg.url?`<button class="btn-secondary" onclick="clrCfg()" style="margin-left:8px">Trennen</button>`:''}
+      </div>
+    </div>
+
+    <div class="setup-section">
+      <div class="setup-section-title">📋 Einmalige Supabase-Einrichtung</div>
+      <div class="setup-block">
+        <div class="step-nr">Schritt 1</div>
+        <p>Kostenloses Konto auf <a href="https://supabase.com" target="_blank">supabase.com</a> anlegen → neues Projekt erstellen.</p>
+      </div>
+      <div class="setup-block">
+        <div class="step-nr">Schritt 2</div>
+        <p>Supabase Dashboard → <strong style="color:var(--tx)">SQL Editor</strong> → folgenden Code einmalig ausführen:</p>
+        <pre id="sqlB">${SQL}</pre>
+        <button class="btn-copy" onclick="cpSQL()">📋 SQL kopieren</button>
+      </div>
+      <div class="setup-block">
+        <div class="step-nr">Schritt 3</div>
+        <p><strong style="color:var(--tx)">Project Settings → API</strong>: URL und <em>anon public</em> Key oben eintragen → Verbinden.</p>
+      </div>
+      <div class="setup-block">
+        <div class="step-nr">Schritt 4</div>
+        <p>HTML-Datei auf <a href="https://pages.github.com" target="_blank">GitHub Pages</a> oder <a href="https://netlify.com" target="_blank">Netlify</a> (kostenlos) hochladen → Link an alle Mitglieder schicken → Echtzeit-Sync ohne Server.</p>
+      </div>
+    </div>`;
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function go(tab){
+  if(['sp','se'].includes(tab)&&!adm){ openPin(tab); return; }
+  cur=tab;
+  document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).style.display='block';
+  const tabs=['ov','su','bi','ta','sp','se'];
+  const btn=document.querySelectorAll('.nb')[tabs.indexOf(tab)];
+  if(btn)btn.classList.add('active');
+  const showExtra=['ov','su','bi','ta'].includes(tab);
+  document.getElementById('strow').style.display=showExtra?'grid':'none';
+  document.getElementById('mbnr').style.display=showExtra?'block':'none';
+  document.getElementById('spbar').style.display=['sp','se'].includes(tab)?'none':'flex';
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────
+function spChg(){
+  st.aktiv=document.getElementById('spsel').value||null;
+  if(sb&&st.aktiv)ldei().then(ren); else ren();
+}
+function tf(typ){ sf[typ]=!sf[typ]; ren(); go(typ); }
+
+async function dASP(){
+  const g=document.getElementById('sp-g').value.trim();
+  const d=document.getElementById('sp-d').value;
+  const t=document.getElementById('sp-t').value;
+  if(!g||!d){ toast('Bitte Gegner und Datum angeben',true); return; }
+  try{ sld(true); await dbASP(g,d,t); ren(); go('ov'); toast('✓ Spiel angelegt'); }
+  catch(e){ toast('Fehler: '+e.message,true); }
+  finally{ sld(false); }
+}
+async function dDSP(id){
+  if(!confirm('Spiel und alle Einträge löschen?'))return;
+  try{ await dbDSP(id); ren(); toast('✓ Spiel gelöscht'); }
+  catch(e){ toast('Fehler: '+e.message,true); }
+}
+async function addE(typ){
+  const p=typ;
+  const nm=document.getElementById(`${p}-n`).value.trim();
+  const si=document.getElementById(`${p}-si`).value.trim();
+  const br=document.getElementById(`${p}-b`).value;
+  const no=document.getElementById(`${p}-no`).value.trim();
+  const az=typ!=='ta'?parseInt(document.getElementById(`${p}-a`).value):1;
+  const tg=typ==='ta'?document.getElementById('ta-g').value:null;
+  if(!nm){ toast('Bitte Name angeben',true); return; }
+  if(!st.aktiv){ toast('Kein Spiel ausgewählt',true); return; }
+  const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,no,s:'o',ts:new Date().toISOString()};
+  try{ sld(true); await dbAE(e); sf[typ]=false; ren(); go(typ); toast('✓ Eingetragen'); }
+  catch(er){ toast('Fehler: '+er.message,true); }
+  finally{ sld(false); }
+}
+async function mkDn(id){
+  try{ await dbDN(id); ren(); go(cur); toast('✓ Als erledigt markiert'); }
+  catch(e){ toast('Fehler: '+e.message,true); }
+}
+function sDel(id){ dtgt=id; document.getElementById('dm').style.display='flex'; }
+function closeDM(){ dtgt=null; document.getElementById('dm').style.display='none'; }
+async function cfmDel(){
+  if(!dtgt)return;
+  try{ await dbDE(dtgt); ren(); go(cur); toast('✓ Gelöscht'); }
+  catch(e){ toast('Fehler: '+e.message,true); }
+  closeDM();
+}
+async function svCfgR(){
+  let rawUrl=(document.getElementById('cf-u').value||'').trim();
+  // Auto-clean: remove /rest/v1/, /auth/v1/, trailing slashes
+  rawUrl=rawUrl.replace(/\/rest\/v1\/?$/,'').replace(/\/auth\/v1\/?$/,'').replace(/\/+$/,'');
+  cfg.url=rawUrl;
+  cfg.key=(document.getElementById('cf-k').value||'').trim();
+  // Update the input field to show cleaned URL
+  document.getElementById('cf-u').value=cfg.url;
+  svcfg(); sb=null; ch=null; await initSB(); ren(); go('se');
+  if(cm==='live'){
+    toast('✓ Verbunden mit Supabase!');
+  }else{
+    toast('⚠ Verbindung fehlgeschlagen – Details unten',true);
+  }
+}
+function clrCfg(){ cfg.url=''; cfg.key=''; svcfg(); sb=null; ch=null; cm='local'; ldbck(); upconn(); ren(); }
+function chgPin(){
+  const p1=document.getElementById('np1').value.trim();
+  const p2=document.getElementById('np2').value.trim();
+  if(!/^\d{4}$/.test(p1)){ toast('PIN muss 4 Ziffern sein',true); return; }
+  if(p1!==p2){ toast('PINs stimmen nicht überein',true); return; }
+  cfg.pin=p1; svcfg(); toast('✓ Admin-PIN gespeichert'); ren(); go('se');
+}
+function cpSQL(){
+  navigator.clipboard.writeText(document.getElementById('sqlB').textContent)
+    .then(()=>toast('✓ SQL kopiert'));
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+(async()=>{
+  ldcfg(); ldbck();
+  if(st.sp.length&&!st.aktiv) st.aktiv=st.sp[0].id;
+  upadm(); ren(); go('ov');
+  await initSB();
+  ren(); upconn();
+})();
+</script>
+</body>
+</html>
