@@ -754,9 +754,10 @@ pre {
     <div class="conn-dot off" id="cd"></div>
     <span id="cl">Verbindung</span>
   </div>
+  <button class="admin-btn" id="langbtn" onclick="toggleLang()">EN</button>
   <button class="admin-btn" id="thbtn" onclick="toggleTheme()">☀ Hell</button>
-  <button class="admin-btn" onclick="shareApp()">↗ Teilen</button>
-  <button class="admin-btn" onclick="showHelp()">? Hilfe</button>
+  <button class="admin-btn" data-i18n="tb_share" onclick="shareApp()">↗ Teilen</button>
+  <button class="admin-btn" data-i18n="tb_help" onclick="showHelp()">? Hilfe</button>
   <button class="admin-btn" id="abtn" onclick="toggleAdmin()">🔒 Admin</button>
 </div>
 
@@ -797,7 +798,7 @@ pre {
       <div class="logo-stands">
         <span style="color:var(--r5)">S</span><span style="color:var(--r6)">T</span><span style="color:var(--r1)">A</span><span style="color:var(--r2)">N</span><span style="color:var(--r4)">D</span><span style="color:var(--r5)">S</span>
       </div>
-      <div class="logo-eyebrow">FC St. Pauli Fanclub &nbsp;·&nbsp; Ticket-Börse</div>
+      <div class="logo-eyebrow" data-i18n="eyebrow">FC St. Pauli Fanclub &nbsp;·&nbsp; Ticket-Börse</div>
     </div>
   </div>
 </header>
@@ -805,27 +806,27 @@ pre {
 <!-- NAVIGATION -->
 <div class="nav-wrap">
   <nav class="nav">
-    <button class="nb active"   onclick="go('ov')">Übersicht</button>
-    <button class="nb su"       onclick="go('su')">Suche  <span class="nbadge" id="c-su">0</span></button>
-    <button class="nb bi"       onclick="go('bi')">Biete  <span class="nbadge" id="c-bi">0</span></button>
-    <button class="nb ta"       onclick="go('ta')">Tausch <span class="nbadge" id="c-ta">0</span></button>
-    <button class="nb" id="n-sp" onclick="go('sp')">Spiele <span class="nav-lock" id="lk-sp">🔒</span></button>
-    <button class="nb" id="n-se" onclick="go('se')">Setup  <span class="nav-lock" id="lk-se">🔒</span></button>
+    <button class="nb active"   onclick="go('ov')"><span data-i18n="nav_ov">Übersicht</span></button>
+    <button class="nb su"       onclick="go('su')"><span data-i18n="nav_su">Suche</span> <span class="nbadge" id="c-su">0</span></button>
+    <button class="nb bi"       onclick="go('bi')"><span data-i18n="nav_bi">Biete</span> <span class="nbadge" id="c-bi">0</span></button>
+    <button class="nb ta"       onclick="go('ta')"><span data-i18n="nav_ta">Tausch</span> <span class="nbadge" id="c-ta">0</span></button>
+    <button class="nb" id="n-sp" onclick="go('sp')"><span data-i18n="nav_sp">Spiele</span> <span class="nav-lock" id="lk-sp">🔒</span></button>
+    <button class="nb" id="n-se" onclick="go('se')"><span data-i18n="nav_se">Setup</span> <span class="nav-lock" id="lk-se">🔒</span></button>
   </nav>
 </div>
 
 <!-- MAIN -->
 <div class="main">
   <div class="spiel-bar" id="spbar">
-    <span class="spiel-lbl">Aktuelles Spiel</span>
+    <span class="spiel-lbl" data-i18n="sb_current">Aktuelles Spiel</span>
     <select class="spiel-sel" id="spsel" onchange="spChg()"></select>
     <button class="btn-secondary" id="archbtn" onclick="toggleArchiv()" style="display:none">Archiv</button>
   </div>
 
   <div class="stats" id="strow">
-    <div class="stat"><div class="stat-n s" id="st-s">0</div><div class="stat-l">Suchen</div></div>
-    <div class="stat"><div class="stat-n b" id="st-b">0</div><div class="stat-l">Angebote</div></div>
-    <div class="stat"><div class="stat-n t" id="st-t">0</div><div class="stat-l">Tausche</div></div>
+    <div class="stat"><div class="stat-n s" id="st-s">0</div><div class="stat-l" data-i18n="st_su">Suchen</div></div>
+    <div class="stat"><div class="stat-n b" id="st-b">0</div><div class="stat-l" data-i18n="st_bi">Angebote</div></div>
+    <div class="stat"><div class="stat-n t" id="st-t">0</div><div class="stat-l" data-i18n="st_ta">Tausche</div></div>
   </div>
 
   <div id="mbnr"></div>
@@ -840,11 +841,11 @@ pre {
 <!-- DELETE MODAL -->
 <div id="dm" class="overlay" style="display:none">
   <div class="modal">
-    <div class="modal-title">Eintrag löschen?</div>
-    <p style="color:var(--mu);font-size:13px;line-height:1.6">Dieser Eintrag wird unwiderruflich gelöscht — für alle Mitglieder sichtbar.</p>
+    <div class="modal-title" data-i18n="dm_title">Eintrag löschen?</div>
+    <p data-i18n="dm_body" style="color:var(--mu);font-size:13px;line-height:1.6">Dieser Eintrag wird unwiderruflich gelöscht — für alle Mitglieder sichtbar.</p>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeDM()">Abbrechen</button>
-      <button class="btn-primary" onclick="cfmDel()" style="background:#c62828">Löschen</button>
+      <button class="btn-secondary" data-i18n="dm_cancel" onclick="closeDM()">Abbrechen</button>
+      <button class="btn-primary" data-i18n="dm_delete" onclick="cfmDel()" style="background:#c62828">Löschen</button>
     </div>
   </div>
 </div>
@@ -889,7 +890,7 @@ let sb=null, ch=null, cm='off';
 let st={sp:[],ei:[],aktiv:null};
 let cur='ov', sf={su:false,bi:false,ta:false};
 let dtgt=null, adm=false, ptgt=null, pbuf='';
-let showDone=false, onlyMine=false, showArchiv=false, theme='dark';
+let showDone=false, onlyMine=false, showArchiv=false, theme='dark', lang='de';
 let me={nm:'',si:''};
 
 // ── STORAGE ───────────────────────────────────────────────────
@@ -897,24 +898,76 @@ const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} }
 const ldcfg=()=>{ try{const r=localStorage.getItem(KC);if(r)cfg={...cfg,...JSON.parse(r)};}catch(e){} };
 const svbck=()=>{ try{localStorage.setItem(KB,JSON.stringify(st));}catch(e){} };
 const ldbck=()=>{ try{const r=localStorage.getItem(KB);if(r)st=JSON.parse(r);}catch(e){} };
-const KM='fs-me', KH='fs-help', KT='fs-theme';
+const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang';
 const svme=()=>{ try{localStorage.setItem(KM,JSON.stringify(me));}catch(e){} };
 const ldme=()=>{ try{const r=localStorage.getItem(KM);if(r)me={...me,...JSON.parse(r)};}catch(e){} };
 const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const ldtheme=()=>{ try{const t=localStorage.getItem(KT); if(t==='light'||t==='dark')theme=t;}catch(e){} };
-function applyTheme(){ document.body.classList.toggle('light', theme==='light'); const b=document.getElementById('thbtn'); if(b)b.textContent=theme==='light'?'🌙 Dunkel':'☀ Hell'; }
+function applyTheme(){ document.body.classList.toggle('light', theme==='light'); const b=document.getElementById('thbtn'); if(b)b.textContent=theme==='light'?t('th_dark'):t('th_light'); }
 function toggleTheme(){ theme=theme==='light'?'dark':'light'; try{localStorage.setItem(KT,theme);}catch(e){} applyTheme(); }
+
+// ── I18N (DE/EN) ──────────────────────────────────────────────
+const I18N={
+ de:{ nav_ov:'Übersicht',nav_su:'Suche',nav_bi:'Biete',nav_ta:'Tausch',nav_sp:'Spiele',nav_se:'Setup',
+  tb_share:'↗ Teilen',tb_help:'? Hilfe', conn_live:'Live',conn_local:'Lokal',conn_off:'Offline',
+  th_light:'☀ Hell',th_dark:'🌙 Dunkel', sb_current:'Aktuelles Spiel',archiv:'Archiv',archiv_on:'Archiv ✓',
+  st_su:'Suchen',st_bi:'Angebote',st_ta:'Tausche', eyebrow:'FC St. Pauli Fanclub · Ticket-Börse',
+  empty_nogame:'Bitte zuerst ein Spiel anlegen',empty_open:'Keine offenen Einträge',empty_mine:'Keine eigenen Einträge',empty_all:'Keine Einträge',sel_nogame:'— Noch kein Spiel angelegt —',
+  ctrl_done:'Erledigte zeigen',ctrl_mine:'Nur meine',
+  help_title:"So funktioniert's", help_su:'<strong>Suche</strong> – du brauchst ein Ticket → du kommst mit Zeitstempel in die Warteschlange.',
+  help_bi:'<strong>Biete</strong> – du hast ein Ticket übrig → Bereich &amp; Anzahl eintragen.', help_ta:'<strong>Tausch</strong> – du hast Bereich A und willst Bereich B.',
+  help_match:'Passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein <span style="color:var(--ma)">⚡ Match</span>. Kontakt läuft direkt über den 📱 Signal-Link.',
+  lbl_su:'Suche',lbl_bi:'Biete',lbl_ta:'Tausch', badge_mine:'Dein',tag_match:'⚡ Match', done_btn:'✓ Erledigt',done_lbl:'✓ ERLEDIGT', card_tg:'Tausche gegen:',anz:'× Tickets',
+  mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
+  f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
+  fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
+  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_have:'Ich habe *',l_want:'Ich möchte *',
+  ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
+  btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
+  dm_title:'Eintrag löschen?',dm_body:'Dieser Eintrag wird unwiderruflich gelöscht — für alle Mitglieder sichtbar.',dm_cancel:'Abbrechen',dm_delete:'Löschen',
+  time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_err:'Fehler: ' },
+ en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',
+  tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
+  th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
+  st_su:'Searches',st_bi:'Offers',st_ta:'Swaps', eyebrow:'FC St. Pauli supporters club · Ticket exchange',
+  empty_nogame:'Please add a match first',empty_open:'No open entries',empty_mine:'No entries of yours',empty_all:'No entries',sel_nogame:'— No match added yet —',
+  ctrl_done:'Show done',ctrl_mine:'Only mine',
+  help_title:'How it works', help_su:'<strong>Search</strong> – you need a ticket → you join the queue with a timestamp.',
+  help_bi:'<strong>Offer</strong> – you have a spare ticket → enter area &amp; quantity.', help_ta:'<strong>Swap</strong> – you have area A and want area B.',
+  help_match:'If a search matches an offer (or two swaps fit), a <span style="color:var(--ma)">⚡ Match</span> appears at the top. Contact runs directly via the 📱 Signal link.',
+  lbl_su:'Search',lbl_bi:'Offer',lbl_ta:'Swap', badge_mine:'Yours',tag_match:'⚡ Match', done_btn:'✓ Done',done_lbl:'✓ DONE', card_tg:'Wants in return:',anz:'× tickets',
+  mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
+  f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
+  fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
+  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_have:'I have *',l_want:'I want *',
+  ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
+  btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
+  dm_title:'Delete entry?',dm_body:'This entry will be permanently deleted — visible to all members.',dm_cancel:'Cancel',dm_delete:'Delete',
+  time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_err:'Error: ' }
+};
+const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
+const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent=t(el.getAttribute('data-i18n')); });
+  const lb=document.getElementById('langbtn'); if(lb)lb.textContent=lang==='de'?'EN':'DE';
+}
+function setLang(l){ lang=l; try{localStorage.setItem(KL,lang);}catch(e){} applyLang(); upconn(); upadm(); applyTheme(); ren(); go(cur); }
+function toggleLang(){ setLang(lang==='de'?'en':'de'); }
 
 // ── HELPERS ───────────────────────────────────────────────────
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 function fmt(iso){
   if(!iso)return'';
   const d=new Date(iso),df=Math.floor((Date.now()-d)/60000);
-  if(df<1)return'gerade eben';
-  if(df<60)return`vor ${df} Min.`;
-  if(df<1440)return`vor ${Math.floor(df/60)} Std.`;
-  return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})+' '+
-         d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+  const loc=lang==='en'?'en-GB':'de-DE';
+  if(df<1)return t('time_now');
+  if(df<60)return t('time_min').replace('%',df);
+  if(df<1440)return t('time_hr').replace('%',Math.floor(df/60));
+  return d.toLocaleDateString(loc,{day:'2-digit',month:'2-digit'})+' '+
+         d.toLocaleTimeString(loc,{hour:'2-digit',minute:'2-digit'});
 }
 const brei=sp=>sp ? (sp.typ==='heim'?HEIM:AUSW) : [...HEIM,...AUSW];
 const anHM=s=>{ if(!s||!s.an||s.an.length<16) return ''; const t=s.an.slice(11,16); return t==='00:00'?'':t; };
@@ -1029,9 +1082,9 @@ function toast(msg,err=false){
 }
 function upconn(){
   const d=document.getElementById('cd'),l=document.getElementById('cl');
-  if(cm==='live'){ d.className='conn-dot live'; l.textContent='Live'; l.style.color='#86efac'; }
-  else if(cm==='local'){ d.className='conn-dot local'; l.textContent='Lokal'; l.style.color='var(--ma)'; }
-  else{ d.className='conn-dot off'; l.textContent='Offline'; l.style.color='#ff5252'; }
+  if(cm==='live'){ d.className='conn-dot live'; l.textContent=t('conn_live'); l.style.color='#86efac'; }
+  else if(cm==='local'){ d.className='conn-dot local'; l.textContent=t('conn_local'); l.style.color='var(--ma)'; }
+  else{ d.className='conn-dot off'; l.textContent=t('conn_off'); l.style.color='#ff5252'; }
 }
 function upadm(){
   const b=document.getElementById('abtn');
@@ -1074,14 +1127,14 @@ function chkPin(){
 function cardH(e,nr,mi){
   const isM=mi.includes(e.id);
   const sig=e.si?`<a class="meta-sig" href="https://signal.me/#p/${encodeURIComponent(e.si)}" target="_blank">📱 ${e.si}</a>`:'';
-  const az=e.az>1?`<span class="meta-anz">${e.az}× Tickets</span>`:'';
-  const tg=e.typ==='ta'?`<div class="card-tgg">Tausche gegen: <span>${e.tg||'—'}</span></div>`:'';
-  const mB=isM?`<span class="tag tag-match">⚡ Match</span>`:'';
-  const lb=e.typ==='su'?'Suche':e.typ==='bi'?'Biete':'Tausch';
-  const mine=(me.nm&&e.nm===me.nm)?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">Dein</span>`:'';
+  const az=e.az>1?`<span class="meta-anz">${e.az}${t('anz')}</span>`:'';
+  const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${e.tg||'—'}</span></div>`:'';
+  const mB=isM?`<span class="tag tag-match">${t('tag_match')}</span>`:'';
+  const lb=e.typ==='su'?t('lbl_su'):e.typ==='bi'?t('lbl_bi'):t('lbl_ta');
+  const mine=(me.nm&&e.nm===me.nm)?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">${t('badge_mine')}</span>`:'';
   const doneBtn=e.s==='o'
-    ?`<button class="btn-done" onclick="mkDn('${e.id}')">✓ Erledigt</button>`
-    :`<span style="font-family:'Barlow Condensed';font-size:10px;font-weight:800;letter-spacing:1.5px;color:#86efac;text-transform:uppercase">✓ ERLEDIGT</span>`;
+    ?`<button class="btn-done" onclick="mkDn('${e.id}')">${t('done_btn')}</button>`
+    :`<span style="font-family:'Barlow Condensed';font-size:10px;font-weight:800;letter-spacing:1.5px;color:#86efac;text-transform:uppercase">${t('done_lbl')}</span>`;
   return`<div class="card ${isM?'is-match':''} ${e.s==='erledigt'?'done':''}">
     <div class="card-nr">${nr}</div>
     <div>
@@ -1108,52 +1161,52 @@ function cgrp(typs){
   if(!showDone) all=all.filter(e=>e.s==='o');
   if(onlyMine&&me.nm) all=all.filter(e=>e.nm===me.nm);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
-  if(!all.length)return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?'Keine eigenen Einträge':showDone?'Keine Einträge':'Keine offenen Einträge'}</div>`;
+  if(!all.length)return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?t('empty_mine'):showDone?t('empty_all'):t('empty_open')}</div>`;
   const nr={su:0,bi:0,ta:0};
   return`<div class="card-grid">${all.map(e=>{ if(e.s==='o')nr[e.typ]++; return cardH(e,e.s==='o'?nr[e.typ]:'✓',mi);}).join('')}</div>`;
 }
 
 // ── RENDER: FORMS ─────────────────────────────────────────────
 function fSu(sp){ return`
-<button class="toggler${sf.su?' open':''}" onclick="tf('su')">${sf.su?'Formular ausblenden':'Ich suche ein Ticket eintragen'}</button>
+<button class="toggler${sf.su?' open':''}" onclick="tf('su')">${sf.su?t('f_open'):t('f_su_add')}</button>
 ${sf.su?`<div class="form-panel su">
-  <div class="form-heading su">🔍 Ticket suchen</div>
+  <div class="form-heading su">${t('fh_su')}</div>
   <div class="form-grid">
-    <div class="fg"><label>Name *</label><input id="su-n" placeholder="Max Mustermann" value="${esc(me.nm)}"></div>
-    <div class="fg"><label>Signal-Kontakt</label><input id="su-si" placeholder="+49 123 … oder @handle" value="${esc(me.si)}"></div>
-    <div class="fg"><label>Bereich *</label><select id="su-b">${bopt(sp)}</select></div>
-    <div class="fg"><label>Anzahl</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-    <div class="fg" style="grid-column:1/-1"><label>Notiz</label><input id="su-no" placeholder="z.B. Rollstuhlplatz, mit Kind…"></div>
+    <div class="fg"><label>${t('l_name')}</label><input id="su-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
+    <div class="fg"><label>${t('l_signal')}</label><input id="su-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
+    <div class="fg"><label>${t('l_area')}</label><select id="su-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>${t('l_qty')}</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
-  <button class="btn-primary su" onclick="addE('su')">🔍 In Warteschlange eintragen</button>
+  <button class="btn-primary su" onclick="addE('su')">${t('btn_su')}</button>
 </div>`:''}`;
 }
 function fBi(sp){ return`
-<button class="toggler${sf.bi?' open':''}" onclick="tf('bi')">${sf.bi?'Formular ausblenden':'Ich habe ein Ticket abzugeben'}</button>
+<button class="toggler${sf.bi?' open':''}" onclick="tf('bi')">${sf.bi?t('f_open'):t('f_bi_add')}</button>
 ${sf.bi?`<div class="form-panel bi">
-  <div class="form-heading bi">🎟️ Ticket anbieten</div>
+  <div class="form-heading bi">${t('fh_bi')}</div>
   <div class="form-grid">
-    <div class="fg"><label>Name *</label><input id="bi-n" placeholder="Max Mustermann" value="${esc(me.nm)}"></div>
-    <div class="fg"><label>Signal-Kontakt</label><input id="bi-si" placeholder="+49 123 … oder @handle" value="${esc(me.si)}"></div>
-    <div class="fg"><label>Bereich *</label><select id="bi-b">${bopt(sp)}</select></div>
-    <div class="fg"><label>Anzahl</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-    <div class="fg" style="grid-column:1/-1"><label>Notiz</label><input id="bi-no" placeholder="z.B. Preis, Treffpunkt…"></div>
+    <div class="fg"><label>${t('l_name')}</label><input id="bi-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
+    <div class="fg"><label>${t('l_signal')}</label><input id="bi-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
+    <div class="fg"><label>${t('l_area')}</label><select id="bi-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>${t('l_qty')}</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+    <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="bi-no" placeholder="${t('ph_no_bi')}"></div>
   </div>
-  <button class="btn-primary" onclick="addE('bi')">🎟️ Ticket eintragen</button>
+  <button class="btn-primary" onclick="addE('bi')">${t('btn_bi')}</button>
 </div>`:''}`;
 }
 function fTa(sp){ return`
-<button class="toggler${sf.ta?' open':''}" onclick="tf('ta')">${sf.ta?'Formular ausblenden':'Ich möchte tauschen'}</button>
+<button class="toggler${sf.ta?' open':''}" onclick="tf('ta')">${sf.ta?t('f_open'):t('f_ta_add')}</button>
 ${sf.ta?`<div class="form-panel ta">
-  <div class="form-heading ta">🔄 Tauschangebot</div>
+  <div class="form-heading ta">${t('fh_ta')}</div>
   <div class="form-grid">
-    <div class="fg"><label>Name *</label><input id="ta-n" placeholder="Max Mustermann" value="${esc(me.nm)}"></div>
-    <div class="fg"><label>Signal-Kontakt</label><input id="ta-si" placeholder="+49 123 … oder @handle" value="${esc(me.si)}"></div>
-    <div class="fg"><label>Ich habe *</label><select id="ta-b">${bopt(sp)}</select></div>
-    <div class="fg"><label>Ich möchte *</label><select id="ta-g">${bopt(sp)}</select></div>
-    <div class="fg" style="grid-column:1/-1"><label>Notiz</label><input id="ta-no" placeholder="z.B. Reihe, Sektor…"></div>
+    <div class="fg"><label>${t('l_name')}</label><input id="ta-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
+    <div class="fg"><label>${t('l_signal')}</label><input id="ta-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
+    <div class="fg"><label>${t('l_have')}</label><select id="ta-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>${t('l_want')}</label><select id="ta-g">${bopt(sp)}</select></div>
+    <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="ta-no" placeholder="${t('ph_no_ta')}"></div>
   </div>
-  <button class="btn-primary ta" onclick="addE('ta')">🔄 Tausch eintragen</button>
+  <button class="btn-primary ta" onclick="addE('ta')">${t('btn_ta')}</button>
 </div>`:''}`;
 }
 
@@ -1165,11 +1218,11 @@ function ren(){
   const _h0=new Date(); _h0.setHours(0,0,0,0);
   const spList = showArchiv ? st.sp : st.sp.filter(s=> new Date(s.da)>=_h0 || s.id===st.aktiv);
   sel.innerHTML=!spList.length
-    ?'<option value="">— Noch kein Spiel angelegt —</option>'
-    :spList.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${s.ge} — ${new Date(s.da).toLocaleDateString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
+    ?`<option value="">${t('sel_nogame')}</option>`
+    :spList.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${s.ge} — ${new Date(s.da).toLocaleDateString(lang==='en'?'en-GB':'de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
   const _ab=document.getElementById('archbtn');
   if(_ab){ const _past=st.sp.some(s=>new Date(s.da)<_h0); _ab.style.display=_past?'inline-block':'none';
-    _ab.textContent=showArchiv?'Archiv ✓':'Archiv'; _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
+    _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
   // Counts
   ['su','bi','ta'].forEach(t=>{
     const n=gei(t).length;
@@ -1180,11 +1233,11 @@ function ren(){
   // Match banners
   document.getElementById('mbnr').innerHTML=mats().map(m=>
     m.t==='sb'
-      ?`<div class="match-banner">🎯 MATCH · ${m.s.nm} sucht ${m.s.br} ↔ ${m.b.nm} bietet ${m.b.br}</div>`
-      :`<div class="match-banner">🔄 TAUSCH-MATCH · ${m.t1.nm} (${m.t1.br}→${m.t1.tg}) ↔ ${m.t2.nm} (${m.t2.br}→${m.t2.tg})</div>`
+      ?`<div class="match-banner">🎯 ${t('mb_match')} · ${m.s.nm} ${t('mb_seeks')} ${m.s.br} ↔ ${m.b.nm} ${t('mb_offers')} ${m.b.br}</div>`
+      :`<div class="match-banner">🔄 ${t('mb_swap')} · ${m.t1.nm} (${m.t1.br}→${m.t1.tg}) ↔ ${m.t2.nm} (${m.t2.br}→${m.t2.tg})</div>`
   ).join('');
 
-  const noSp=`<div class="empty"><span class="empty-ico">📅</span>Bitte zuerst ein Spiel anlegen</div>`;
+  const noSp=`<div class="empty"><span class="empty-ico">📅</span>${t('empty_nogame')}</div>`;
 
   // Tab contents
   document.getElementById('tab-ov').innerHTML=helpBox()+(!sp ? noSp : ctrlBar()+cgrp(['su','bi','ta']));
@@ -1430,23 +1483,23 @@ async function addE(typ){
   const no=document.getElementById(`${p}-no`).value.trim();
   const az=typ!=='ta'?parseInt(document.getElementById(`${p}-a`).value):1;
   const tg=typ==='ta'?document.getElementById('ta-g').value:null;
-  if(!nm){ toast('Bitte Name angeben',true); return; }
-  if(!st.aktiv){ toast('Kein Spiel ausgewählt',true); return; }
+  if(!nm){ toast(t('t_name'),true); return; }
+  if(!st.aktiv){ toast(t('t_nogame'),true); return; }
   const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,no,s:'o',ts:new Date().toISOString()};
-  try{ sld(true); await dbAE(e); me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast('✓ Eingetragen'); }
-  catch(er){ toast('Fehler: '+er.message,true); }
+  try{ sld(true); await dbAE(e); me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
+  catch(er){ toast(t('t_err')+er.message,true); }
   finally{ sld(false); }
 }
 async function mkDn(id){
-  try{ await dbDN(id); ren(); go(cur); toast('✓ Als erledigt markiert'); }
-  catch(e){ toast('Fehler: '+e.message,true); }
+  try{ await dbDN(id); ren(); go(cur); toast(t('t_done')); }
+  catch(e){ toast(t('t_err')+e.message,true); }
 }
 function sDel(id){ dtgt=id; document.getElementById('dm').style.display='flex'; }
 function closeDM(){ dtgt=null; document.getElementById('dm').style.display='none'; }
 async function cfmDel(){
   if(!dtgt)return;
-  try{ await dbDE(dtgt); ren(); go(cur); toast('✓ Gelöscht'); }
-  catch(e){ toast('Fehler: '+e.message,true); }
+  try{ await dbDE(dtgt); ren(); go(cur); toast(t('t_deleted')); }
+  catch(e){ toast(t('t_err')+e.message,true); }
   closeDM();
 }
 async function svCfgR(){
@@ -1482,11 +1535,11 @@ function helpBox(){
   if(localStorage.getItem(KH)==='1') return '';
   return `<div class="info-box" style="border-left-color:var(--ma);position:relative;padding-right:34px">
     <button onclick="dismissHelp()" title="Ausblenden" style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--mu);font-size:18px;line-height:1;cursor:pointer">×</button>
-    <strong>So funktioniert's</strong><br>
-    🔍 <strong>Suche</strong> – du brauchst ein Ticket → du kommst mit Zeitstempel in die Warteschlange.<br>
-    🎟️ <strong>Biete</strong> – du hast ein Ticket übrig → Bereich &amp; Anzahl eintragen.<br>
-    🔄 <strong>Tausch</strong> – du hast Bereich A und willst Bereich B.<br>
-    Passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein <span style="color:var(--ma)">⚡ Match</span>. Kontakt läuft direkt über den 📱 Signal-Link.
+    <strong>${t('help_title')}</strong><br>
+    🔍 ${t('help_su')}<br>
+    🎟️ ${t('help_bi')}<br>
+    🔄 ${t('help_ta')}<br>
+    ${t('help_match')}
   </div>`;
 }
 function dismissHelp(){ try{localStorage.setItem(KH,'1');}catch(e){} ren(); }
@@ -1494,8 +1547,8 @@ function showHelp(){ try{localStorage.removeItem(KH);}catch(e){} ren(); go('ov')
 function ctrlBar(){
   const onSt='border-color:var(--ma);color:var(--ma)';
   return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-    <button class="btn-secondary" onclick="toggleDone()" style="${showDone?onSt:''}">${showDone?'☑':'☐'} Erledigte zeigen</button>
-    <button class="btn-secondary" onclick="toggleMine()" style="${onlyMine?onSt:''}">${onlyMine?'☑':'☐'} Nur meine</button>
+    <button class="btn-secondary" onclick="toggleDone()" style="${showDone?onSt:''}">${showDone?'☑':'☐'} ${t('ctrl_done')}</button>
+    <button class="btn-secondary" onclick="toggleMine()" style="${onlyMine?onSt:''}">${onlyMine?'☑':'☐'} ${t('ctrl_mine')}</button>
   </div>`;
 }
 function toggleDone(){ showDone=!showDone; ren(); go(cur); }
@@ -1505,15 +1558,15 @@ async function shareApp(){
   const data={title:'FourStands Ticket-Börse', text:'FC St. Pauli Fanclub FourStands – Ticket-Börse', url:location.href};
   try{
     if(navigator.share){ await navigator.share(data); }
-    else { await navigator.clipboard.writeText(location.href); toast('✓ Link kopiert'); }
+    else { await navigator.clipboard.writeText(location.href); toast(t('t_linkcopied')); }
   }catch(e){ /* vom Nutzer abgebrochen */ }
 }
 
 // ── INIT ──────────────────────────────────────────────────────
 (async()=>{
-  ldcfg(); ldbck(); ldme(); ldtheme(); applyTheme();
+  ldcfg(); ldbck(); ldme(); ldtheme(); ldlang(); applyTheme();
   if(st.sp.length&&!st.aktiv) st.aktiv=st.sp[0].id;
-  upadm(); ren(); go('ov');
+  upadm(); applyLang(); ren(); go('ov');
   await initSB();
   ren(); upconn();
 })();
