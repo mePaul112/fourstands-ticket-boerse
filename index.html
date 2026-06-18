@@ -757,7 +757,7 @@ pre {
   <button class="admin-btn" id="langbtn" onclick="toggleLang()">EN</button>
   <button class="admin-btn" id="thbtn" onclick="toggleTheme()">☀ Hell</button>
   <button class="admin-btn" data-i18n="tb_share" onclick="shareApp()">↗ Teilen</button>
-  <button class="admin-btn" data-i18n="tb_help" onclick="showHelp()">? Hilfe</button>
+  <button class="admin-btn" data-i18n="tb_help" onclick="go('he')">? Hilfe</button>
   <button class="admin-btn" id="abtn" onclick="toggleAdmin()">🔒 Admin</button>
 </div>
 
@@ -810,6 +810,7 @@ pre {
     <button class="nb su"       onclick="go('su')"><span data-i18n="nav_su">Suche</span> <span class="nbadge" id="c-su">0</span></button>
     <button class="nb bi"       onclick="go('bi')"><span data-i18n="nav_bi">Biete</span> <span class="nbadge" id="c-bi">0</span></button>
     <button class="nb ta"       onclick="go('ta')"><span data-i18n="nav_ta">Tausch</span> <span class="nbadge" id="c-ta">0</span></button>
+    <button class="nb" id="n-he" onclick="go('he')"><span data-i18n="nav_he">Hilfe</span></button>
     <button class="nb" id="n-sp" onclick="go('sp')"><span data-i18n="nav_sp">Spiele</span> <span class="nav-lock" id="lk-sp">🔒</span></button>
     <button class="nb" id="n-se" onclick="go('se')"><span data-i18n="nav_se">Setup</span> <span class="nav-lock" id="lk-se">🔒</span></button>
   </nav>
@@ -834,6 +835,7 @@ pre {
   <div id="tab-su" style="display:none"></div>
   <div id="tab-bi" style="display:none"></div>
   <div id="tab-ta" style="display:none"></div>
+  <div id="tab-he" style="display:none"></div>
   <div id="tab-sp" style="display:none"></div>
   <div id="tab-se" style="display:none"></div>
 </div>
@@ -879,7 +881,7 @@ pre {
 
 <script>
 // ── DATA ──────────────────────────────────────────────────────
-const HEIM=['Nordkurve','Südtribüne','Gegengerade','Haupttribüne'];
+const HEIM=['Nordkurve','Südkurve','Gegengerade','Haupttribüne'];
 const AUSW=['Sitzplatz','Stehplatz'];
 const KC='fs-cfg4', KB='fs-bck4';
 const DPIN='0000';
@@ -914,7 +916,7 @@ function toggleTheme(){ theme=theme==='light'?'dark':'light'; try{localStorage.s
 
 // ── I18N (DE/EN) ──────────────────────────────────────────────
 const I18N={
- de:{ nav_ov:'Übersicht',nav_su:'Suche',nav_bi:'Biete',nav_ta:'Tausch',nav_sp:'Spiele',nav_se:'Setup',
+ de:{ nav_ov:'Übersicht',nav_su:'Suche',nav_bi:'Biete',nav_ta:'Tausch',nav_sp:'Spiele',nav_se:'Setup',nav_he:'Hilfe',consent_label:'Ich willige ein, dass mein Name und mein Signal-Kontakt für alle Nutzer der Börse sichtbar gespeichert werden (Details: Hilfe → Datenschutz).',t_consent:'Bitte der Datenspeicherung zustimmen',
   tb_share:'↗ Teilen',tb_help:'? Hilfe', conn_live:'Live',conn_local:'Lokal',conn_off:'Offline',
   th_light:'☀ Hell',th_dark:'🌙 Dunkel', sb_current:'Aktuelles Spiel',archiv:'Archiv',archiv_on:'Archiv ✓',
   st_su:'Suchen',st_bi:'Angebote',st_ta:'Tausche', eyebrow:'FC St. Pauli Fanclub · Ticket-Börse',
@@ -933,7 +935,7 @@ const I18N={
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
   t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_err:'Fehler: ' },
- en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',
+ en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
   st_su:'Searches',st_bi:'Offers',st_ta:'Swaps', eyebrow:'FC St. Pauli supporters club · Ticket exchange',
@@ -1188,6 +1190,7 @@ ${sf.su?`<div class="form-panel su">
     <div class="fg"><label>${t('l_qty')}</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
+  <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="su-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
   <button class="btn-primary su" onclick="addE('su')">${t('btn_su')}</button>
 </div>`:''}`;
 }
@@ -1202,6 +1205,7 @@ ${sf.bi?`<div class="form-panel bi">
     <div class="fg"><label>${t('l_qty')}</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="bi-no" placeholder="${t('ph_no_bi')}"></div>
   </div>
+  <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="bi-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
   <button class="btn-primary" onclick="addE('bi')">${t('btn_bi')}</button>
 </div>`:''}`;
 }
@@ -1216,8 +1220,91 @@ ${sf.ta?`<div class="form-panel ta">
     <div class="fg"><label>${t('l_want')}</label><select id="ta-g"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="ta-no" placeholder="${t('ph_no_ta')}"></div>
   </div>
+  <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="ta-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
   <button class="btn-primary ta" onclick="addE('ta')">${t('btn_ta')}</button>
 </div>`:''}`;
+}
+
+// ── RENDER: HILFE / ANLEITUNG + DATENSCHUTZ ───────────────────
+function helpPage(){
+  if(lang!=='en') return `
+    <div class="setup-section">
+      <div class="setup-section-title">📖 Anleitung & Hilfe</div>
+      <div class="info-box">
+        <strong>Was ist das?</strong><br>
+        Die <strong>FourStands Ticket-Börse</strong> ist eine interne Tausch- und Vermittlungsplattform des FC-St.-Pauli-Fanclubs FourStands. Mitglieder können Tickets <strong>suchen</strong>, <strong>anbieten</strong> oder <strong>tauschen</strong> — in Echtzeit, ohne Login. Die App läuft direkt im Browser, es gibt keinen eigenen Server. Daten liegen in einer Cloud-Datenbank (Supabase), die Seite wird kostenlos über GitHub Pages bereitgestellt. Zugang hat nur, wer den Link kennt.
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">So funktioniert's</div>
+        <p>🔍 <strong>Suche</strong> – du brauchst ein Ticket und kommst mit Zeitstempel in eine Warteschlange. Der gewünschte Stand ist optional (egal).</p>
+        <p>🎟️ <strong>Biete</strong> – du hast ein Ticket übrig. Stand und Anzahl sind Pflicht.</p>
+        <p>🔄 <strong>Tausch</strong> – du hast Stand A und möchtest Stand B.</p>
+        <p>⚡ <strong>Match</strong> – passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein Hinweis. Kontakt läuft direkt über den 📱 Signal-Link des Eintrags.</p>
+        <p>✓ <strong>Erledigt</strong> – ist dein Anliegen erledigt, markiere deinen Eintrag entsprechend.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / Platzart</div>
+        <p><strong>Heimspiele:</strong> Nordkurve, Südkurve, Gegengerade, Haupttribüne.<br>
+        <strong>Auswärtsspiele:</strong> Steh- oder Sitzplatz (immer Gästeblock). Stadionspezifische Angaben (Block, Reihe …) ins Notiz-Feld.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">App aufs Handy (Homescreen)</div>
+        <p><strong>iPhone (Safari):</strong> Teilen-Symbol → Zum Home-Bildschirm.<br>
+        <strong>Android (Chrome):</strong> Menü ⋮ → App installieren. Danach startet sie wie eine echte App im Vollbild.</p>
+      </div>
+      <div class="setup-section-title" style="margin-top:18px">🔒 Datenschutz</div>
+      <div class="info-box" style="border-left-color:var(--red)">
+        <p style="color:var(--mu);font-size:12px;line-height:1.7">
+        <strong>Verantwortlich</strong> für die Datenverarbeitung: [Fanclub FourStands – verantwortliche Person, Anschrift, E-Mail eintragen].<br><br>
+        <strong>Welche Daten?</strong> Beim Eintragen werden gespeichert: dein Name, optional dein Signal-Kontakt, der gewählte Stand/Bereich, die Anzahl, eine optionale Notiz sowie ein Zeitstempel.<br><br>
+        <strong>Zweck:</strong> Vermittlung von Tickets unter den Mitgliedern des Fanclubs.<br><br>
+        <strong>⚠️ Sichtbarkeit:</strong> Deine Einträge sind für <u>alle Nutzer der Börse sichtbar</u> (jede Person, die den Link kennt). Gib daher nur Daten ein, deren Veröffentlichung du zustimmst – insbesondere beim Signal-Kontakt.<br><br>
+        <strong>Rechtsgrundlage:</strong> deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du beim Eintragen durch Setzen des Häkchens erteilst.<br><br>
+        <strong>Speicherung:</strong> Die Daten liegen bei Supabase (Cloud-Datenbank) und bleiben gespeichert, bis sie als erledigt/entfernt markiert oder vom Admin gelöscht werden.<br><br>
+        <strong>Deine Rechte:</strong> Auskunft, Berichtigung, Löschung, Einschränkung sowie Widerruf der Einwilligung mit Wirkung für die Zukunft. Zum Löschen: Eintrag als erledigt markieren oder den Admin kontaktieren ([Kontakt eintragen]).<br><br>
+        <strong>Kein Tracking:</strong> keine Analyse-Cookies o. Ä.; lokal auf deinem Gerät gespeichert werden nur technische Einstellungen (Sprache, Theme, zuletzt genutzter Name).
+        </p>
+      </div>
+    </div>`;
+  return `
+    <div class="setup-section">
+      <div class="setup-section-title">📖 Guide & Help</div>
+      <div class="info-box">
+        <strong>What is this?</strong><br>
+        The <strong>FourStands ticket exchange</strong> is an internal platform of the FC St. Pauli supporters club FourStands. Members can <strong>search</strong>, <strong>offer</strong> or <strong>swap</strong> tickets in real time, without login. It runs directly in the browser, there is no own server. Data is stored in a cloud database (Supabase); the site is hosted free via GitHub Pages. Only people who know the link can access it.
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">How it works</div>
+        <p>🔍 <strong>Search</strong> – you need a ticket and join a queue with a timestamp. The desired stand is optional (any).</p>
+        <p>🎟️ <strong>Offer</strong> – you have a spare ticket. Stand and quantity are required.</p>
+        <p>🔄 <strong>Swap</strong> – you have stand A and want stand B.</p>
+        <p>⚡ <strong>Match</strong> – if a search fits an offer (or two swaps fit), a note appears at the top. Contact runs directly via the 📱 Signal link.</p>
+        <p>✓ <strong>Done</strong> – mark your entry as done once resolved.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / seat type</div>
+        <p><strong>Home games:</strong> Nordkurve, Südkurve, Gegengerade, Haupttribüne.<br>
+        <strong>Away games:</strong> standing or seating (always away block). Put stadium-specific details (block, row …) in the note field.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">Install on your phone</div>
+        <p><strong>iPhone (Safari):</strong> Share icon → Add to Home Screen.<br>
+        <strong>Android (Chrome):</strong> Menu ⋮ → Install app.</p>
+      </div>
+      <div class="setup-section-title" style="margin-top:18px">🔒 Privacy</div>
+      <div class="info-box" style="border-left-color:var(--red)">
+        <p style="color:var(--mu);font-size:12px;line-height:1.7">
+        <strong>Controller:</strong> [FourStands supporters club – enter responsible person, address, email].<br><br>
+        <strong>What data?</strong> When you post, we store: your name, optionally your Signal contact, the chosen stand/area, quantity, an optional note and a timestamp.<br><br>
+        <strong>Purpose:</strong> arranging tickets among club members.<br><br>
+        <strong>⚠️ Visibility:</strong> your entries are visible to <u>all users of the board</u> (anyone with the link). Only enter data you agree to publish – especially the Signal contact.<br><br>
+        <strong>Legal basis:</strong> your consent (Art. 6(1)(a) GDPR), given via the checkbox when posting.<br><br>
+        <strong>Storage:</strong> data is held at Supabase and kept until marked done/removed or deleted by the admin.<br><br>
+        <strong>Your rights:</strong> access, rectification, erasure, restriction and withdrawal of consent for the future. To delete: mark your entry as done or contact the admin ([enter contact]).<br><br>
+        <strong>No tracking:</strong> no analytics cookies; only technical settings (language, theme, last used name) are stored locally on your device.
+        </p>
+      </div>
+    </div>`;
 }
 
 // ── RENDER: MAIN ──────────────────────────────────────────────
@@ -1254,6 +1341,7 @@ function ren(){
   document.getElementById('tab-su').innerHTML=!sp ? noSp : fSu(sp)+ctrlBar()+cgrp(['su']);
   document.getElementById('tab-bi').innerHTML=!sp ? noSp : fBi(sp)+ctrlBar()+cgrp(['bi']);
   document.getElementById('tab-ta').innerHTML=!sp ? noSp : fTa(sp)+ctrlBar()+cgrp(['ta']);
+  document.getElementById('tab-he').innerHTML=helpPage();
 
   // Spiele
   const spL=!st.sp.length
@@ -1412,13 +1500,13 @@ function go(tab){
   document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).style.display='block';
-  const tabs=['ov','su','bi','ta','sp','se'];
+  const tabs=['ov','su','bi','ta','he','sp','se'];
   const btn=document.querySelectorAll('.nb')[tabs.indexOf(tab)];
   if(btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
   document.getElementById('strow').style.display=showExtra?'grid':'none';
   document.getElementById('mbnr').style.display=showExtra?'block':'none';
-  document.getElementById('spbar').style.display=['sp','se'].includes(tab)?'none':'flex';
+  document.getElementById('spbar').style.display=['sp','se','he'].includes(tab)?'none':'flex';
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────
@@ -1495,10 +1583,12 @@ async function addE(typ){
   const no=document.getElementById(`${p}-no`).value.trim();
   const az=typ!=='ta'?parseInt(document.getElementById(`${p}-a`).value):1;
   const tg=typ==='ta'?document.getElementById('ta-g').value:null;
+  const consent=document.getElementById(`${p}-c`).checked;
   if(!nm){ toast(t('t_name'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
   if((typ==='bi'||typ==='ta') && !br){ toast(t('t_pickstand'),true); return; }
   if(typ==='ta' && !tg){ toast(t('t_pickstand'),true); return; }
+  if(!consent){ toast(t('t_consent'),true); return; }
   const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,no,s:'o',ts:new Date().toISOString()};
   try{ sld(true); await dbAE(e); me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
   catch(er){ toast(t('t_err')+er.message,true); }
