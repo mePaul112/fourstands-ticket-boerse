@@ -1337,6 +1337,13 @@ function ren(){
         </div>
       </div>`).join('');
   document.getElementById('tab-sp').innerHTML=`
+    <div class="setup-section">
+      <div class="setup-section-title">🔄 Termine aktualisieren</div>
+      <div class="setup-block">
+        <p>Holt Spieltermine &amp; Anstoßzeiten der <strong style="color:var(--tx)">2. Bundesliga 2026/27</strong> automatisch von <a href="https://www.openligadb.de" target="_blank">OpenLigaDB</a>: neue Paarungen werden eingetragen, bei bestehenden Spielen Datum/Uhrzeit aktualisiert, Platzhalter durch die echten Gegner ersetzt. DFB-Pokal wird nicht automatisch aktualisiert.</p>
+        <button class="btn-primary" onclick="updTermine()">🔄 Jetzt aktualisieren</button>
+      </div>
+    </div>
     <div class="form-panel sp">
       <div class="form-heading sp">Neues Spiel anlegen</div>
       <div class="form-grid">
@@ -1436,39 +1443,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);`;
       </div>
     </div>
 
-    <div class="setup-section">
-      <div class="setup-section-title">🔄 Termine aktualisieren</div>
-      <div class="setup-block">
-        <p>Holt Spieltermine & Anstoßzeiten der <strong style="color:var(--tx)">2. Bundesliga 2026/27</strong> automatisch von <a href="https://www.openligadb.de" target="_blank">OpenLigaDB</a>: neue Paarungen werden eingetragen, bei bestehenden Spielen Datum/Uhrzeit aktualisiert, Platzhalter durch die echten Gegner ersetzt.</p>
-        <button class="btn-primary" onclick="updTermine()">🔄 Jetzt aktualisieren</button>
-        <p style="font-size:11px;color:var(--mu);margin-top:10px">Einmalige Voraussetzung (im Supabase-SQL-Editor ausführen) — erweitert die Tabelle um <code style="background:var(--sf2);padding:0 4px">ext_id</code> &amp; <code style="background:var(--sf2);padding:0 4px">anstoss</code>. DFB-Pokal wird nicht automatisch aktualisiert.</p>
-        <pre id="sqlMig">ALTER TABLE public.spiele ADD COLUMN IF NOT EXISTS ext_id text;
-ALTER TABLE public.spiele ADD COLUMN IF NOT EXISTS anstoss text;
-CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);</pre>
-      </div>
-    </div>
-
-    <div class="setup-section">
-      <div class="setup-section-title">📋 Einmalige Supabase-Einrichtung</div>
-      <div class="setup-block">
-        <div class="step-nr">Schritt 1</div>
-        <p>Kostenloses Konto auf <a href="https://supabase.com" target="_blank">supabase.com</a> anlegen → neues Projekt erstellen.</p>
-      </div>
-      <div class="setup-block">
-        <div class="step-nr">Schritt 2</div>
-        <p>Supabase Dashboard → <strong style="color:var(--tx)">SQL Editor</strong> → folgenden Code einmalig ausführen:</p>
-        <pre id="sqlB">${SQL}</pre>
-        <button class="btn-copy" onclick="cpSQL()">📋 SQL kopieren</button>
-      </div>
-      <div class="setup-block">
-        <div class="step-nr">Schritt 3</div>
-        <p><strong style="color:var(--tx)">Project Settings → API</strong>: URL und <em>anon public</em> Key oben eintragen → Verbinden.</p>
-      </div>
-      <div class="setup-block">
-        <div class="step-nr">Schritt 4</div>
-        <p>HTML-Datei auf <a href="https://pages.github.com" target="_blank">GitHub Pages</a> oder <a href="https://netlify.com" target="_blank">Netlify</a> (kostenlos) hochladen → Link an alle Mitglieder schicken → Echtzeit-Sync ohne Server.</p>
-      </div>
-    </div>`;
+`;
 }
 
 // ── NAVIGATION ────────────────────────────────────────────────
