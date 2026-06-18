@@ -474,9 +474,17 @@ a { color: inherit; text-decoration: none; }
 .swap-row { display:flex; align-items:stretch; gap:10px; margin:0 0 12px; flex-wrap:wrap; }
 .swap-side { flex:1 1 240px; background:var(--sf2); border:1px solid var(--bd); border-radius:8px; padding:10px 12px; }
 .swap-lbl { font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--ta); margin-bottom:8px; }
+.swap-lbl.su { color:var(--su); }
+.swap-lbl.bi { color:var(--bi); }
 .swap-fields { display:flex; gap:10px; }
 .swap-fields .fg { flex:1; margin:0; min-width:0; }
 .swap-side select { width:100%; box-sizing:border-box; }
+/* Match-Pille im Spielbalken + Popup */
+.match-pill { flex:0 0 auto; display:inline-flex; align-items:center; gap:5px; background:var(--ma); color:#1a1408; border:none; border-radius:999px; padding:6px 12px; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; white-space:nowrap; }
+.match-pill.mp-new { animation:mppulse 1.4s ease-in-out infinite; }
+@keyframes mppulse { 0%,100%{ box-shadow:0 0 0 0 rgba(251,191,36,.55); } 50%{ box-shadow:0 0 0 7px rgba(251,191,36,0); } }
+.mm-row { padding:9px 0; border-bottom:1px solid var(--bd); font-size:13px; line-height:1.45; }
+.mm-row:last-child { border-bottom:none; }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -809,6 +817,7 @@ pre {
     <span class="spiel-lbl" data-i18n="sb_current">Aktuelles Spiel</span>
     <select class="spiel-sel" id="spsel" onchange="spChg()"></select>
     <button class="btn-secondary" id="archbtn" onclick="toggleArchiv()" style="display:none">Archiv</button>
+    <button class="match-pill" id="matchpill" onclick="openMM()" style="display:none" title="Matches anzeigen">⚡ <span id="mp-n">0</span> <span id="mp-lbl">Matches</span></button>
   </div>
 
   <div id="mbnr"></div>
@@ -869,6 +878,18 @@ pre {
     <div class="modal-actions">
       <button class="btn-secondary" data-i18n="dm_cancel" onclick="closeFB()">Abbrechen</button>
       <button class="btn-primary" data-i18n="fb_send" onclick="sendFB()">Senden</button>
+    </div>
+  </div>
+</div>
+
+<!-- MATCH MODAL -->
+<div id="mm" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title" data-i18n="mm_title">⚡ Matches</div>
+    <p style="color:var(--mu);font-size:12px;line-height:1.5;margin:0 0 12px" data-i18n="mm_intro">Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag.</p>
+    <div id="mm-list"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" data-i18n="mm_ok" onclick="closeMM()">Verstanden</button>
     </div>
   </div>
 </div>
@@ -955,12 +976,12 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
-  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
+  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',sw_search:'Ich suche',sw_offer:'Ich biete',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Geht direkt ans Team.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Geht direkt ans Team.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -974,12 +995,12 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
-  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',l_game:'Match *',t_taself:'Have and wanted are identical',
+  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',sw_search:'I am looking for',sw_offer:'I am offering',l_game:'Match *',t_taself:'Have and wanted are identical',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Goes straight to the team.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Goes straight to the team.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1094,6 +1115,19 @@ const matchKeys=()=>mats().map(m=>m.t==='sb'?'sb~'+[m.s.id,m.b.id].sort().join('
 function snapshotNew(){ const k=matchKeys(); newMatchN=k.filter(x=>!seen.has(x)).length; k.forEach(x=>seen.add(x)); svseen(); }
 // Hinweis wegklicken
 function dismissNew(){ newMatchN=0; ren(); }
+// Match-Popup
+function openMM(){
+  const ms=mats();
+  document.getElementById('mm-list').innerHTML = ms.length
+    ? ms.map(m=> m.t==='sb'
+        ? `<div class="mm-row">🎯 <b>${esc(m.s.nm)}</b> ${t('mb_seeks')} ${esc(m.s.br||t('any_short'))} ↔ <b>${esc(m.b.nm)}</b> ${t('mb_offers')} ${esc(m.b.br)}</div>`
+        : `<div class="mm-row">🔄 <b>${esc(m.t1.nm)}</b> · ${gicon(spById(m.t1.sid))} ${esc((spById(m.t1.sid)||{}).ge||'')} ${esc(m.t1.br)} ↔ <b>${esc(m.t2.nm)}</b> · ${gicon(spById(m.t2.sid))} ${esc((spById(m.t2.sid)||{}).ge||'')} ${esc(m.t2.br)}</div>`
+      ).join('')
+    : `<p style="color:var(--mu);font-size:13px;margin:0">${t('mm_none')}</p>`;
+  document.getElementById('mm').style.display='flex';
+  if(newMatchN>0){ newMatchN=0; ren(); } // als gesehen markieren
+}
+function closeMM(){ document.getElementById('mm').style.display='none'; }
 const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected':''}>${b}</option>`).join('');
 
 // ── DB MAPPING ────────────────────────────────────────────────
@@ -1359,8 +1393,17 @@ ${sf.su?`<div class="form-panel su">
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="su-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="su-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
-    <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="su-b"><option value="" selected>${t('opt_any')}</option>${bopt(sp)}</select></div>
-    <div class="fg"><label>${t('l_qty')}</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+  </div>
+  <div class="swap-row">
+    <div class="swap-side">
+      <div class="swap-lbl su">${t('sw_search')}</div>
+      <div class="swap-fields">
+        <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="su-b"><option value="" selected>${t('opt_any')}</option>${bopt(sp)}</select></div>
+        <div class="fg" style="flex:0 0 72px"><label>${t('l_qty')}</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
   <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="su-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
@@ -1374,8 +1417,17 @@ ${sf.bi?`<div class="form-panel bi">
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="bi-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="bi-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
-    <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="bi-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
-    <div class="fg"><label>${t('l_qty')}</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+  </div>
+  <div class="swap-row">
+    <div class="swap-side">
+      <div class="swap-lbl bi">${t('sw_offer')}</div>
+      <div class="swap-fields">
+        <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="bi-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
+        <div class="fg" style="flex:0 0 72px"><label>${t('l_qty')}</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="bi-no" placeholder="${t('ph_no_bi')}"></div>
   </div>
   <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="bi-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
@@ -1439,7 +1491,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
-        <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Angezeigt als goldenes Banner oben und mit ⚡-Markierung an den Karten.</p>
+        <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Gibt es Matches, zeigt eine goldene <strong>⚡-Pille</strong> im Spielbalken die Anzahl; ein Tipp darauf öffnet die Match-Liste. Zusätzlich sind passende Einträge in der Liste mit ⚡ markiert.</p>
         <p><strong>Vergabe nach Reihenfolge:</strong> Suchen sind nach Eingang nummeriert (#1, #2 …). Pro Angebot erhält nur die <strong>früheste passende</strong> Suche das Match – die anderen warten.</p>
         <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du einen Platz zurück – die/der Nächste kommt dran, du behältst die zweite Chance.<br>
@@ -1452,6 +1504,10 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / Platzart</div>
         <p><strong>Heimspiele:</strong> Nordkurve, Südkurve, Gegengerade, Haupttribüne.<br>
         <strong>Auswärtsspiele:</strong> Steh- oder Sitzplatz (immer Gästeblock). Stadionspezifische Angaben (Block, Reihe …) ins Notiz-Feld.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">💬 Feedback (Testphase)</div>
+        <p>Wir testen gerade. Über den <strong>💬-Button</strong> oben gibst du jederzeit Feedback – Fehler, Ideen, Verständnisfragen oder Lob. Das geht direkt ans Team und hilft, die Börse zu verbessern.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">📱 Signal ohne Telefonnummer</div>
@@ -1494,7 +1550,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
-        <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. Shown as a gold banner at the top and a ⚡ marker on the cards.</p>
+        <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. When there are matches, a gold <strong>⚡ pill</strong> in the match bar shows the count; tapping it opens the match list. Matching entries are also marked with ⚡ in the list.</p>
         <p><strong>Allocation by order:</strong> searches are numbered by arrival (#1, #2 …). Each offer goes to the <strong>earliest matching</strong> search only – the others wait.</p>
         <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop one place – the next person gets a turn and you keep a second chance.<br>
@@ -1507,6 +1563,10 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / seat type</div>
         <p><strong>Home games:</strong> Nordkurve, Südkurve, Gegengerade, Haupttribüne.<br>
         <strong>Away games:</strong> standing or seating (always away block). Put stadium-specific details (block, row …) in the note field.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">💬 Feedback (test phase)</div>
+        <p>We are currently testing. Use the <strong>💬 button</strong> at the top to send feedback any time – bugs, ideas, questions or praise. It goes straight to the team and helps us improve the board.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">📱 Signal without phone number</div>
@@ -1551,16 +1611,14 @@ function ren(){
   ['su','bi','ta'].forEach(typ=>{
     document.getElementById('c-'+typ).textContent = typ==='ta' ? taForActive().length : gei(typ).length;
   });
-  // Hinweis "neue Matches seit letztem Besuch" (clientseitig, localStorage)
-  const _nmh = newMatchN>0
-    ? `<div class="match-banner" style="cursor:pointer;background:#fbbf2422;border-left-color:var(--ma,#fbbf24)" onclick="dismissNew()">${(newMatchN===1?t('newm1'):t('newm').replace('%',newMatchN))} · <span style="opacity:.7;font-weight:400">${t('newm_ack')}</span></div>`
-    : '';
-  // Match banners
-  document.getElementById('mbnr').innerHTML=_nmh+mats().map(m=>
-    m.t==='sb'
-      ?`<div class="match-banner">🎯 ${t('mb_match')} · ${esc(m.s.nm)} ${t('mb_seeks')} ${esc(m.s.br)} ↔ ${esc(m.b.nm)} ${t('mb_offers')} ${esc(m.b.br)}</div>`
-      :`<div class="match-banner">🔄 ${t('mb_swap')} · ${esc(m.t1.nm)} (${gicon(spById(m.t1.sid))} ${esc((spById(m.t1.sid)||{}).ge||'')} · ${esc(m.t1.br)}) ↔ ${esc(m.t2.nm)} (${gicon(spById(m.t2.sid))} ${esc((spById(m.t2.sid)||{}).ge||'')} · ${esc(m.t2.br)})</div>`
-  ).join('');
+  // Match-Hinweis: kompakte Pille im Spielbalken (Details im Popup), statt Inline-Banner
+  const _ms=mats();
+  const _pill=document.getElementById('matchpill');
+  if(_pill){
+    if(_ms.length){ _pill.style.display='inline-flex'; document.getElementById('mp-n').textContent=_ms.length; document.getElementById('mp-lbl').textContent=_ms.length===1?t('mp_one'):t('mp_lbl'); _pill.classList.toggle('mp-new',newMatchN>0); }
+    else _pill.style.display='none';
+  }
+  document.getElementById('mbnr').innerHTML='';
 
   const noSp=`<div class="empty"><span class="empty-ico">📅</span>${t('empty_nogame')}</div>`;
 
@@ -1980,6 +2038,7 @@ async function shareApp(){
   await initSB();
   snapshotNew();
   ren(); upconn();
+  if(newMatchN>0) toast(newMatchN===1?t('newm1'):t('newm').replace('%',newMatchN)); // Hinweis beim Start; Details über die ⚡-Pille
 })();
 
 // ── PWA: Service Worker registrieren ──────────────────────────
