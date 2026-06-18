@@ -269,38 +269,6 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
 }
 
-/* ─── STATS ROW ──────────────────────────────────────── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--bd);
-  border: 1px solid var(--bd);
-  margin-bottom: 16px;
-}
-.stat {
-  background: var(--sf);
-  padding: 10px 14px;
-  text-align: center;
-}
-.stat-n {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
-  line-height: 1;
-}
-.stat-n.s { color: var(--su); }
-.stat-n.b { color: var(--bi); }
-.stat-n.t { color: var(--ta); }
-.stat-l {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--mu);
-  margin-top: 2px;
-}
-
 /* ─── MATCH BANNER ───────────────────────────────────── */
 .match-banner {
   background: var(--sf);
@@ -774,8 +742,6 @@ pre {
 /* ─── RESPONSIVE ─────────────────────────────────────── */
 @media (max-width: 480px) {
   .logo-four, .logo-stands { font-size: 22px; }
-  .stats { grid-template-columns: repeat(3,1fr); }
-  .stat-n { font-size: 22px; }
   .form-grid { grid-template-columns: 1fr; }
   .hdr { padding: 12px 14px 10px; }
 }
@@ -834,12 +800,6 @@ pre {
     <span class="spiel-lbl" data-i18n="sb_current">Aktuelles Spiel</span>
     <select class="spiel-sel" id="spsel" onchange="spChg()"></select>
     <button class="btn-secondary" id="archbtn" onclick="toggleArchiv()" style="display:none">Archiv</button>
-  </div>
-
-  <div class="stats" id="strow">
-    <div class="stat"><div class="stat-n s" id="st-s">0</div><div class="stat-l" data-i18n="st_su">Suchen</div></div>
-    <div class="stat"><div class="stat-n b" id="st-b">0</div><div class="stat-l" data-i18n="st_bi">Angebote</div></div>
-    <div class="stat"><div class="stat-n t" id="st-t">0</div><div class="stat-l" data-i18n="st_ta">Tausche</div></div>
   </div>
 
   <div id="mbnr"></div>
@@ -1484,10 +1444,7 @@ function ren(){
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
   // Counts
   ['su','bi','ta'].forEach(t=>{
-    const n=gei(t).length;
-    document.getElementById('c-'+t).textContent=n;
-    const k=t==='su'?'s':t==='bi'?'b':'t';
-    document.getElementById('st-'+k).textContent=n;
+    document.getElementById('c-'+t).textContent=gei(t).length;
   });
   // Hinweis "neue Matches seit letztem Besuch" (clientseitig, localStorage)
   const _nmh = newMatchN>0
@@ -1666,7 +1623,6 @@ function go(tab){
   const btn=document.querySelectorAll('.nb')[tabs.indexOf(tab)];
   if(btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
-  document.getElementById('strow').style.display=showExtra?'grid':'none';
   document.getElementById('mbnr').style.display=showExtra?'block':'none';
   document.getElementById('spbar').style.display=['sp','se','he'].includes(tab)?'none':'flex';
 }
