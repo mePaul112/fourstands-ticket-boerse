@@ -459,7 +459,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 2px;
   color: var(--mu);
 }
-.fg input, .fg select {
+.fg input, .fg select, .fg textarea {
   background: var(--sf2);
   border: 1px solid var(--bd);
   border-bottom: 1px solid #4a3828;
@@ -469,6 +469,7 @@ a { color: inherit; text-decoration: none; }
   font-size: 13px;
   transition: border-color .15s;
 }
+.fg textarea { width: 100%; box-sizing: border-box; resize: vertical; }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -790,6 +791,7 @@ pre {
     <button class="icon-btn nav-ico" id="langbtn" onclick="toggleLang()" title="Sprache" style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px">EN</button>
     <button class="icon-btn nav-ico" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
     <button class="icon-btn nav-ico" onclick="shareApp()" title="Teilen">↗</button>
+    <button class="icon-btn nav-ico" onclick="openFB()" title="Feedback">💬</button>
     <button class="nb nb-help" id="n-he" onclick="go('he')" title="Hilfe">?</button>
   </nav>
 </div>
@@ -838,6 +840,28 @@ pre {
     <div class="modal-actions">
       <button class="btn-secondary" data-i18n="dm_cancel" onclick="closeEM()">Abbrechen</button>
       <button class="btn-primary" data-i18n="em_save" onclick="saveEM()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div id="fbm" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title" data-i18n="fb_title">💬 Feedback zur Testphase</div>
+    <p style="color:var(--mu);font-size:12px;line-height:1.5;margin:0 0 12px" data-i18n="fb_intro">Sag uns kurz, was gut läuft, hakt oder fehlt. Geht direkt ans Team.</p>
+    <div class="form-grid">
+      <div class="fg"><label data-i18n="fb_cat">Art</label><select id="fb-cat">
+        <option value="Bug" data-i18n="fb_bug">🐞 Fehler</option>
+        <option value="Idee" data-i18n="fb_idea">💡 Idee</option>
+        <option value="Frage" data-i18n="fb_q">❓ Verständnisfrage</option>
+        <option value="Lob" data-i18n="fb_praise">👍 Lob</option>
+      </select></div>
+      <div class="fg"><label data-i18n="l_name">Name</label><input id="fb-n" placeholder="optional"></div>
+      <div class="fg" style="grid-column:1/-1"><label data-i18n="fb_msg">Nachricht *</label><textarea id="fb-m" rows="4"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" data-i18n="dm_cancel" onclick="closeFB()">Abbrechen</button>
+      <button class="btn-primary" data-i18n="fb_send" onclick="sendFB()">Senden</button>
     </div>
   </div>
 </div>
@@ -929,7 +953,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Geht direkt ans Team.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -948,7 +972,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Goes straight to the team.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1608,7 +1632,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);
 CREATE TABLE IF NOT EXISTS public.config (key text PRIMARY KEY, value text);
 ALTER TABLE public.config ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "FourStands" ON public.config FOR ALL TO anon USING (true) WITH CHECK (true);
-INSERT INTO public.config(key,value) VALUES ('expiry_h','48') ON CONFLICT (key) DO NOTHING;`;
+INSERT INTO public.config(key,value) VALUES ('expiry_h','48') ON CONFLICT (key) DO NOTHING;
+-- 6. Feedback (Testphase)
+CREATE TABLE IF NOT EXISTS public.feedback (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at timestamptz DEFAULT now(),
+  category text, name text, message text NOT NULL, ctx text
+);
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "fs_fb_insert" ON public.feedback FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "fs_fb_select" ON public.feedback FOR SELECT TO anon USING (true);`;
 
   const cc=cm==='live'?'ok':cm==='local'?'lc':'er';
   const ct=cm==='live'?'✓ Verbunden mit Supabase – Real-time aktiv'
@@ -1811,6 +1844,28 @@ function editE(id){
   document.getElementById('em').style.display='flex';
 }
 function closeEM(){ etgt=null; document.getElementById('em').style.display='none'; }
+// ── FEEDBACK (Testphase) ──────────────────────────────────────
+function openFB(){
+  document.getElementById('fb-cat').value='Bug';
+  document.getElementById('fb-n').value=me.nm||'';
+  document.getElementById('fb-m').value='';
+  document.getElementById('fbm').style.display='flex';
+}
+function closeFB(){ document.getElementById('fbm').style.display='none'; }
+async function sendFB(){
+  const msg=document.getElementById('fb-m').value.trim();
+  if(!msg){ toast(t('fb_needmsg'),true); return; }
+  if(!sb){ toast(t('t_err')+'offline',true); return; }
+  const row={ category:document.getElementById('fb-cat').value,
+    name:(document.getElementById('fb-n').value||'').trim()||null,
+    message:msg,
+    ctx:`${(gsp()||{}).ge||'—'} · ${lang} · ${(navigator.userAgent||'').slice(0,90)}` };
+  try{ sld(true);
+    const{error}=await sb.from('feedback').insert(row); if(error)throw error;
+    closeFB(); toast(t('t_fbsent'));
+  }catch(e){ toast(t('t_err')+(e.message||e),true); }
+  finally{ sld(false); }
+}
 async function saveEM(){
   const e=findE(etgt); if(!e)return;
   const nm=document.getElementById('em-n').value.trim(); if(!nm){ toast(t('t_name'),true); return; }
