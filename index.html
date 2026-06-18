@@ -884,7 +884,13 @@ const AUSW=['Sitzplatz','Stehplatz'];
 const KC='fs-cfg4', KB='fs-bck4';
 const DPIN='0000';
 
-let cfg={url:'',key:'',pin:DPIN};
+// Standard-Verbindung fest eingebaut -> Nutzer sind ohne Setup sofort verbunden.
+// (Anon-Key ist oeffentlich/by-design; Datenzugriff regelt die Supabase-RLS.)
+let cfg={
+  url:'https://tqcazuqpgcmkryvbkgkl.supabase.co',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxY2F6dXFwZ2Nta3J5dmJrZ2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTM1ODYsImV4cCI6MjA5NzI4OTU4Nn0.cpyjY1PjeWYVGKd15o9f3-3MAjk6Ze7FkmO1VX2QP0s',
+  pin:DPIN
+};
 let lastConnErr='';
 let sb=null, ch=null, cm='off';
 let st={sp:[],ei:[],aktiv:null};
@@ -924,7 +930,7 @@ const I18N={
   l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
-  dm_title:'Eintrag löschen?',dm_body:'Dieser Eintrag wird unwiderruflich gelöscht — für alle Mitglieder sichtbar.',dm_cancel:'Abbrechen',dm_delete:'Löschen',
+  dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
   t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',
@@ -943,7 +949,7 @@ const I18N={
   l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
-  dm_title:'Delete entry?',dm_body:'This entry will be permanently deleted — visible to all members.',dm_cancel:'Cancel',dm_delete:'Delete',
+  dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
   t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_err:'Error: ' }
 };
@@ -991,8 +997,8 @@ const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.
 // App-interne Kurz-Codes <-> DB-Langformen (DB-CHECK: typ IN suche/biete/tausch, status IN offen/erledigt)
 const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
-const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':'o'),ts:r.created_at});
-const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':'offen')});
+const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at});
+const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen')});
 
 // ── SUPABASE ──────────────────────────────────────────────────
 async function initSB(){
@@ -1068,6 +1074,10 @@ async function dbDN(id){
   if(sb){const{error}=await sb.from('eintraege').update({status:'erledigt'}).eq('id',id);if(error)throw error;}
   const e=st.ei.find(e=>e.id===id); if(e)e.s='erledigt'; if(!sb)svbck();
 }
+async function dbRm(id){ // Soft-Delete: als 'entfernt' markieren (kein hartes Loeschen)
+  if(sb){const{error}=await sb.from('eintraege').update({status:'entfernt'}).eq('id',id);if(error)throw error;}
+  const e=st.ei.find(e=>e.id===id); if(e)e.s='entfernt'; if(!sb)svbck();
+}
 async function dbDE(id){
   if(sb){const{error}=await sb.from('eintraege').delete().eq('id',id);if(error)throw error;}
   st.ei=st.ei.filter(e=>e.id!==id); if(!sb)svbck();
@@ -1100,7 +1110,7 @@ function upadm(){
 
 // ── PIN ───────────────────────────────────────────────────────
 function toggleAdmin(){
-  if(adm){ adm=false; upadm(); toast('Admin abgemeldet'); if(['sp','se'].includes(cur))go('ov'); }
+  if(adm){ adm=false; upadm(); ren(); toast('Admin abgemeldet'); if(['sp','se'].includes(cur))go('ov'); else go(cur); }
   else{ ptgt=null; openPin(); }
 }
 function openPin(tgt=null){
@@ -1114,8 +1124,8 @@ function pc(){ if(pbuf.length){ pbuf=pbuf.slice(0,-1); updPin(); } }
 function pcnl(){ pbuf=''; document.getElementById('pm').style.display='none'; ptgt=null; }
 function chkPin(){
   if(pbuf===(cfg.pin||DPIN)){
-    adm=true; document.getElementById('pm').style.display='none'; upadm(); toast('✓ Admin-Modus aktiv');
-    if(ptgt){ const t=ptgt; ptgt=null; go(t); }
+    adm=true; document.getElementById('pm').style.display='none'; upadm(); ren(); toast('✓ Admin-Modus aktiv');
+    if(ptgt){ const tgt=ptgt; ptgt=null; go(tgt); } else { go(cur); }
   }else{
     for(let i=0;i<4;i++)document.getElementById('pd'+i).className='pd err';
     setTimeout(()=>{ pbuf=''; updPin(); document.getElementById('pmsg').textContent='Falscher PIN – nochmal:'; },700);
@@ -1150,14 +1160,14 @@ function cardH(e,nr,mi){
     </div>
     <div class="card-acts">
       ${doneBtn}
-      <button class="btn-del" onclick="sDel('${e.id}')">×</button>
+      ${adm?`<button class="btn-del" onclick="sDel('${e.id}')" title="${t('rm_title')}">×</button>`:''}
     </div>
   </div>`;
 }
 
 function cgrp(typs){
   const mi=mids();
-  let all=st.ei.filter(e=>e.sid===st.aktiv&&typs.includes(e.typ));
+  let all=st.ei.filter(e=>e.sid===st.aktiv&&typs.includes(e.typ)&&e.s!=='entfernt');
   if(!showDone) all=all.filter(e=>e.s==='o');
   if(onlyMine&&me.nm) all=all.filter(e=>e.nm===me.nm);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
@@ -1295,7 +1305,7 @@ CREATE TABLE public.eintraege (
   signal_kontakt text,
   anzahl integer DEFAULT 1,
   notiz text,
-  status text DEFAULT 'offen' CHECK (status IN ('offen','erledigt')),
+  status text DEFAULT 'offen' CHECK (status IN ('offen','erledigt','entfernt')),
   created_at timestamptz DEFAULT now()
 );
 -- 2. Zugriff ohne Login erlauben
@@ -1303,8 +1313,10 @@ ALTER TABLE public.spiele ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.eintraege ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "FourStands" ON public.spiele
   FOR ALL TO anon USING (true) WITH CHECK (true);
-CREATE POLICY "FourStands" ON public.eintraege
-  FOR ALL TO anon USING (true) WITH CHECK (true);
+CREATE POLICY "fs_ei_select" ON public.eintraege FOR SELECT TO anon USING (true);
+CREATE POLICY "fs_ei_insert" ON public.eintraege FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "fs_ei_update" ON public.eintraege FOR UPDATE TO anon USING (true) WITH CHECK (true);
+-- kein DELETE fuer anon: hartes Loeschen nur im Supabase-Dashboard
 -- 3. Real-time aktivieren
 ALTER PUBLICATION supabase_realtime ADD TABLE public.spiele;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.eintraege;
@@ -1500,7 +1512,7 @@ function sDel(id){ dtgt=id; document.getElementById('dm').style.display='flex'; 
 function closeDM(){ dtgt=null; document.getElementById('dm').style.display='none'; }
 async function cfmDel(){
   if(!dtgt)return;
-  try{ await dbDE(dtgt); ren(); go(cur); toast(t('t_deleted')); }
+  try{ await dbRm(dtgt); ren(); go(cur); toast(t('t_removed')); }
   catch(e){ toast(t('t_err')+e.message,true); }
   closeDM();
 }
