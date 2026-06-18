@@ -157,6 +157,10 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--bi);
   color: #000;
 }
+.hdr-ctrl { display: flex; align-items: center; gap: 14px; flex-shrink: 0; align-self: flex-start; }
+.icon-btn { background: none; border: none; color: #cfc5b8; font-size: 17px; line-height: 1; cursor: pointer; padding: 2px; transition: color .15s; }
+.icon-btn:hover { color: #fff; }
+.nb-help { margin-left: auto; font-size: 15px; }
 
 /* ─── NAVIGATION ─────────────────────────────────────── */
 .nav-wrap {
@@ -750,14 +754,7 @@ pre {
 
 <!-- TOP BAR -->
 <div class="topbar">
-  <div class="topbar-item">
-    <div class="conn-dot off" id="cd"></div>
-    <span id="cl">Verbindung</span>
-  </div>
   <button class="admin-btn" id="langbtn" onclick="toggleLang()">EN</button>
-  <button class="admin-btn" id="thbtn" onclick="toggleTheme()">☀ Hell</button>
-  <button class="admin-btn" data-i18n="tb_share" onclick="shareApp()">↗ Teilen</button>
-  <button class="admin-btn" data-i18n="tb_help" onclick="go('he')">? Hilfe</button>
   <button class="admin-btn" id="abtn" onclick="toggleAdmin()">🔒 Admin</button>
 </div>
 
@@ -776,6 +773,11 @@ pre {
       </div>
       <div class="logo-eyebrow" data-i18n="eyebrow">FC St. Pauli Fanclub &nbsp;·&nbsp; Ticket-Börse</div>
     </div>
+    <div class="hdr-ctrl">
+      <div class="conn-dot off" id="cd" title="Verbindung"></div>
+      <button class="icon-btn" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
+      <button class="icon-btn" onclick="shareApp()" title="Teilen">↗</button>
+    </div>
   </div>
 </header>
 
@@ -786,9 +788,9 @@ pre {
     <button class="nb su"       onclick="go('su')"><span data-i18n="nav_su">Suche</span> <span class="nbadge" id="c-su">0</span></button>
     <button class="nb bi"       onclick="go('bi')"><span data-i18n="nav_bi">Biete</span> <span class="nbadge" id="c-bi">0</span></button>
     <button class="nb ta"       onclick="go('ta')"><span data-i18n="nav_ta">Tausch</span> <span class="nbadge" id="c-ta">0</span></button>
-    <button class="nb" id="n-he" onclick="go('he')"><span data-i18n="nav_he">Hilfe</span></button>
-    <button class="nb" id="n-sp" onclick="go('sp')"><span data-i18n="nav_sp">Spiele</span> <span class="nav-lock" id="lk-sp">🔒</span></button>
+    <button class="nb nb-help" id="n-he" onclick="go('he')" title="Hilfe">?</button>
     <button class="nb" id="n-se" onclick="go('se')"><span data-i18n="nav_se">Setup</span> <span class="nav-lock" id="lk-se">🔒</span></button>
+    <button class="nb" id="n-sp" onclick="go('sp')"><span data-i18n="nav_sp">Spiele</span> <span class="nav-lock" id="lk-sp">🔒</span></button>
   </nav>
 </div>
 
@@ -887,7 +889,7 @@ const svme=()=>{ try{localStorage.setItem(KM,JSON.stringify(me));}catch(e){} };
 const ldme=()=>{ try{const r=localStorage.getItem(KM);if(r)me={...me,...JSON.parse(r)};}catch(e){} };
 const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const ldtheme=()=>{ try{const t=localStorage.getItem(KT); if(t==='light'||t==='dark')theme=t;}catch(e){} };
-function applyTheme(){ document.body.classList.toggle('light', theme==='light'); const b=document.getElementById('thbtn'); if(b)b.textContent=theme==='light'?t('th_dark'):t('th_light'); }
+function applyTheme(){ document.body.classList.toggle('light', theme==='light'); const b=document.getElementById('thbtn'); if(b){ b.textContent=theme==='light'?'🌙':'☀'; b.title=theme==='light'?t('th_dark'):t('th_light'); } }
 function toggleTheme(){ theme=theme==='light'?'dark':'light'; try{localStorage.setItem(KT,theme);}catch(e){} applyTheme(); }
 
 // ── I18N (DE/EN) ──────────────────────────────────────────────
@@ -1069,10 +1071,10 @@ function toast(msg,err=false){
   setTimeout(()=>t.className='toast'+(err?' err':''),2600);
 }
 function upconn(){
-  const d=document.getElementById('cd'),l=document.getElementById('cl');
-  if(cm==='live'){ d.className='conn-dot live'; l.textContent=t('conn_live'); l.style.color='#86efac'; }
-  else if(cm==='local'){ d.className='conn-dot local'; l.textContent=t('conn_local'); l.style.color='var(--ma)'; }
-  else{ d.className='conn-dot off'; l.textContent=t('conn_off'); l.style.color='#ff5252'; }
+  const d=document.getElementById('cd'); if(!d)return;
+  if(cm==='live'){ d.className='conn-dot live'; d.title=t('conn_live'); }
+  else if(cm==='local'){ d.className='conn-dot local'; d.title=t('conn_local'); }
+  else{ d.className='conn-dot off'; d.title=t('conn_off'); }
 }
 function upadm(){
   const b=document.getElementById('abtn');
@@ -1453,7 +1455,7 @@ function go(tab){
   document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).style.display='block';
-  const tabs=['ov','su','bi','ta','he','sp','se'];
+  const tabs=['ov','su','bi','ta','he','se','sp'];
   const btn=document.querySelectorAll('.nb')[tabs.indexOf(tab)];
   if(btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
