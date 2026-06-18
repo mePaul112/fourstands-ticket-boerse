@@ -998,6 +998,14 @@ function copySig(id){
   navigator.clipboard.writeText(u).then(()=>toast(t('t_sigcopied'))).catch(()=>{});
 }
 const gsp=()=>st.sp.find(s=>s.id===st.aktiv)||null;
+// Nächstes anstehendes Spiel (ab heute); falls alle vergangen → jüngstes vergangenes
+const nextGameId=()=>{
+  if(!st.sp.length) return null;
+  const h0=new Date(); h0.setHours(0,0,0,0);
+  const up=st.sp.filter(s=>s.da&&new Date(s.da)>=h0).sort((a,b)=>new Date(a.da)-new Date(b.da));
+  if(up.length) return up[0].id;
+  return [...st.sp].sort((a,b)=>new Date(b.da)-new Date(a.da))[0].id;
+};
 const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
              .sort((a,b)=>((a.defer||0)-(b.defer||0))||(new Date(a.ts)-new Date(b.ts)));
 
@@ -1063,7 +1071,7 @@ async function ldall(){
     const{data,error}=await sb.from('spiele').select('*').order('datum',{ascending:true});
     if(error)throw error;
     st.sp=(data||[]).map(mapsp);
-    if(!st.aktiv&&st.sp.length)st.aktiv=st.sp[0].id;
+    if(st.sp.length)st.aktiv=nextGameId();
     if(st.aktiv)await ldei();
     await loadConfig(); await evalQueue();
   }finally{sld(false);}
@@ -1124,7 +1132,7 @@ async function dbDSP(id){
   if(sb){const{error}=await sb.from('spiele').delete().eq('id',id);if(error)throw error;}
   st.sp=st.sp.filter(s=>s.id!==id);
   st.ei=st.ei.filter(e=>e.sid!==id);
-  if(st.aktiv===id)st.aktiv=st.sp[0]?.id||null;
+  if(st.aktiv===id)st.aktiv=nextGameId();
   if(!sb)svbck();
 }
 async function dbAE(e){
@@ -1833,7 +1841,7 @@ async function shareApp(){
 // ── INIT ──────────────────────────────────────────────────────
 (async()=>{
   ldcfg(); ldbck(); ldme(); ldtheme(); ldlang(); ldseen(); applyTheme();
-  if(st.sp.length&&!st.aktiv) st.aktiv=st.sp[0].id;
+  if(st.sp.length) st.aktiv=nextGameId();
   upadm(); applyLang(); ren(); go('ov');
   await initSB();
   snapshotNew();
