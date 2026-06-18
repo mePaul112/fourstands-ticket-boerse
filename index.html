@@ -470,6 +470,13 @@ a { color: inherit; text-decoration: none; }
   transition: border-color .15s;
 }
 .fg textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+/* Tausch: Habe ⇄ Will als zwei klar getrennte Blöcke */
+.swap-row { display:flex; align-items:stretch; gap:10px; margin:0 0 12px; flex-wrap:wrap; }
+.swap-side { flex:1 1 240px; background:var(--sf2); border:1px solid var(--bd); border-radius:8px; padding:10px 12px; }
+.swap-lbl { font-family:'Barlow Condensed',sans-serif; font-size:10px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--ta); margin-bottom:8px; }
+.swap-fields { display:flex; gap:10px; }
+.swap-fields .fg { flex:1; margin:0; min-width:0; }
+.swap-side select { width:100%; box-sizing:border-box; }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -948,7 +955,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
-  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',t_taself:'Habe und Tausch-Wunsch sind identisch',
+  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
@@ -967,7 +974,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
-  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',t_taself:'Have and wanted are identical',
+  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',l_game:'Match *',t_taself:'Have and wanted are identical',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
@@ -1384,10 +1391,24 @@ ${sf.ta?`<div class="form-panel ta">
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="ta-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="ta-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
-    <div class="fg"><label>${t('l_have')}</label><select id="ta-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
-    <div class="fg"><label>${t('l_qty')}</label><select id="ta-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
-    <div class="fg"><label>${t('l_wantgame')}</label><select id="ta-wg" onchange="taWantChg()">${gameOpts}</select></div>
-    <div class="fg"><label>${t('l_wantstand')}</label><select id="ta-g"><option value="" selected>${t('opt_any')}</option>${bopt(sp)}</select></div>
+  </div>
+  <div class="swap-row">
+    <div class="swap-side">
+      <div class="swap-lbl">${t('sw_have')}</div>
+      <div class="swap-fields">
+        <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="ta-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
+        <div class="fg" style="flex:0 0 72px"><label>${t('l_qty')}</label><select id="ta-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      </div>
+    </div>
+    <div class="swap-side">
+      <div class="swap-lbl">⇄ ${t('sw_want')}</div>
+      <div class="swap-fields">
+        <div class="fg"><label>${t('l_game')}</label><select id="ta-wg" onchange="taWantChg()">${gameOpts}</select></div>
+        <div class="fg"><label>${t('l_stand')}</label><select id="ta-g"><option value="" selected>${t('opt_any')}</option>${bopt(sp)}</select></div>
+      </div>
+    </div>
+  </div>
+  <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="ta-no" placeholder="${t('ph_no_ta')}"></div>
   </div>
   <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="ta-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
