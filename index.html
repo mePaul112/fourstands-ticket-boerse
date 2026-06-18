@@ -892,6 +892,7 @@ let showDone=false, onlyMine=false, showArchiv=false, theme='dark', lang='de';
 let me={nm:'',si:''};
 let expiryH=48, evaluating=false;
 let newMatchN=0, seen=new Set();
+let firstLoad=true;  // beim allerersten Laden auf naechsten Spieltag defaulten, danach Auswahl erhalten
 
 // ── STORAGE ───────────────────────────────────────────────────
 const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} };
@@ -1071,7 +1072,9 @@ async function ldall(){
     const{data,error}=await sb.from('spiele').select('*').order('datum',{ascending:true});
     if(error)throw error;
     st.sp=(data||[]).map(mapsp);
-    if(st.sp.length)st.aktiv=nextGameId();
+    // Start: naechsten Spieltag waehlen. Live-Refresh: gueltige Auswahl erhalten, nur ungueltige korrigieren.
+    if(st.sp.length && (firstLoad || !st.aktiv || !st.sp.some(s=>s.id===st.aktiv))) st.aktiv=nextGameId();
+    firstLoad=false;
     if(st.aktiv)await ldei();
     await loadConfig(); await evalQueue();
   }finally{sld(false);}
@@ -1101,7 +1104,8 @@ async function evalQueue(){
   evaluating=true;
   try{
     const now=Date.now(), durMs=(expiryH||48)*3600000;
-    const games=[...new Set(st.ei.map(e=>e.sid))];
+    // Nur das aktive Spiel auswerten — nur dessen Eintraege werden per Realtime aktuell gehalten
+    const games=st.aktiv?[st.aktiv]:[];
     const ops=[];
     games.forEach(gid=>{
       const matched=new Set(sbMatchesForGame(gid).map(m=>m.s.id));
@@ -1229,7 +1233,7 @@ function cardH(e,nr,mi){
   const isM=mi.includes(e.id);
   const sig=sigLink(e);
   const az=e.az>1?`<span class="meta-anz">${e.az}${t('anz')}</span>`:'';
-  const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${e.tg||'—'}</span></div>`:'';
+  const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${esc(e.tg)||'—'}</span></div>`:'';
   const mB=isM?`<span class="tag tag-match">${t('tag_match')}</span>`:'';
   const lb=e.typ==='su'?t('lbl_su'):e.typ==='bi'?t('lbl_bi'):t('lbl_ta');
   const mine=(me.nm&&e.nm===me.nm)?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">${t('badge_mine')}</span>`:'';
@@ -1247,15 +1251,15 @@ function cardH(e,nr,mi){
     <div class="card-nr">${nr}</div>
     <div>
       <div><span class="tag tag-${e.typ}">${lb}</span>${mB}${mine}</div>
-      <div class="card-heading">${e.br||t('any_short')}</div>
+      <div class="card-heading">${esc(e.br)||t('any_short')}</div>
       ${tg}
       <div class="card-meta">
-        <span class="meta-name">👤 ${e.nm}</span>
+        <span class="meta-name">👤 ${esc(e.nm)}</span>
         ${sig}${az}
         <span class="meta-time">${fmt(e.ts)}</span>
         ${isM&&e.typ==='su'&&e.msince?`<span class="meta-time" style="color:var(--ma)">⏳ ${fristTxt(e)}</span>`:''}
       </div>
-      ${e.no?`<div class="card-note">💬 ${e.no}</div>`:''}
+      ${e.no?`<div class="card-note">💬 ${esc(e.no)}</div>`:''}
       ${adm&&e.cat?`<div class="card-note" style="font-style:normal;color:var(--mu)">🔒 ${t('consent_proof')}: ${new Date(e.cat).toLocaleString(lang==='en'?'en-GB':'de-DE')}</div>`:''}
     </div>
     <div class="card-acts">
@@ -1446,7 +1450,7 @@ function ren(){
   const spList = showArchiv ? st.sp : st.sp.filter(s=> new Date(s.da)>=_h0 || s.id===st.aktiv);
   sel.innerHTML=!spList.length
     ?`<option value="">${t('sel_nogame')}</option>`
-    :spList.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${s.ge} — ${new Date(s.da).toLocaleDateString(lang==='en'?'en-GB':'de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
+    :spList.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${esc(s.ge)} — ${new Date(s.da).toLocaleDateString(lang==='en'?'en-GB':'de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
   const _ab=document.getElementById('archbtn');
   if(_ab){ const _past=st.sp.some(s=>new Date(s.da)<_h0); _ab.style.display=_past?'inline-block':'none';
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
@@ -1461,8 +1465,8 @@ function ren(){
   // Match banners
   document.getElementById('mbnr').innerHTML=_nmh+mats().map(m=>
     m.t==='sb'
-      ?`<div class="match-banner">🎯 ${t('mb_match')} · ${m.s.nm} ${t('mb_seeks')} ${m.s.br} ↔ ${m.b.nm} ${t('mb_offers')} ${m.b.br}</div>`
-      :`<div class="match-banner">🔄 ${t('mb_swap')} · ${m.t1.nm} (${m.t1.br}→${m.t1.tg}) ↔ ${m.t2.nm} (${m.t2.br}→${m.t2.tg})</div>`
+      ?`<div class="match-banner">🎯 ${t('mb_match')} · ${esc(m.s.nm)} ${t('mb_seeks')} ${esc(m.s.br)} ↔ ${esc(m.b.nm)} ${t('mb_offers')} ${esc(m.b.br)}</div>`
+      :`<div class="match-banner">🔄 ${t('mb_swap')} · ${esc(m.t1.nm)} (${esc(m.t1.br)}→${esc(m.t1.tg)}) ↔ ${esc(m.t2.nm)} (${esc(m.t2.br)}→${esc(m.t2.tg)})</div>`
   ).join('');
 
   const noSp=`<div class="empty"><span class="empty-ico">📅</span>${t('empty_nogame')}</div>`;
@@ -1480,7 +1484,7 @@ function ren(){
     :st.sp.map(s=>`<div class="card">
         <div class="card-nr" style="font-size:20px;padding-top:2px">${s.typ==='heim'?'🏟':'✈'}</div>
         <div>
-          <div class="card-heading">${s.ge}</div>
+          <div class="card-heading">${esc(s.ge)}</div>
           <div class="card-meta">
             <span class="meta-name">${s.typ==='heim'?'Heimspiel':'Auswärtsspiel'}</span>
             <span class="meta-time">${new Date(s.da).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}${anHM(s)?' · '+anHM(s)+' Uhr':''}</span>
