@@ -924,7 +924,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
-  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',
+  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',t_taself:'Habe und Tausch-Wunsch sind identisch',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
@@ -943,7 +943,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
-  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',
+  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',t_taself:'Have and wanted are identical',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
@@ -994,7 +994,7 @@ function sigLink(e){
   return `<span class="meta-sig" style="cursor:pointer" title="${t('sig_user_t')}" onclick="copySig('${e.id}')">📱 ${esc(si)} ⧉</span>`;
 }
 function copySig(id){
-  const e=st.ei.find(x=>x.id===id); if(!e)return;
+  const e=findE(id); if(!e)return;
   const u=(e.si||'').replace(/^@/,'').trim();
   navigator.clipboard.writeText(u).then(()=>toast(t('t_sigcopied'))).catch(()=>{});
 }
@@ -1009,6 +1009,16 @@ const nextGameId=()=>{
 };
 const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
              .sort((a,b)=>((a.defer||0)-(b.defer||0))||(new Date(a.ts)-new Date(b.ts)));
+const spById=id=>st.sp.find(s=>s.id===id)||null;
+const gicon=s=>s?(s.typ==='heim'?'🏟️':'✈️'):'';
+// Globaler Tausch-Pool (spielübergreifend, nur offene). Live: eigene Query (taball); offline: aus st.ei.
+let taball=[];
+const taPool=()=> sb ? taball : st.ei.filter(e=>e.typ==='ta');
+// Tausch-Einträge, die das aktive Spiel betreffen (Habe ODER Will), offen
+const taForActive=()=>taPool().filter(e=>e.s==='o'&&(e.sid===st.aktiv||(e.tsp||e.sid)===st.aktiv));
+// Eintrag finden / alle lokalen Kopien (st.ei + globaler Tausch-Pool) — Tausch kann in beiden liegen
+const findE=id=>st.ei.find(e=>e.id===id)||taball.find(e=>e.id===id)||null;
+const copiesE=id=>[st.ei.find(e=>e.id===id),taball.find(e=>e.id===id)].filter(Boolean);
 
 // Prioritaets-Matching (Suche<->Biete, 1:1) fuer ein Spiel — gemeinsame Logik
 function sbMatchesForGame(gid){
@@ -1019,12 +1029,31 @@ function sbMatchesForGame(gid){
   bi.forEach(b=>{ const s=su.find(x=>!taken.has(x.id)&&(x.br===b.br||!x.br)); if(s){ taken.add(s.id); res.push({s,b}); } });
   return res;
 }
+// Tausch-Matching: Spiegel auf Spiel (Habe↔Will), Stand passend (oder egal), GLEICHE Anzahl
+function tauschMatches(){
+  const pool=taPool().filter(e=>e.s==='o');
+  const taken=new Set(), res=[];
+  for(let i=0;i<pool.length;i++){
+    const a=pool[i]; if(taken.has(a.id))continue;
+    const aw=a.tsp||a.sid;
+    for(let j=i+1;j<pool.length;j++){
+      const b=pool[j]; if(taken.has(b.id))continue;
+      const bw=b.tsp||b.sid;
+      if(aw!==b.sid||bw!==a.sid)continue;          // Spiel-Spiegel
+      if((a.az||1)!==(b.az||1))continue;           // gleiche Kartenzahl erforderlich
+      const standOk=(!b.tg||b.tg===a.br)&&(!a.tg||a.tg===b.br);
+      if(!standOk)continue;
+      taken.add(a.id); taken.add(b.id); res.push({t1:a,t2:b}); break;
+    }
+  }
+  return res;
+}
 function mats(){
   const ms=sbMatchesForGame(st.aktiv).map(x=>({t:'sb',s:x.s,b:x.b}));
-  const ta=gei('ta');
-  ta.forEach((t1,i)=>ta.forEach((t2,j)=>{
-    if(i<j&&t1.br===t2.tg&&t2.br===t1.tg)ms.push({t:'tt',t1,t2});
-  }));
+  tauschMatches().forEach(m=>{
+    const act = m.t1.sid===st.aktiv||m.t2.sid===st.aktiv||(m.t1.tsp||m.t1.sid)===st.aktiv||(m.t2.tsp||m.t2.sid)===st.aktiv;
+    if(act) ms.push({t:'tt',t1:m.t1,t2:m.t2});
+  });
   return ms;
 }
 const mids=()=>mats().flatMap(m=>m.t==='sb'?[m.s.id,m.b.id]:[m.t1.id,m.t2.id]);
@@ -1041,8 +1070,8 @@ const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.
 // App-interne Kurz-Codes <-> DB-Langformen (DB-CHECK: typ IN suche/biete/tausch, status IN offen/erledigt)
 const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
-const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null});
-const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen'),consent_at:e.cat||null,defer:e.defer||0});
+const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,tsp:r.tausch_spiel||null,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null});
+const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,tausch_spiel:e.tsp||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen'),consent_at:e.cat||null,defer:e.defer||0});
 
 // ── SUPABASE ──────────────────────────────────────────────────
 async function initSB(){
@@ -1076,8 +1105,14 @@ async function ldall(){
     if(st.sp.length && (firstLoad || !st.aktiv || !st.sp.some(s=>s.id===st.aktiv))) st.aktiv=nextGameId();
     firstLoad=false;
     if(st.aktiv)await ldei();
+    await ldTausch();
     await loadConfig(); await evalQueue();
   }finally{sld(false);}
+}
+async function ldTausch(){
+  if(!sb){taball=[];return;}
+  const{data,error}=await sb.from('eintraege').select('*').eq('typ','tausch').eq('status','offen');
+  if(!error) taball=(data||[]).map(mapei);
 }
 async function ldei(){
   if(!st.aktiv||!sb)return;
@@ -1090,7 +1125,7 @@ function subRT(){
   if(ch)sb.removeChannel(ch);
   ch=sb.channel('fs5')
     .on('postgres_changes',{event:'*',schema:'public',table:'spiele'},async()=>{await ldall();ren();})
-    .on('postgres_changes',{event:'*',schema:'public',table:'eintraege'},async()=>{await ldei();await evalQueue();ren();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'eintraege'},async()=>{await ldei();await ldTausch();await evalQueue();ren();})
     .subscribe();
 }
 async function loadConfig(){
@@ -1142,16 +1177,16 @@ async function dbDSP(id){
 async function dbAE(e){
   if(sb){
     const{data,error}=await sb.from('eintraege').insert(todb(e)).select().single();
-    if(error)throw error; st.ei.push(mapei(data));
+    if(error)throw error; const m=mapei(data); st.ei.push(m); if(m.typ==='ta')taball.push(m);
   }else{ e.ts=new Date().toISOString(); st.ei.push(e); svbck(); }
 }
 async function dbDN(id){
   if(sb){const{error}=await sb.from('eintraege').update({status:'erledigt'}).eq('id',id);if(error)throw error;}
-  const e=st.ei.find(e=>e.id===id); if(e)e.s='erledigt'; if(!sb)svbck();
+  copiesE(id).forEach(e=>e.s='erledigt'); if(!sb)svbck();
 }
 async function dbRm(id){ // Soft-Delete: als 'entfernt' markieren (kein hartes Loeschen)
   if(sb){const{error}=await sb.from('eintraege').update({status:'entfernt'}).eq('id',id);if(error)throw error;}
-  const e=st.ei.find(e=>e.id===id); if(e)e.s='entfernt'; if(!sb)svbck();
+  copiesE(id).forEach(e=>e.s='entfernt'); if(!sb)svbck();
 }
 async function dbDE(id){
   if(sb){const{error}=await sb.from('eintraege').delete().eq('id',id);if(error)throw error;}
@@ -1159,7 +1194,7 @@ async function dbDE(id){
 }
 async function dbDefer(id,val){ // Warteschlangen-Stufe (Verzicht/Demotion)
   if(sb){const{error}=await sb.from('eintraege').update({defer:val}).eq('id',id);if(error)throw error;}
-  const e=st.ei.find(e=>e.id===id); if(e)e.defer=val; if(!sb)svbck();
+  copiesE(id).forEach(e=>e.defer=val); if(!sb)svbck();
 }
 // Einmaliges Verzichten: Suche rutscht in der Warteschlange zurueck, naechste:r kommt dran
 async function passOnce(id){
@@ -1233,7 +1268,10 @@ function cardH(e,nr,mi){
   const isM=mi.includes(e.id);
   const sig=sigLink(e);
   const az=e.az>1?`<span class="meta-anz">${e.az}${t('anz')}</span>`:'';
-  const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${esc(e.tg)||'—'}</span></div>`:'';
+  const taCross=e.typ==='ta'&&e.tsp&&e.tsp!==e.sid;
+  const taHg=e.typ==='ta'?spById(e.sid):null, taWg=e.typ==='ta'?spById(e.tsp||e.sid):null;
+  const headTxt=taCross?`${gicon(taHg)} ${esc(taHg?taHg.ge:'?')} · ${esc(e.br)}`:(esc(e.br)||t('any_short'));
+  const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${taCross?gicon(taWg)+' '+esc(taWg?taWg.ge:'?')+' · ':''}${esc(e.tg)||t('any_short')}</span></div>`:'';
   const mB=isM?`<span class="tag tag-match">${t('tag_match')}</span>`:'';
   const lb=e.typ==='su'?t('lbl_su'):e.typ==='bi'?t('lbl_bi'):t('lbl_ta');
   const mine=(me.nm&&e.nm===me.nm)?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">${t('badge_mine')}</span>`:'';
@@ -1251,7 +1289,7 @@ function cardH(e,nr,mi){
     <div class="card-nr">${nr}</div>
     <div>
       <div><span class="tag tag-${e.typ}">${lb}</span>${mB}${mine}</div>
-      <div class="card-heading">${esc(e.br)||t('any_short')}</div>
+      <div class="card-heading">${headTxt}</div>
       ${tg}
       <div class="card-meta">
         <span class="meta-name">👤 ${esc(e.nm)}</span>
@@ -1271,7 +1309,9 @@ function cardH(e,nr,mi){
 
 function cgrp(typs){
   const mi=mids();
-  let all=st.ei.filter(e=>e.sid===st.aktiv&&typs.includes(e.typ)&&e.s!=='entfernt');
+  // su/bi aus aktivem Spiel; ta aus globalem Pool (Habe ODER Will = aktives Spiel)
+  let all=st.ei.filter(e=>e.sid===st.aktiv&&typs.includes(e.typ)&&e.typ!=='ta'&&e.s!=='entfernt');
+  if(typs.includes('ta')) all=all.concat(taPool().filter(e=>e.s!=='entfernt'&&(e.sid===st.aktiv||(e.tsp||e.sid)===st.aktiv)));
   if(!showDone) all=all.filter(e=>e.s==='o');
   if(onlyMine&&me.nm) all=all.filter(e=>e.nm===me.nm);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
@@ -1311,7 +1351,9 @@ ${sf.bi?`<div class="form-panel bi">
   <button class="btn-primary" onclick="addE('bi')">${t('btn_bi')}</button>
 </div>`:''}`;
 }
-function fTa(sp){ return`
+function fTa(sp){
+  const gameOpts=st.sp.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${gicon(s)} ${esc(s.ge)}</option>`).join('');
+  return`
 <button class="toggler${sf.ta?' open':''}" onclick="tf('ta')">${sf.ta?t('f_open'):t('f_ta_add')}</button>
 ${sf.ta?`<div class="form-panel ta">
   <div class="form-heading ta">${t('fh_ta')}</div>
@@ -1319,12 +1361,18 @@ ${sf.ta?`<div class="form-panel ta">
     <div class="fg"><label>${t('l_name')}</label><input id="ta-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="ta-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
     <div class="fg"><label>${t('l_have')}</label><select id="ta-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
-    <div class="fg"><label>${t('l_want')}</label><select id="ta-g"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
+    <div class="fg"><label>${t('l_qty')}</label><select id="ta-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+    <div class="fg"><label>${t('l_wantgame')}</label><select id="ta-wg" onchange="taWantChg()">${gameOpts}</select></div>
+    <div class="fg"><label>${t('l_wantstand')}</label><select id="ta-g"><option value="" selected>${t('opt_any')}</option>${bopt(sp)}</select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="ta-no" placeholder="${t('ph_no_ta')}"></div>
   </div>
   <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="ta-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
   <button class="btn-primary ta" onclick="addE('ta')">${t('btn_ta')}</button>
 </div>`:''}`;
+}
+function taWantChg(){
+  const wg=spById(document.getElementById('ta-wg').value);
+  document.getElementById('ta-g').innerHTML=`<option value="" selected>${t('opt_any')}</option>${bopt(wg)}`;
 }
 
 // ── RENDER: HILFE / ANLEITUNG + DATENSCHUTZ ───────────────────
@@ -1340,7 +1388,7 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">So funktioniert's</div>
         <p>🔍 <strong>Suche</strong> – du brauchst ein Ticket und kommst mit Zeitstempel in eine Warteschlange. Der gewünschte Stand ist optional (egal).</p>
         <p>🎟️ <strong>Biete</strong> – du hast ein Ticket übrig. Stand und Anzahl sind Pflicht.</p>
-        <p>🔄 <strong>Tausch</strong> – du hast Stand A und möchtest Stand B.</p>
+        <p>🔄 <strong>Tausch</strong> – du hast Karten und möchtest andere: Stand A gegen Stand B im selben Spiel <em>oder</em> Karten für ein Spiel gegen Karten für ein anderes (z.&nbsp;B. ein Auswärtsspiel gegen das HSV-Heimspiel). Im Formular wählst du <strong>Habe</strong> (Spiel + Stand + Anzahl) und <strong>Tausche gegen</strong> (Spiel + Stand, „egal" möglich). Ein Match entsteht bei spiegelbildlichem Wunsch und <strong>gleicher Kartenzahl</strong>.</p>
         <p>⚡ <strong>Match</strong> – passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein Hinweis. Kontakt läuft direkt über den 📱 Signal-Link des Eintrags.</p>
         <p>✓ <strong>Erledigt</strong> – ist dein Anliegen erledigt, markiere deinen Eintrag entsprechend.</p>
       </div>
@@ -1395,7 +1443,7 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">How it works</div>
         <p>🔍 <strong>Search</strong> – you need a ticket and join a queue with a timestamp. The desired stand is optional (any).</p>
         <p>🎟️ <strong>Offer</strong> – you have a spare ticket. Stand and quantity are required.</p>
-        <p>🔄 <strong>Swap</strong> – you have stand A and want stand B.</p>
+        <p>🔄 <strong>Swap</strong> – you have tickets and want others: stand A for stand B in the same match <em>or</em> tickets for one match for tickets for another (e.g. an away game for the HSV home game). In the form you pick <strong>I have</strong> (match + stand + quantity) and <strong>swap for</strong> (match + stand, „any" possible). A match needs a mirrored wish and the <strong>same number of tickets</strong>.</p>
         <p>⚡ <strong>Match</strong> – if a search fits an offer (or two swaps fit), a note appears at the top. Contact runs directly via the 📱 Signal link.</p>
         <p>✓ <strong>Done</strong> – mark your entry as done once resolved.</p>
       </div>
@@ -1455,8 +1503,8 @@ function ren(){
   if(_ab){ const _past=st.sp.some(s=>new Date(s.da)<_h0); _ab.style.display=_past?'inline-block':'none';
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
   // Counts
-  ['su','bi','ta'].forEach(t=>{
-    document.getElementById('c-'+t).textContent=gei(t).length;
+  ['su','bi','ta'].forEach(typ=>{
+    document.getElementById('c-'+typ).textContent = typ==='ta' ? taForActive().length : gei(typ).length;
   });
   // Hinweis "neue Matches seit letztem Besuch" (clientseitig, localStorage)
   const _nmh = newMatchN>0
@@ -1466,7 +1514,7 @@ function ren(){
   document.getElementById('mbnr').innerHTML=_nmh+mats().map(m=>
     m.t==='sb'
       ?`<div class="match-banner">🎯 ${t('mb_match')} · ${esc(m.s.nm)} ${t('mb_seeks')} ${esc(m.s.br)} ↔ ${esc(m.b.nm)} ${t('mb_offers')} ${esc(m.b.br)}</div>`
-      :`<div class="match-banner">🔄 ${t('mb_swap')} · ${esc(m.t1.nm)} (${esc(m.t1.br)}→${esc(m.t1.tg)}) ↔ ${esc(m.t2.nm)} (${esc(m.t2.br)}→${esc(m.t2.tg)})</div>`
+      :`<div class="match-banner">🔄 ${t('mb_swap')} · ${esc(m.t1.nm)} (${gicon(spById(m.t1.sid))} ${esc((spById(m.t1.sid)||{}).ge||'')} · ${esc(m.t1.br)}) ↔ ${esc(m.t2.nm)} (${gicon(spById(m.t2.sid))} ${esc((spById(m.t2.sid)||{}).ge||'')} · ${esc(m.t2.br)})</div>`
   ).join('');
 
   const noSp=`<div class="empty"><span class="empty-ico">📅</span>${t('empty_nogame')}</div>`;
@@ -1531,6 +1579,7 @@ CREATE TABLE public.eintraege (
   typ text NOT NULL CHECK (typ IN ('suche','biete','tausch')),
   bereich text NOT NULL,
   tausch_gegen text,
+  tausch_spiel uuid,
   name text NOT NULL,
   signal_kontakt text,
   anzahl integer DEFAULT 1,
@@ -1711,20 +1760,24 @@ async function addE(typ){
   const si=normSi(document.getElementById(`${p}-si`).value);
   const br=document.getElementById(`${p}-b`).value;
   const no=document.getElementById(`${p}-no`).value.trim();
-  const az=typ!=='ta'?parseInt(document.getElementById(`${p}-a`).value):1;
+  const az=parseInt(document.getElementById(`${p}-a`).value)||1;
   const tg=typ==='ta'?document.getElementById('ta-g').value:null;
+  const tsp=typ==='ta'?document.getElementById('ta-wg').value:null;
   const consent=document.getElementById(`${p}-c`).checked;
   if(!nm){ toast(t('t_name'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
   if((typ==='bi'||typ==='ta') && !br){ toast(t('t_pickstand'),true); return; }
-  if(typ==='ta' && !tg){ toast(t('t_pickstand'),true); return; }
+  if(typ==='ta'){
+    if(!tsp){ toast(t('t_nogame'),true); return; }
+    if(tsp===st.aktiv && (tg||'')===(br||'')){ toast(t('t_taself'),true); return; } // Habe == Will
+  }
   if(!consent){ toast(t('t_consent'),true); return; }
   if(typ==='su'){ // keine doppelte AKTIVE Suche pro Spiel (verifiziert am Signal-Kontakt, sonst Name)
     const nsi=si.toLowerCase(), nnm=nm.toLowerCase();
     const dup=st.ei.some(x=>x.sid===st.aktiv&&x.typ==='su'&&x.s==='o'&&(nsi?(x.si||'').trim().toLowerCase()===nsi:(x.nm||'').toLowerCase()===nnm));
     if(dup){ toast(t('t_dupsu'),true); return; }
   }
-  const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,no,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
+  const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,tsp,no,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
   try{ sld(true); await dbAE(e); me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
   catch(er){ toast(t('t_err')+er.message,true); }
   finally{ sld(false); }
@@ -1743,28 +1796,29 @@ async function cfmDel(){
 }
 let etgt=null;
 function editE(id){
-  const e=st.ei.find(x=>x.id===id); if(!e)return; etgt=id;
-  const sp=gsp();
+  const e=findE(id); if(!e)return; etgt=id;
+  const hg=spById(e.sid)||gsp(), wg=spById(e.tsp||e.sid)||hg; // Habe-/Will-Spiel (Tausch kann spielübergreifend sein)
   document.getElementById('em-n').value=e.nm||'';
   document.getElementById('em-si').value=e.si||'';
-  document.getElementById('em-blbl').textContent=(sp&&sp.typ==='heim')?t('l_stand'):(sp?t('l_seat'):t('l_stand'));
-  document.getElementById('em-b').innerHTML=bopt(sp,e.br);
+  document.getElementById('em-blbl').textContent=(hg&&hg.typ==='heim')?t('l_stand'):t('l_seat');
+  document.getElementById('em-b').innerHTML=bopt(hg,e.br);
   const isTa=e.typ==='ta';
   document.getElementById('em-gwrap').style.display=isTa?'flex':'none';
   document.getElementById('em-awrap').style.display=isTa?'none':'flex';
-  if(isTa) document.getElementById('em-g').innerHTML=bopt(sp,e.tg);
+  if(isTa) document.getElementById('em-g').innerHTML=`<option value="">${t('opt_any')}</option>`+bopt(wg,e.tg);
   else document.getElementById('em-a').value=e.az||1;
   document.getElementById('em-no').value=e.no||'';
   document.getElementById('em').style.display='flex';
 }
 function closeEM(){ etgt=null; document.getElementById('em').style.display='none'; }
 async function saveEM(){
-  const e=st.ei.find(x=>x.id===etgt); if(!e)return;
+  const e=findE(etgt); if(!e)return;
   const nm=document.getElementById('em-n').value.trim(); if(!nm){ toast(t('t_name'),true); return; }
   e.nm=nm; e.si=normSi(document.getElementById('em-si').value);
   e.br=document.getElementById('em-b').value;
   if(e.typ==='ta') e.tg=document.getElementById('em-g').value; else e.az=parseInt(document.getElementById('em-a').value)||1;
   e.no=document.getElementById('em-no').value.trim();
+  copiesE(e.id).forEach(o=>{ if(o!==e){ o.nm=e.nm;o.si=e.si;o.br=e.br;o.tg=e.tg;o.az=e.az;o.no=e.no; } }); // andere Kopie (Tausch-Pool) mitziehen
   try{ sld(true);
     if(sb){ const{error}=await sb.from('eintraege').update(todb(e)).eq('id',e.id); if(error)throw error; }
     else svbck();
