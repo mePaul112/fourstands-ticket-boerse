@@ -157,10 +157,9 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--bi);
   color: #000;
 }
-.hdr-ctrl { display: flex; align-items: center; gap: 14px; flex-shrink: 0; align-self: flex-start; }
-.icon-btn { background: none; border: none; color: #cfc5b8; font-size: 17px; line-height: 1; cursor: pointer; padding: 2px; transition: color .15s; }
-.icon-btn:hover { color: #fff; }
-.nb-help { margin-left: auto; font-size: 15px; }
+.icon-btn { background: none; border: none; color: var(--mu); font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 4px; transition: color .15s; }
+.icon-btn:hover { color: var(--tx); }
+.nb-help { font-size: 15px; }
 
 /* ─── NAVIGATION ─────────────────────────────────────── */
 .nav-wrap {
@@ -754,8 +753,11 @@ pre {
 
 <!-- TOP BAR -->
 <div class="topbar">
+  <div class="conn-dot off" id="cd" title="Verbindung"></div>
+  <button class="icon-btn" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
+  <button class="icon-btn" onclick="shareApp()" title="Teilen">↗</button>
   <button class="admin-btn" id="langbtn" onclick="toggleLang()">EN</button>
-  <button class="admin-btn" id="abtn" onclick="toggleAdmin()">🔒 Admin</button>
+  <button class="admin-btn" id="abtn" onclick="toggleAdmin()" title="Admin">🔒</button>
 </div>
 
 <!-- HEADER -->
@@ -773,11 +775,6 @@ pre {
       </div>
       <div class="logo-eyebrow" data-i18n="eyebrow">FC St. Pauli Fanclub &nbsp;·&nbsp; Ticket-Börse</div>
     </div>
-    <div class="hdr-ctrl">
-      <div class="conn-dot off" id="cd" title="Verbindung"></div>
-      <button class="icon-btn" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
-      <button class="icon-btn" onclick="shareApp()" title="Teilen">↗</button>
-    </div>
   </div>
 </header>
 
@@ -788,9 +785,8 @@ pre {
     <button class="nb su"       onclick="go('su')"><span data-i18n="nav_su">Suche</span> <span class="nbadge" id="c-su">0</span></button>
     <button class="nb bi"       onclick="go('bi')"><span data-i18n="nav_bi">Biete</span> <span class="nbadge" id="c-bi">0</span></button>
     <button class="nb ta"       onclick="go('ta')"><span data-i18n="nav_ta">Tausch</span> <span class="nbadge" id="c-ta">0</span></button>
+    <button class="nb" id="n-se" onclick="go('se')" style="margin-left:auto"><span data-i18n="nav_se">Setup</span> <span class="nav-lock" id="lk-se">🔒</span></button>
     <button class="nb nb-help" id="n-he" onclick="go('he')" title="Hilfe">?</button>
-    <button class="nb" id="n-se" onclick="go('se')"><span data-i18n="nav_se">Setup</span> <span class="nav-lock" id="lk-se">🔒</span></button>
-    <button class="nb" id="n-sp" onclick="go('sp')"><span data-i18n="nav_sp">Spiele</span> <span class="nav-lock" id="lk-sp">🔒</span></button>
   </nav>
 </div>
 
@@ -814,7 +810,6 @@ pre {
   <div id="tab-bi" style="display:none"></div>
   <div id="tab-ta" style="display:none"></div>
   <div id="tab-he" style="display:none"></div>
-  <div id="tab-sp" style="display:none"></div>
   <div id="tab-se" style="display:none"></div>
 </div>
 
@@ -1078,13 +1073,13 @@ function upconn(){
 }
 function upadm(){
   const b=document.getElementById('abtn');
-  const ls=document.getElementById('lk-sp'), lk=document.getElementById('lk-se');
+  const lk=document.getElementById('lk-se');
   if(adm){
-    b.textContent='🔓 Admin'; b.className='admin-btn on';
-    if(ls)ls.style.display='none'; if(lk)lk.style.display='none';
+    b.textContent='🔓'; b.className='admin-btn on'; b.title='Admin (angemeldet)';
+    if(lk)lk.style.display='none';
   }else{
-    b.textContent='🔒 Admin'; b.className='admin-btn';
-    if(ls)ls.style.display='inline'; if(lk)lk.style.display='inline';
+    b.textContent='🔒'; b.className='admin-btn'; b.title='Admin';
+    if(lk)lk.style.display='inline';
   }
 }
 
@@ -1338,7 +1333,7 @@ function ren(){
           <button class="btn-del" onclick="dDSP('${s.id}')">×</button>
         </div>
       </div>`).join('');
-  document.getElementById('tab-sp').innerHTML=`
+  const spielHTML=`
     <div class="setup-section">
       <div class="setup-section-title">🔄 Termine aktualisieren</div>
       <div class="setup-block">
@@ -1403,7 +1398,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);`;
            :cm==='local'?'⚠ Lokaler Modus – Daten nur auf diesem Gerät'
            :'✗ Nicht verbunden';
 
-  document.getElementById('tab-se').innerHTML=`
+  document.getElementById('tab-se').innerHTML=spielHTML+`
+    <div class="section-divider" style="margin-top:18px">Verbindung &amp; Einstellungen</div>
     <div class="conn-status ${cc}">${ct}</div>
     ${lastConnErr ? `<div style="background:#ff52520d;border:1px solid #ff525240;border-left:3px solid #ff5252;padding:10px 14px;margin-bottom:12px;font-family:'Barlow Condensed';font-size:11px;letter-spacing:.5px;color:#ff9090;">
       <strong style="display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:2px">Verbindungsfehler</strong>
@@ -1450,12 +1446,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS spiele_ext_id_uniq ON public.spiele(ext_id);`;
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function go(tab){
-  if(['sp','se'].includes(tab)&&!adm){ openPin(tab); return; }
+  if(tab==='se'&&!adm){ openPin(tab); return; }
   cur=tab;
   document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).style.display='block';
-  const tabs=['ov','su','bi','ta','he','se','sp'];
+  const tabs=['ov','su','bi','ta','se','he'];
   const btn=document.querySelectorAll('.nb')[tabs.indexOf(tab)];
   if(btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
