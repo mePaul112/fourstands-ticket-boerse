@@ -755,7 +755,6 @@ pre {
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="conn-dot off" id="cd" title="Verbindung"></div>
-  <button class="admin-btn" id="langbtn" onclick="toggleLang()">EN</button>
   <button class="admin-btn" id="setupbtn" onclick="go('se')" title="Setup">⚙</button>
   <button class="admin-btn" id="abtn" onclick="toggleAdmin()" title="Admin">🔒</button>
 </div>
@@ -785,7 +784,8 @@ pre {
     <button class="nb su"       onclick="go('su')"><span data-i18n="nav_su">Suche</span> <span class="nbadge" id="c-su">0</span></button>
     <button class="nb bi"       onclick="go('bi')"><span data-i18n="nav_bi">Biete</span> <span class="nbadge" id="c-bi">0</span></button>
     <button class="nb ta"       onclick="go('ta')"><span data-i18n="nav_ta">Tausch</span> <span class="nbadge" id="c-ta">0</span></button>
-    <button class="icon-btn nav-ico" id="thbtn" onclick="toggleTheme()" title="Theme" style="margin-left:auto">☀</button>
+    <button class="icon-btn nav-ico" id="langbtn" onclick="toggleLang()" title="Sprache" style="margin-left:auto;font-weight:700;font-size:13px;letter-spacing:1px">EN</button>
+    <button class="icon-btn nav-ico" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
     <button class="icon-btn nav-ico" onclick="shareApp()" title="Teilen">↗</button>
     <button class="nb nb-help" id="n-he" onclick="go('he')" title="Hilfe">?</button>
   </nav>
