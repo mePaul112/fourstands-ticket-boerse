@@ -1019,11 +1019,13 @@ function fristTxt(e){
   return t('frist_left').replace('%',v);
 }
 // Signal-Kontakt: Telefonnummer -> klickbarer Link; Benutzername -> kopierbar (Suche in Signal)
+const isPhone=si=>/^[+0-9][0-9 /()\-]*$/.test((si||'').trim());
+function normPhone(si){ let n=(si||'').replace(/[^+0-9]/g,''); if(n[0]==='+')return n; if(n.slice(0,2)==='00')return '+'+n.slice(2); if(n[0]==='0')return '+49'+n.slice(1); return n; }
+const normSi=si=>{ si=(si||'').trim(); return isPhone(si)?normPhone(si):si; };
 function sigLink(e){
   const si=e&&e.si?String(e.si):''; if(!si) return '';
-  if(/^[+0-9][0-9 /()\-]*$/.test(si.trim())){
-    const num=si.replace(/[^+0-9]/g,'');
-    return `<a class="meta-sig" href="https://signal.me/#p/${encodeURIComponent(num)}" target="_blank">📱 ${esc(si)}</a>`;
+  if(isPhone(si)){
+    return `<a class="meta-sig" href="https://signal.me/#p/${encodeURIComponent(normPhone(si))}" target="_blank">📱 ${esc(si)}</a>`;
   }
   return `<span class="meta-sig" style="cursor:pointer" title="${t('sig_user_t')}" onclick="copySig('${e.id}')">📱 ${esc(si)} ⧉</span>`;
 }
@@ -1364,7 +1366,12 @@ function helpPage(){
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
         <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Angezeigt als goldenes Banner oben und mit ⚡-Markierung an den Karten.</p>
-        <p><strong>Warteschlange:</strong> Suchen werden nach Eingang nummeriert (#1, #2 …). Gibt es mehr Interessenten als Angebote, gilt die Reihenfolge – das Angebot geht an die früheste Suche in der Warteschlange.</p>
+        <p><strong>Vergabe nach Reihenfolge:</strong> Suchen sind nach Eingang nummeriert (#1, #2 …). Pro Angebot erhält nur die <strong>früheste passende</strong> Suche das Match – die anderen warten.</p>
+        <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
+        <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du einen Platz zurück – die/der Nächste kommt dran, du behältst die zweite Chance.<br>
+        <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar).<br>
+        <strong>✏️ Bearbeiten / Erledigt:</strong> Eigene Einträge kannst du jederzeit ändern oder zurückziehen.</p>
+        <p><strong>Eine Suche je Spiel:</strong> Mit demselben Signal-Kontakt kann man sich pro Spiel nur einmal aktiv als Suchende:r eintragen (erledigte/alte Einträge zählen nicht).</p>
         <p style="color:var(--ma)">⚠️ Derzeit gibt es <strong>keine Push-Benachrichtigung</strong> bei einem Match – bitte regelmäßig selbst in die Börse schauen.</p>
       </div>
       <div class="setup-block">
@@ -1414,7 +1421,12 @@ function helpPage(){
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
         <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. Shown as a gold banner at the top and a ⚡ marker on the cards.</p>
-        <p><strong>Queue:</strong> searches are numbered by arrival (#1, #2 …). If there are more people looking than offers, order applies – the offer goes to the earliest search in the queue.</p>
+        <p><strong>Allocation by order:</strong> searches are numbered by arrival (#1, #2 …). Each offer goes to the <strong>earliest matching</strong> search only – the others wait.</p>
+        <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
+        <strong>⏭ Pass:</strong> if it does not suit you right now, you drop one place – the next person gets a turn and you keep a second chance.<br>
+        <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over (remaining time shows on your match card; configurable in Setup).<br>
+        <strong>✏️ Edit / Done:</strong> you can change or withdraw your own entries anytime.</p>
+        <p><strong>One search per match:</strong> with the same Signal contact you can only have one active search per match (done/old entries do not count).</p>
         <p style="color:var(--ma)">⚠️ There is currently <strong>no push notification</strong> for a match – please check the board regularly yourself.</p>
       </div>
       <div class="setup-block">
@@ -1715,7 +1727,7 @@ async function updTermine(){
 async function addE(typ){
   const p=typ;
   const nm=document.getElementById(`${p}-n`).value.trim();
-  const si=document.getElementById(`${p}-si`).value.trim();
+  const si=normSi(document.getElementById(`${p}-si`).value);
   const br=document.getElementById(`${p}-b`).value;
   const no=document.getElementById(`${p}-no`).value.trim();
   const az=typ!=='ta'?parseInt(document.getElementById(`${p}-a`).value):1;
@@ -1768,7 +1780,7 @@ function closeEM(){ etgt=null; document.getElementById('em').style.display='none
 async function saveEM(){
   const e=st.ei.find(x=>x.id===etgt); if(!e)return;
   const nm=document.getElementById('em-n').value.trim(); if(!nm){ toast(t('t_name'),true); return; }
-  e.nm=nm; e.si=document.getElementById('em-si').value.trim();
+  e.nm=nm; e.si=normSi(document.getElementById('em-si').value);
   e.br=document.getElementById('em-b').value;
   if(e.typ==='ta') e.tg=document.getElementById('em-g').value; else e.az=parseInt(document.getElementById('em-a').value)||1;
   e.no=document.getElementById('em-no').value.trim();
