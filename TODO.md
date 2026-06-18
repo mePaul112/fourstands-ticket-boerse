@@ -22,10 +22,16 @@ Lebende Liste offener Punkte. Stand: 2026-06-18.
 
 - [ ] **Eigenen Admin-PIN setzen** (statt Default `0000`) — unabhängig von Lösung 1.
 
+## 🔔 Feedback-Monitoring (eingerichtet 2026-06-18)
+
+- [x] **Claude Scheduled Task** „fourstands-feedback-check" — täglich ~08:00, fasst neues Feedback inhaltlich zusammen (läuft, wenn die Claude-App offen ist).
+- [ ] **GitHub Action „Feedback Nudge"** (`.github/workflows/feedback-nudge.yml`, serverseitig, täglich 06:00 UTC) — **wartet noch auf SMTP-Secrets!** Zu tun: in StartMail SMTP aktivieren, dann im Repo unter Settings → Secrets and variables → Actions die Secrets `SMTP_USERNAME` (= fourstands-ticketboerse@use.startmail.com) und `SMTP_PASSWORD` anlegen; danach „Run workflow" testen. Ohne Secrets mailt die Action nicht (kein Fehllauf). Fallback Resend möglich, falls StartMail-SMTP zickt.
+
 ## ✅ Vor Go-Live sicherstellen (Stand 2026-06-18 geprüft: erledigt)
 
 - [x] Supabase-Migrationen ausgeführt: `defer`, `match_since`, `consent_at`, `config`-Tabelle,
-  `ext_id`/`anstoss`, Status-CHECK inkl. `entfernt`, RLS-Policies (kein anon-DELETE auf `eintraege`).
+  `ext_id`/`anstoss`, Status-CHECK inkl. `entfernt`, RLS-Policies (kein anon-DELETE auf `eintraege`),
+  `tausch_spiel`, `spiele.logo`, `spiele.wettbewerb`, `feedback`-Tabelle (anon insert+select).
 
 ## 🗄️ Später / Backlog (kein Go-Live-Blocker)
 
