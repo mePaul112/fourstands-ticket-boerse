@@ -931,15 +931,18 @@ let dtgt=null, adm=false, ptgt=null, pbuf='';
 let showDone=false, onlyMine=false, showArchiv=false, theme='dark', lang='de';
 let me={nm:'',si:''};
 let expiryH=48, evaluating=false;
+let newMatchN=0, seen=new Set();
 
 // ── STORAGE ───────────────────────────────────────────────────
 const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} };
 const ldcfg=()=>{ try{const r=localStorage.getItem(KC);if(r)cfg={...cfg,...JSON.parse(r)};}catch(e){} };
 const svbck=()=>{ try{localStorage.setItem(KB,JSON.stringify(st));}catch(e){} };
 const ldbck=()=>{ try{const r=localStorage.getItem(KB);if(r)st=JSON.parse(r);}catch(e){} };
-const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang';
+const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang', KS='fs-seen';
 const svme=()=>{ try{localStorage.setItem(KM,JSON.stringify(me));}catch(e){} };
 const ldme=()=>{ try{const r=localStorage.getItem(KM);if(r)me={...me,...JSON.parse(r)};}catch(e){} };
+const svseen=()=>{ try{localStorage.setItem(KS,JSON.stringify([...seen].slice(-400)));}catch(e){} };
+const ldseen=()=>{ try{const r=localStorage.getItem(KS);if(r)seen=new Set(JSON.parse(r));}catch(e){} };
 const esc=s=>(s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 const ldtheme=()=>{ try{const t=localStorage.getItem(KT); if(t==='light'||t==='dark')theme=t;}catch(e){} };
 function applyTheme(){ document.body.classList.toggle('light', theme==='light'); const b=document.getElementById('thbtn'); if(b){ b.textContent=theme==='light'?'🌙':'☀'; b.title=theme==='light'?t('th_dark'):t('th_light'); } }
@@ -965,7 +968,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -984,7 +987,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1056,6 +1059,12 @@ function mats(){
   return ms;
 }
 const mids=()=>mats().flatMap(m=>m.t==='sb'?[m.s.id,m.b.id]:[m.t1.id,m.t2.id]);
+// Stabile Schlüssel je Match (sortiertes ID-Paar) für "neue seit letztem Besuch"
+const matchKeys=()=>mats().map(m=>m.t==='sb'?'sb~'+[m.s.id,m.b.id].sort().join('~'):'tt~'+[m.t1.id,m.t2.id].sort().join('~'));
+// Einmaliger Schnappschuss beim App-Start: wie viele Matches sind neu ggü. gesehenen?
+function snapshotNew(){ const k=matchKeys(); newMatchN=k.filter(x=>!seen.has(x)).length; k.forEach(x=>seen.add(x)); svseen(); }
+// Hinweis wegklicken
+function dismissNew(){ newMatchN=0; ren(); }
 const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected':''}>${b}</option>`).join('');
 
 // ── DB MAPPING ────────────────────────────────────────────────
@@ -1480,8 +1489,12 @@ function ren(){
     const k=t==='su'?'s':t==='bi'?'b':'t';
     document.getElementById('st-'+k).textContent=n;
   });
+  // Hinweis "neue Matches seit letztem Besuch" (clientseitig, localStorage)
+  const _nmh = newMatchN>0
+    ? `<div class="match-banner" style="cursor:pointer;background:#fbbf2422;border-left-color:var(--ma,#fbbf24)" onclick="dismissNew()">${(newMatchN===1?t('newm1'):t('newm').replace('%',newMatchN))} · <span style="opacity:.7;font-weight:400">${t('newm_ack')}</span></div>`
+    : '';
   // Match banners
-  document.getElementById('mbnr').innerHTML=mats().map(m=>
+  document.getElementById('mbnr').innerHTML=_nmh+mats().map(m=>
     m.t==='sb'
       ?`<div class="match-banner">🎯 ${t('mb_match')} · ${m.s.nm} ${t('mb_seeks')} ${m.s.br} ↔ ${m.b.nm} ${t('mb_offers')} ${m.b.br}</div>`
       :`<div class="match-banner">🔄 ${t('mb_swap')} · ${m.t1.nm} (${m.t1.br}→${m.t1.tg}) ↔ ${m.t2.nm} (${m.t2.br}→${m.t2.tg})</div>`
@@ -1863,10 +1876,11 @@ async function shareApp(){
 
 // ── INIT ──────────────────────────────────────────────────────
 (async()=>{
-  ldcfg(); ldbck(); ldme(); ldtheme(); ldlang(); applyTheme();
+  ldcfg(); ldbck(); ldme(); ldtheme(); ldlang(); ldseen(); applyTheme();
   if(st.sp.length&&!st.aktiv) st.aktiv=st.sp[0].id;
   upadm(); applyLang(); ren(); go('ov');
   await initSB();
+  snapshotNew();
   ren(); upconn();
 })();
 
