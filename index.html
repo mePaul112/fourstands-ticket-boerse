@@ -486,6 +486,7 @@ a { color: inherit; text-decoration: none; }
 .mm-row { padding:9px 0; border-bottom:1px solid var(--bd); font-size:13px; line-height:1.45; }
 .mm-row:last-child { border-bottom:none; }
 .sp-logo { height:20px; width:auto; max-width:26px; object-fit:contain; vertical-align:middle; margin-right:7px; flex:0 0 auto; }
+.comp-badge { display:inline-block; font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--mu); border:1px solid var(--bd); border-radius:4px; padding:1px 6px; margin-left:8px; vertical-align:middle; }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -1133,7 +1134,8 @@ function closeMM(){ document.getElementById('mm').style.display='none'; }
 const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected':''}>${b}</option>`).join('');
 
 // ── DB MAPPING ────────────────────────────────────────────────
-const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.ext_id||null,an:r.anstoss||null,logo:r.logo||null});
+const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.ext_id||null,an:r.anstoss||null,logo:r.logo||null,comp:r.wettbewerb||null});
+const compShort=c=> c==='2. Bundesliga'?'2. BL' : c==='DFB-Pokal'?'Pokal' : c==='Testspiel'?'Test' : (c||'');
 // App-interne Kurz-Codes <-> DB-Langformen (DB-CHECK: typ IN suche/biete/tausch, status IN offen/erledigt)
 const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
@@ -1225,13 +1227,13 @@ async function evalQueue(){
 }
 
 // ── DB ACTIONS ────────────────────────────────────────────────
-async function dbASP(g,d,t,logo){
+async function dbASP(g,d,t,logo,comp){
   if(sb){
-    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t,logo:logo||null}).select().single();
+    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t,logo:logo||null,wettbewerb:comp||null}).select().single();
     if(error)throw error;
     const s=mapsp(data); st.sp.push(s); st.aktiv=s.id; await ldei(); return s;
   }
-  const s={id:uid(),ge:g,da:d,typ:t,logo:logo||null,ts:new Date().toISOString()};
+  const s={id:uid(),ge:g,da:d,typ:t,logo:logo||null,comp:comp||null,ts:new Date().toISOString()};
   st.sp.push(s); st.aktiv=s.id; svbck(); return s;
 }
 async function dbDSP(id){
@@ -1605,7 +1607,7 @@ function ren(){
   const spList = showArchiv ? st.sp : st.sp.filter(s=> new Date(s.da)>=_h0 || s.id===st.aktiv);
   sel.innerHTML=!spList.length
     ?`<option value="">${t('sel_nogame')}</option>`
-    :spList.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${esc(s.ge)} — ${new Date(s.da).toLocaleDateString(lang==='en'?'en-GB':'de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
+    :spList.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${s.typ==='heim'?'🏟️':'✈️'} ${compShort(s.comp)?esc(compShort(s.comp))+' · ':''}${esc(s.ge)} — ${new Date(s.da).toLocaleDateString(lang==='en'?'en-GB':'de-DE',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})}${anHM(s)?' · '+anHM(s):''}</option>`).join('');
   const _ab=document.getElementById('archbtn');
   if(_ab){ const _past=st.sp.some(s=>new Date(s.da)<_h0); _ab.style.display=_past?'inline-block':'none';
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
@@ -1639,7 +1641,7 @@ function ren(){
     :st.sp.map(s=>`<div class="card">
         <div class="card-nr" style="font-size:20px;padding-top:2px">${s.typ==='heim'?'🏟':'✈'}</div>
         <div>
-          <div class="card-heading">${s.logo?`<img class="sp-logo" src="${esc(s.logo)}" alt="">`:''}${esc(s.ge)}</div>
+          <div class="card-heading">${s.logo?`<img class="sp-logo" src="${esc(s.logo)}" alt="">`:''}${esc(s.ge)}${s.comp?`<span class="comp-badge">${esc(s.comp)}</span>`:''}</div>
           <div class="card-meta">
             <span class="meta-name">${s.typ==='heim'?'Heimspiel':'Auswärtsspiel'}</span>
             <span class="meta-time">${new Date(s.da).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}${anHM(s)?' · '+anHM(s)+' Uhr':''}</span>
@@ -1663,6 +1665,7 @@ function ren(){
         <div class="fg"><label>Gegner *</label><input id="sp-g" placeholder="z.B. Hamburger SV"></div>
         <div class="fg"><label>Datum *</label><input type="date" id="sp-d"></div>
         <div class="fg"><label>Spieltyp</label><select id="sp-t"><option value="heim">🏟️ Heimspiel</option><option value="auswaerts">✈️ Auswärtsspiel</option></select></div>
+        <div class="fg"><label>Wettbewerb</label><select id="sp-comp"><option value="Testspiel">Testspiel</option><option value="2. Bundesliga">2. Bundesliga</option><option value="DFB-Pokal">DFB-Pokal</option><option value="Sonstiges">Sonstiges</option></select></div>
         <div class="fg" style="grid-column:1/-1"><label>Logo-URL (optional)</label>
           <div style="display:flex;gap:8px">
             <input id="sp-logo" placeholder="https://… Vereinslogo" style="flex:1;min-width:0">
@@ -1685,6 +1688,7 @@ CREATE TABLE public.spiele (
   ext_id text,
   anstoss text,
   logo text,
+  wettbewerb text,
   created_at timestamptz DEFAULT now()
 );
 CREATE TABLE public.eintraege (
@@ -1823,8 +1827,9 @@ async function dASP(){
   const d=document.getElementById('sp-d').value;
   const t=document.getElementById('sp-t').value;
   const logo=(document.getElementById('sp-logo').value||'').trim();
+  const comp=document.getElementById('sp-comp').value;
   if(!g||!d){ toast('Bitte Gegner und Datum angeben',true); return; }
-  try{ sld(true); await dbASP(g,d,t,logo); ren(); go('ov'); toast('✓ Spiel angelegt'); }
+  try{ sld(true); await dbASP(g,d,t,logo,comp); ren(); go('ov'); toast('✓ Spiel angelegt'); }
   catch(e){ toast('Fehler: '+e.message,true); }
   finally{ sld(false); }
 }
@@ -1843,11 +1848,12 @@ async function oldbLeague(league){
   if(!res.ok) throw new Error('OpenLigaDB '+league+' HTTP '+res.status);
   const data=await res.json();
   if(!Array.isArray(data)) return [];
+  const comp = league==='bl2'?'2. Bundesliga' : league==='dfb'?'DFB-Pokal' : '';
   return data.filter(m=>isStP(m.team1)||isStP(m.team2)).map(m=>{
     const heim=isStP(m.team1), opp=heim?m.team2:m.team1, dt=m.matchDateTime||'';
     return { ext:'oldb-'+m.matchID, gegner:(opp&&opp.teamName)||'Unbekannt',
              anstoss:dt||null, datum:dt?dt.slice(0,10):null, typ:heim?'heim':'auswaerts',
-             logo:(opp&&opp.teamIconUrl)||null,
+             logo:(opp&&opp.teamIconUrl)||null, comp,
              spieltag:(league==='bl2'&&m.group&&m.group.groupOrderID)||null,
              runde:(league==='dfb'&&m.group&&m.group.groupOrderID)||null };
   });
@@ -1866,15 +1872,15 @@ async function updTermine(){
     let games=lists.flat().filter(g=>g.datum && new Date(g.datum)>=heute);
     const seen=new Set(); games=games.filter(g=>!seen.has(g.ext)&&seen.add(g.ext)); // Dedup
     if(!games.length){ toast('Keine kommenden St.-Pauli-Termine gefunden',true); return; }
-    const{data:cur,error}=await sb.from('spiele').select('id,gegner,datum,typ,ext_id,anstoss,logo');
+    const{data:cur,error}=await sb.from('spiele').select('id,gegner,datum,typ,ext_id,anstoss,logo,wettbewerb');
     if(error) throw error;
     const byExt={}; (cur||[]).forEach(r=>{ if(r.ext_id) byExt[r.ext_id]=r; });
     let nUpd=0; const toInsert=[];
     for(const g of games){
-      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:g.anstoss,ext_id:g.ext,logo:g.logo};
+      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:g.anstoss,ext_id:g.ext,logo:g.logo,wettbewerb:g.comp};
       const ex=byExt[g.ext];
       if(ex){
-        if(ex.datum!==g.datum||ex.anstoss!==g.anstoss||ex.gegner!==g.gegner||ex.typ!==g.typ||(ex.logo||null)!==(g.logo||null)){
+        if(ex.datum!==g.datum||ex.anstoss!==g.anstoss||ex.gegner!==g.gegner||ex.typ!==g.typ||(ex.logo||null)!==(g.logo||null)||(ex.wettbewerb||null)!==(g.comp||null)){
           const{error:e2}=await sb.from('spiele').update(row).eq('id',ex.id); if(e2)throw e2; nUpd++;
         }
         continue;
