@@ -921,7 +921,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
-  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_have:'Ich habe *',l_want:'Ich möchte *',
+  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag löschen?',dm_body:'Dieser Eintrag wird unwiderruflich gelöscht — für alle Mitglieder sichtbar.',dm_cancel:'Abbrechen',dm_delete:'Löschen',
@@ -940,7 +940,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
-  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_have:'I have *',l_want:'I want *',
+  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Delete entry?',dm_body:'This entry will be permanently deleted — visible to all members.',dm_cancel:'Cancel',dm_delete:'Delete',
@@ -977,7 +977,7 @@ const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
 
 function mats(){
   const ms=[], su=gei('su'), bi=gei('bi'), ta=gei('ta');
-  su.forEach(s=>bi.forEach(b=>{if(b.br===s.br)ms.push({t:'sb',s,b});}));
+  su.forEach(s=>bi.forEach(b=>{if(b.br===s.br||!s.br)ms.push({t:'sb',s,b});}));
   ta.forEach((t1,i)=>ta.forEach((t2,j)=>{
     if(i<j&&t1.br===t2.tg&&t2.br===t1.tg)ms.push({t:'tt',t1,t2});
   }));
@@ -1139,7 +1139,7 @@ function cardH(e,nr,mi){
     <div class="card-nr">${nr}</div>
     <div>
       <div><span class="tag tag-${e.typ}">${lb}</span>${mB}${mine}</div>
-      <div class="card-heading">${e.br}</div>
+      <div class="card-heading">${e.br||t('any_short')}</div>
       ${tg}
       <div class="card-meta">
         <span class="meta-name">👤 ${e.nm}</span>
@@ -1174,7 +1174,7 @@ ${sf.su?`<div class="form-panel su">
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="su-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="su-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
-    <div class="fg"><label>${t('l_area')}</label><select id="su-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="su-b"><option value="" selected>${t('opt_any')}</option>${bopt(sp)}</select></div>
     <div class="fg"><label>${t('l_qty')}</label><select id="su-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
@@ -1188,7 +1188,7 @@ ${sf.bi?`<div class="form-panel bi">
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="bi-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="bi-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
-    <div class="fg"><label>${t('l_area')}</label><select id="bi-b">${bopt(sp)}</select></div>
+    <div class="fg"><label>${sp.typ==='heim'?t('l_stand'):t('l_seat')}</label><select id="bi-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
     <div class="fg"><label>${t('l_qty')}</label><select id="bi-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="bi-no" placeholder="${t('ph_no_bi')}"></div>
   </div>
@@ -1202,8 +1202,8 @@ ${sf.ta?`<div class="form-panel ta">
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="ta-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="ta-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
-    <div class="fg"><label>${t('l_have')}</label><select id="ta-b">${bopt(sp)}</select></div>
-    <div class="fg"><label>${t('l_want')}</label><select id="ta-g">${bopt(sp)}</select></div>
+    <div class="fg"><label>${t('l_have')}</label><select id="ta-b"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
+    <div class="fg"><label>${t('l_want')}</label><select id="ta-g"><option value="" disabled selected hidden>${t('opt_choose')}</option>${bopt(sp)}</select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="ta-no" placeholder="${t('ph_no_ta')}"></div>
   </div>
   <button class="btn-primary ta" onclick="addE('ta')">${t('btn_ta')}</button>
@@ -1485,6 +1485,8 @@ async function addE(typ){
   const tg=typ==='ta'?document.getElementById('ta-g').value:null;
   if(!nm){ toast(t('t_name'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
+  if((typ==='bi'||typ==='ta') && !br){ toast(t('t_pickstand'),true); return; }
+  if(typ==='ta' && !tg){ toast(t('t_pickstand'),true); return; }
   const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,no,s:'o',ts:new Date().toISOString()};
   try{ sld(true); await dbAE(e); me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
   catch(er){ toast(t('t_err')+er.message,true); }
