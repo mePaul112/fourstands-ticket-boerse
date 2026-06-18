@@ -1,0 +1,53 @@
+name: Feedback Nudge
+
+# Serverseitiger taeglicher Stups bei neuem Feedback der FourStands-Ticketboerse.
+# Laeuft unabhaengig von lokalen Geraeten in GitHub Actions.
+on:
+  schedule:
+    - cron: '0 6 * * *'   # 06:00 UTC = ~08:00 Europe/Berlin (Sommerzeit), 07:00 (Winter)
+  workflow_dispatch: {}    # manuell ausloesbar (Actions-Tab -> Run workflow)
+
+jobs:
+  nudge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Neue Feedback-Eintraege abfragen
+        id: check
+        env:
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          # Oeffentlicher, RLS-geschuetzter Anon-Key (steht auch in der oeffentlichen index.html)
+          SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxY2F6dXFwZ2Nta3J5dmJrZ2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTM1ODYsImV4cCI6MjA5NzI4OTU4Nn0.cpyjY1PjeWYVGKd15o9f3-3MAjk6Ze7FkmO1VX2QP0s
+        run: |
+          CUTOFF=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+          URL="https://tqcazuqpgcmkryvbkgkl.supabase.co/rest/v1/feedback?select=created_at,category,name,message&created_at=gte.${CUTOFF}&order=created_at.desc"
+          RESP=$(curl -s -H "apikey: ${SUPABASE_KEY}" -H "Authorization: Bearer ${SUPABASE_KEY}" "$URL")
+          COUNT=$(printf '%s' "$RESP" | jq 'if type=="array" then length else 0 end' 2>/dev/null || echo 0)
+          echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
+          if [ -n "${SMTP_PASSWORD:-}" ]; then echo "has_smtp=true" >> "$GITHUB_OUTPUT"; else echo "has_smtp=false" >> "$GITHUB_OUTPUT"; fi
+          {
+            echo "Neue Feedback-Eintraege der FourStands-Ticketboerse (letzte 24 h): ${COUNT}"
+            echo ""
+            printf '%s' "$RESP" | jq -r 'if type=="array" then (.[] | "- [\(.category // "?")] \(.name // "anonym"): \(.message // "")") else "" end'
+            echo ""
+            echo "Fuer die ausfuehrliche Analyse einfach in Claude nach dem Feedback fragen."
+          } > body.txt
+          echo "----- Vorschau -----"
+          cat body.txt
+
+      - name: Stups per E-Mail (nur bei neuen Eintraegen)
+        if: steps.check.outputs.count != '0' && steps.check.outputs.has_smtp == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.startmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "FourStands: ${{ steps.check.outputs.count }} neue Feedback-Eintraege"
+          to: fourstands-ticketboerse@use.startmail.com
+          from: FourStands Feedback <fourstands-ticketboerse@use.startmail.com>
+          body: file://body.txt
+
+      - name: Hinweis falls SMTP fehlt
+        if: steps.check.outputs.has_smtp != 'true'
+        run: echo "::notice::SMTP-Secrets (SMTP_USERNAME/SMTP_PASSWORD) fehlen noch - es wurde keine E-Mail gesendet. Neue Eintraege im Zeitraum: ${{ steps.check.outputs.count }}"
