@@ -965,7 +965,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -984,7 +984,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1017,6 +1017,20 @@ function fristTxt(e){
   const h=rem/3600000, d=Math.floor(h/24);
   const v = d>=1 ? (d+' '+t('unit_d')) : (Math.max(1,Math.floor(h))+' '+t('unit_h'));
   return t('frist_left').replace('%',v);
+}
+// Signal-Kontakt: Telefonnummer -> klickbarer Link; Benutzername -> kopierbar (Suche in Signal)
+function sigLink(e){
+  const si=e&&e.si?String(e.si):''; if(!si) return '';
+  if(/^[+0-9][0-9 /()\-]*$/.test(si.trim())){
+    const num=si.replace(/[^+0-9]/g,'');
+    return `<a class="meta-sig" href="https://signal.me/#p/${encodeURIComponent(num)}" target="_blank">📱 ${esc(si)}</a>`;
+  }
+  return `<span class="meta-sig" style="cursor:pointer" title="${t('sig_user_t')}" onclick="copySig('${e.id}')">📱 ${esc(si)} ⧉</span>`;
+}
+function copySig(id){
+  const e=st.ei.find(x=>x.id===id); if(!e)return;
+  const u=(e.si||'').replace(/^@/,'').trim();
+  navigator.clipboard.writeText(u).then(()=>toast(t('t_sigcopied'))).catch(()=>{});
 }
 const gsp=()=>st.sp.find(s=>s.id===st.aktiv)||null;
 const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
@@ -1234,7 +1248,7 @@ function chkPin(){
 // ── RENDER: CARD ──────────────────────────────────────────────
 function cardH(e,nr,mi){
   const isM=mi.includes(e.id);
-  const sig=e.si?`<a class="meta-sig" href="https://signal.me/#p/${encodeURIComponent(e.si)}" target="_blank">📱 ${e.si}</a>`:'';
+  const sig=sigLink(e);
   const az=e.az>1?`<span class="meta-anz">${e.az}${t('anz')}</span>`:'';
   const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${e.tg||'—'}</span></div>`:'';
   const mB=isM?`<span class="tag tag-match">${t('tag_match')}</span>`:'';
@@ -1359,6 +1373,11 @@ function helpPage(){
         <strong>Auswärtsspiele:</strong> Steh- oder Sitzplatz (immer Gästeblock). Stadionspezifische Angaben (Block, Reihe …) ins Notiz-Feld.</p>
       </div>
       <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">📱 Signal ohne Telefonnummer</div>
+        <p>Du musst keine Handynummer angeben. Richte in Signal einen <strong>Benutzernamen</strong> ein: Signal öffnen → Profil/Einstellungen → <strong>Benutzername</strong> erstellen (z. B. <code style="background:var(--sf2);padding:0 4px">AnnaPauli.42</code>). Optional unter Datenschutz → Telefonnummer „Wer kann mich finden" auf <strong>Niemand</strong> stellen.</p>
+        <p>Diesen Benutzernamen trägst du ins Feld <strong>Signal-Kontakt</strong> ein. In der Liste tippst du auf den Benutzernamen, um ihn zu <strong>kopieren</strong>, und suchst ihn in Signal; echte Telefonnummern öffnen Signal direkt per Klick.</p>
+      </div>
+      <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">App aufs Handy (Homescreen)</div>
         <p><strong>iPhone (Safari):</strong> Teilen-Symbol → Zum Home-Bildschirm.<br>
         <strong>Android (Chrome):</strong> Menü ⋮ → App installieren. Danach startet sie wie eine echte App im Vollbild.</p>
@@ -1402,6 +1421,11 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / seat type</div>
         <p><strong>Home games:</strong> Nordkurve, Südkurve, Gegengerade, Haupttribüne.<br>
         <strong>Away games:</strong> standing or seating (always away block). Put stadium-specific details (block, row …) in the note field.</p>
+      </div>
+      <div class="setup-block">
+        <div class="setup-section-title" style="border:none;margin-bottom:6px">📱 Signal without phone number</div>
+        <p>You do not need to enter a phone number. Set up a <strong>username</strong> in Signal: open Signal → Profile/Settings → create a <strong>Username</strong> (e.g. <code style="background:var(--sf2);padding:0 4px">AnnaPauli.42</code>). Optionally set Privacy → Phone number → who can find me to <strong>Nobody</strong>.</p>
+        <p>Enter that username in the <strong>Signal contact</strong> field. In the list, tap the username to <strong>copy</strong> it, then search in Signal; real phone numbers open Signal directly on click.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Install on your phone</div>
