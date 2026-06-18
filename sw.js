@@ -1,5 +1,5 @@
 /* FourStands Service Worker – Offline-Schale, network-first fuer eigene Dateien */
-const CACHE = 'fourstands-v3';
+const CACHE = 'fourstands-v4';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './skull.png', './icon-192.png', './icon-512.png', './header.jpg'];
 
 self.addEventListener('install', e => {
