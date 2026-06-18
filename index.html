@@ -897,6 +897,29 @@ pre {
   </div>
 </div>
 
+<!-- SPIEL BEARBEITEN MODAL -->
+<div id="sm" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Spiel bearbeiten</div>
+    <div class="form-grid">
+      <div class="fg"><label>Gegner *</label><input id="sm-g"></div>
+      <div class="fg"><label>Datum *</label><input type="date" id="sm-d"></div>
+      <div class="fg"><label>Spieltyp</label><select id="sm-t"><option value="heim">🏟️ Heimspiel</option><option value="auswaerts">✈️ Auswärtsspiel</option></select></div>
+      <div class="fg"><label>Wettbewerb</label><select id="sm-comp"><option value="Testspiel">Testspiel</option><option value="2. Bundesliga">2. Bundesliga</option><option value="DFB-Pokal">DFB-Pokal</option><option value="Sonstiges">Sonstiges</option></select></div>
+      <div class="fg" style="grid-column:1/-1"><label>Logo-URL (optional)</label>
+        <div style="display:flex;gap:8px">
+          <input id="sm-logo" placeholder="https://… Vereinslogo" style="flex:1;min-width:0">
+          <button class="btn-secondary" type="button" onclick="searchLogo('sm-g','sm-logo')" title="Logo suchen (TheSportsDB)">🔎</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeSM()">Abbrechen</button>
+      <button class="btn-primary" onclick="saveSM()">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="pm" class="overlay" style="display:none">
   <div class="modal" style="max-width:300px;text-align:center">
@@ -1648,6 +1671,7 @@ function ren(){
           </div>
         </div>
         <div class="card-acts">
+          <button class="btn-edit" onclick="editSP('${s.id}')" title="Spiel bearbeiten">✏️</button>
           <button class="btn-del" onclick="dDSP('${s.id}')">×</button>
         </div>
       </div>`).join('');
@@ -1838,6 +1862,35 @@ async function dDSP(id){
   try{ await dbDSP(id); ren(); toast('✓ Spiel gelöscht'); }
   catch(e){ toast('Fehler: '+e.message,true); }
 }
+let smtgt=null;
+function editSP(id){
+  const s=st.sp.find(x=>x.id===id); if(!s)return; smtgt=id;
+  document.getElementById('sm-g').value=s.ge||'';
+  document.getElementById('sm-d').value=s.da||'';
+  document.getElementById('sm-t').value=s.typ||'heim';
+  document.getElementById('sm-comp').value=s.comp||'Testspiel';
+  document.getElementById('sm-logo').value=s.logo||'';
+  document.getElementById('sm').style.display='flex';
+}
+function closeSM(){ smtgt=null; document.getElementById('sm').style.display='none'; }
+async function saveSM(){
+  const id=smtgt; if(!id)return;
+  const g=document.getElementById('sm-g').value.trim();
+  const d=document.getElementById('sm-d').value;
+  if(!g||!d){ toast('Bitte Gegner und Datum angeben',true); return; }
+  const f={ gegner:g, datum:d, typ:document.getElementById('sm-t').value,
+            wettbewerb:document.getElementById('sm-comp').value,
+            logo:(document.getElementById('sm-logo').value||'').trim()||null };
+  try{ sld(true); await dbUSP(id,f); closeSM(); ren(); go('se'); toast('✓ Spiel gespeichert'); }
+  catch(e){ toast('Fehler: '+(e.message||e),true); }
+  finally{ sld(false); }
+}
+async function dbUSP(id,f){ // Spiel aktualisieren (ohne Loeschen)
+  if(sb){ const{error}=await sb.from('spiele').update(f).eq('id',id); if(error)throw error; }
+  const s=st.sp.find(x=>x.id===id);
+  if(s){ s.ge=f.gegner; s.da=f.datum; s.typ=f.typ; s.comp=f.wettbewerb; s.logo=f.logo; }
+  if(!sb)svbck();
+}
 
 // ── TERMINE-UPDATE (OpenLigaDB: 2. Bundesliga + DFB-Pokal) ─────
 const OLDB_SEASON='2026';
@@ -1897,15 +1950,16 @@ async function updTermine(){
   finally{ sld(false); }
 }
 // Logo-Suche für manuelle Spiele (TheSportsDB, CORS-frei) — Admin verifiziert den Treffer
-async function searchLogo(){
-  const g=(document.getElementById('sp-g').value||'').trim();
+async function searchLogo(gId,logoId){
+  gId=gId||'sp-g'; logoId=logoId||'sp-logo';
+  const g=(document.getElementById(gId).value||'').trim();
   if(!g){ toast('Bitte zuerst den Gegner eingeben',true); return; }
   try{ sld(true);
     const r=await fetch('https://www.thesportsdb.com/api/v1/json/123/searchteams.php?t='+encodeURIComponent(g));
     const d=await r.json();
     const tm=d&&d.teams&&d.teams[0];
     const badge=tm&&(tm.strBadge||tm.strTeamBadge);
-    if(badge){ document.getElementById('sp-logo').value=badge; toast('✓ Logo: '+(tm.strTeam||'')+' – bitte prüfen'); }
+    if(badge){ document.getElementById(logoId).value=badge; toast('✓ Logo: '+(tm.strTeam||'')+' – bitte prüfen'); }
     else toast('Kein Logo gefunden – ggf. URL manuell einfügen',true);
   }catch(e){ toast('Logo-Suche fehlgeschlagen',true); }
   finally{ sld(false); }
