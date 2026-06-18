@@ -130,11 +130,25 @@ a { color: inherit; text-decoration: none; }
 .logo-four span, .logo-stands span { display: inline-block; }
 .logo-eyebrow {
   font-family: 'Barlow Condensed', sans-serif;
+  margin-top: 5px;
+  line-height: 1.15;
+}
+.logo-club {
+  display: block;
   font-size: 9px;
   letter-spacing: 3px;
   text-transform: uppercase;
   color: var(--mu);
-  margin-top: 4px;
+}
+.logo-tool {
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--sk);
+  text-shadow: 0 1px 5px rgba(0,0,0,.85);
+  margin-top: 1px;
 }
 .hdr-right {
   display: flex;
@@ -792,7 +806,10 @@ pre {
       <div class="logo-stands">
         <span style="color:var(--r5)">S</span><span style="color:var(--r6)">T</span><span style="color:var(--r1)">A</span><span style="color:var(--r2)">N</span><span style="color:var(--r4)">D</span><span style="color:var(--r5)">S</span>
       </div>
-      <div class="logo-eyebrow" data-i18n="eyebrow">FC St. Pauli Fanclub &nbsp;·&nbsp; Ticket-Börse</div>
+      <div class="logo-eyebrow">
+        <span class="logo-club" data-i18n="eyebrow">FC St. Pauli Fanclub</span>
+        <span class="logo-tool" data-i18n="eyebrow_tool">Ticket-Tausch-Börse</span>
+      </div>
     </div>
   </div>
 </header>
@@ -933,7 +950,7 @@ const I18N={
  de:{ nav_ov:'Übersicht',nav_su:'Suche',nav_bi:'Biete',nav_ta:'Tausch',nav_sp:'Spiele',nav_se:'Setup',nav_he:'Hilfe',consent_label:'Ich willige ein, dass mein Name und mein Signal-Kontakt für alle Nutzer der Börse sichtbar gespeichert werden (Details: Hilfe → Datenschutz).',t_consent:'Bitte der Datenspeicherung zustimmen',consent_proof:'Einwilligung erteilt',
   tb_share:'↗ Teilen',tb_help:'? Hilfe', conn_live:'Live',conn_local:'Lokal',conn_off:'Offline',
   th_light:'☀ Hell',th_dark:'🌙 Dunkel', sb_current:'Aktuelles Spiel',archiv:'Archiv',archiv_on:'Archiv ✓',
-  st_su:'Suchen',st_bi:'Angebote',st_ta:'Tausche', eyebrow:'FC St. Pauli Fanclub · Ticket-Börse',
+  st_su:'Suchen',st_bi:'Angebote',st_ta:'Tausche', eyebrow:'FC St. Pauli Fanclub',eyebrow_tool:'Ticket-Tausch-Börse',
   empty_nogame:'Bitte zuerst ein Spiel anlegen',empty_open:'Keine offenen Einträge',empty_mine:'Keine eigenen Einträge',empty_all:'Keine Einträge',sel_nogame:'— Noch kein Spiel angelegt —',
   ctrl_done:'Erledigte zeigen',ctrl_mine:'Nur meine',
   help_title:"So funktioniert's", help_su:'<strong>Suche</strong> – du brauchst ein Ticket → du kommst mit Zeitstempel in die Warteschlange.',
@@ -952,7 +969,7 @@ const I18N={
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
-  st_su:'Searches',st_bi:'Offers',st_ta:'Swaps', eyebrow:'FC St. Pauli supporters club · Ticket exchange',
+  st_su:'Searches',st_bi:'Offers',st_ta:'Swaps', eyebrow:'FC St. Pauli supporters club',eyebrow_tool:'Ticket swap board',
   empty_nogame:'Please add a match first',empty_open:'No open entries',empty_mine:'No entries of yours',empty_all:'No entries',sel_nogame:'— No match added yet —',
   ctrl_done:'Show done',ctrl_mine:'Only mine',
   help_title:'How it works', help_su:'<strong>Search</strong> – you need a ticket → you join the queue with a timestamp.',
