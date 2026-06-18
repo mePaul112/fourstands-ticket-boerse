@@ -485,6 +485,7 @@ a { color: inherit; text-decoration: none; }
 @keyframes mppulse { 0%,100%{ box-shadow:0 0 0 0 rgba(251,191,36,.55); } 50%{ box-shadow:0 0 0 7px rgba(251,191,36,0); } }
 .mm-row { padding:9px 0; border-bottom:1px solid var(--bd); font-size:13px; line-height:1.45; }
 .mm-row:last-child { border-bottom:none; }
+.sp-logo { height:20px; width:auto; max-width:26px; object-fit:contain; vertical-align:middle; margin-right:7px; flex:0 0 auto; }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -815,6 +816,7 @@ pre {
 <div class="main">
   <div class="spiel-bar" id="spbar">
     <span class="spiel-lbl" data-i18n="sb_current">Aktuelles Spiel</span>
+    <img id="splogo" class="sp-logo" alt="" style="display:none">
     <select class="spiel-sel" id="spsel" onchange="spChg()"></select>
     <button class="btn-secondary" id="archbtn" onclick="toggleArchiv()" style="display:none">Archiv</button>
     <button class="match-pill" id="matchpill" onclick="openMM()" style="display:none" title="Matches anzeigen">⚡ <span id="mp-n">0</span> <span id="mp-lbl">Matches</span></button>
@@ -1131,7 +1133,7 @@ function closeMM(){ document.getElementById('mm').style.display='none'; }
 const bopt=(sp,sl='')=>brei(sp).map(b=>`<option value="${b}"${b===sl?' selected':''}>${b}</option>`).join('');
 
 // ── DB MAPPING ────────────────────────────────────────────────
-const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.ext_id||null,an:r.anstoss||null});
+const mapsp=r=>({id:r.id,ge:r.gegner,da:r.datum,typ:r.typ,ts:r.created_at,ext:r.ext_id||null,an:r.anstoss||null,logo:r.logo||null});
 // App-interne Kurz-Codes <-> DB-Langformen (DB-CHECK: typ IN suche/biete/tausch, status IN offen/erledigt)
 const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
@@ -1223,13 +1225,13 @@ async function evalQueue(){
 }
 
 // ── DB ACTIONS ────────────────────────────────────────────────
-async function dbASP(g,d,t){
+async function dbASP(g,d,t,logo){
   if(sb){
-    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t}).select().single();
+    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t,logo:logo||null}).select().single();
     if(error)throw error;
     const s=mapsp(data); st.sp.push(s); st.aktiv=s.id; await ldei(); return s;
   }
-  const s={id:uid(),ge:g,da:d,typ:t,ts:new Date().toISOString()};
+  const s={id:uid(),ge:g,da:d,typ:t,logo:logo||null,ts:new Date().toISOString()};
   st.sp.push(s); st.aktiv=s.id; svbck(); return s;
 }
 async function dbDSP(id){
@@ -1607,6 +1609,8 @@ function ren(){
   const _ab=document.getElementById('archbtn');
   if(_ab){ const _past=st.sp.some(s=>new Date(s.da)<_h0); _ab.style.display=_past?'inline-block':'none';
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
+  const _lg=document.getElementById('splogo'); // Logo des aktiven Spiels (Gegner)
+  if(_lg){ if(sp&&sp.logo){ _lg.src=sp.logo; _lg.style.display='inline-block'; } else { _lg.removeAttribute('src'); _lg.style.display='none'; } }
   // Counts
   ['su','bi','ta'].forEach(typ=>{
     document.getElementById('c-'+typ).textContent = typ==='ta' ? taForActive().length : gei(typ).length;
@@ -1635,7 +1639,7 @@ function ren(){
     :st.sp.map(s=>`<div class="card">
         <div class="card-nr" style="font-size:20px;padding-top:2px">${s.typ==='heim'?'🏟':'✈'}</div>
         <div>
-          <div class="card-heading">${esc(s.ge)}</div>
+          <div class="card-heading">${s.logo?`<img class="sp-logo" src="${esc(s.logo)}" alt="">`:''}${esc(s.ge)}</div>
           <div class="card-meta">
             <span class="meta-name">${s.typ==='heim'?'Heimspiel':'Auswärtsspiel'}</span>
             <span class="meta-time">${new Date(s.da).toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}${anHM(s)?' · '+anHM(s)+' Uhr':''}</span>
@@ -1649,7 +1653,7 @@ function ren(){
     <div class="setup-section">
       <div class="setup-section-title">🔄 Termine aktualisieren</div>
       <div class="setup-block">
-        <p>Holt Spieltermine &amp; Anstoßzeiten der <strong style="color:var(--tx)">2. Bundesliga 2026/27</strong> automatisch von <a href="https://www.openligadb.de" target="_blank">OpenLigaDB</a>: neue Paarungen werden eingetragen, bei bestehenden Spielen Datum/Uhrzeit aktualisiert, Platzhalter durch die echten Gegner ersetzt. DFB-Pokal wird nicht automatisch aktualisiert.</p>
+        <p>Holt Spieltermine, Anstoßzeiten &amp; Vereinslogos der <strong style="color:var(--tx)">2. Bundesliga und des DFB-Pokals 2026/27</strong> automatisch von <a href="https://www.openligadb.de" target="_blank">OpenLigaDB</a>: neue Paarungen werden eingetragen, bei bestehenden Spielen Datum/Uhrzeit aktualisiert, Platzhalter (Spieltag/Pokalrunde) durch die echten Gegner ersetzt. <strong>Testspiele/Freundschaftsspiele</strong> stehen in keiner Liga-Datenbank – bitte unten manuell anlegen (Logo per 🔎 suchen).</p>
         <button class="btn-primary" onclick="updTermine()">🔄 Jetzt aktualisieren</button>
       </div>
     </div>
@@ -1659,6 +1663,12 @@ function ren(){
         <div class="fg"><label>Gegner *</label><input id="sp-g" placeholder="z.B. Hamburger SV"></div>
         <div class="fg"><label>Datum *</label><input type="date" id="sp-d"></div>
         <div class="fg"><label>Spieltyp</label><select id="sp-t"><option value="heim">🏟️ Heimspiel</option><option value="auswaerts">✈️ Auswärtsspiel</option></select></div>
+        <div class="fg" style="grid-column:1/-1"><label>Logo-URL (optional)</label>
+          <div style="display:flex;gap:8px">
+            <input id="sp-logo" placeholder="https://… Vereinslogo" style="flex:1;min-width:0">
+            <button class="btn-secondary" type="button" onclick="searchLogo()" title="Logo suchen (TheSportsDB)">🔎</button>
+          </div>
+        </div>
       </div>
       <button class="btn-primary" onclick="dASP()">Spiel anlegen</button>
     </div>
@@ -1674,6 +1684,7 @@ CREATE TABLE public.spiele (
   typ text NOT NULL CHECK (typ IN ('heim','auswaerts')),
   ext_id text,
   anstoss text,
+  logo text,
   created_at timestamptz DEFAULT now()
 );
 CREATE TABLE public.eintraege (
@@ -1811,8 +1822,9 @@ async function dASP(){
   const g=document.getElementById('sp-g').value.trim();
   const d=document.getElementById('sp-d').value;
   const t=document.getElementById('sp-t').value;
+  const logo=(document.getElementById('sp-logo').value||'').trim();
   if(!g||!d){ toast('Bitte Gegner und Datum angeben',true); return; }
-  try{ sld(true); await dbASP(g,d,t); ren(); go('ov'); toast('✓ Spiel angelegt'); }
+  try{ sld(true); await dbASP(g,d,t,logo); ren(); go('ov'); toast('✓ Spiel angelegt'); }
   catch(e){ toast('Fehler: '+e.message,true); }
   finally{ sld(false); }
 }
@@ -1822,39 +1834,52 @@ async function dDSP(id){
   catch(e){ toast('Fehler: '+e.message,true); }
 }
 
-// ── TERMINE-UPDATE (OpenLigaDB) ───────────────────────────────
-const OLDB_LEAGUE='bl2', OLDB_SEASON='2026';
+// ── TERMINE-UPDATE (OpenLigaDB: 2. Bundesliga + DFB-Pokal) ─────
+const OLDB_SEASON='2026';
+const OLDB_LEAGUES=['bl2','dfb'];   // 2. Bundesliga + DFB-Pokal (Testspiele gibt es in keiner Liga-API)
 const isStP=t=>(((t&&t.teamName)||'').toLowerCase().includes('pauli'));
+async function oldbLeague(league){
+  const res=await fetch(`https://api.openligadb.de/getmatchdata/${league}/${OLDB_SEASON}`);
+  if(!res.ok) throw new Error('OpenLigaDB '+league+' HTTP '+res.status);
+  const data=await res.json();
+  if(!Array.isArray(data)) return [];
+  return data.filter(m=>isStP(m.team1)||isStP(m.team2)).map(m=>{
+    const heim=isStP(m.team1), opp=heim?m.team2:m.team1, dt=m.matchDateTime||'';
+    return { ext:'oldb-'+m.matchID, gegner:(opp&&opp.teamName)||'Unbekannt',
+             anstoss:dt||null, datum:dt?dt.slice(0,10):null, typ:heim?'heim':'auswaerts',
+             logo:(opp&&opp.teamIconUrl)||null,
+             spieltag:(league==='bl2'&&m.group&&m.group.groupOrderID)||null,
+             runde:(league==='dfb'&&m.group&&m.group.groupOrderID)||null };
+  });
+}
+function findPlaceholder(cur,g){ // Platzhalter adoptieren: Liga „N. Spieltag", Pokal „N. Runde"
+  if(g.spieltag) return (cur||[]).find(r=>!r.ext_id&&new RegExp('(^|\\D)'+g.spieltag+'\\.\\s*Spieltag').test(r.gegner||''));
+  if(g.runde)    return (cur||[]).find(r=>!r.ext_id&&/pokal/i.test(r.gegner||'')&&new RegExp('(^|\\D)'+g.runde+'\\.\\s*Runde').test(r.gegner||''));
+  return null;
+}
 async function updTermine(){
   if(cm!=='live'||!sb){ toast('Bitte zuerst mit Supabase verbinden',true); return; }
   try{
     sld(true);
-    const res=await fetch(`https://api.openligadb.de/getmatchdata/${OLDB_LEAGUE}/${OLDB_SEASON}`);
-    if(!res.ok) throw new Error('OpenLigaDB HTTP '+res.status);
-    const data=await res.json();
-    if(!Array.isArray(data)||!data.length){ toast('Noch keine Termine bei OpenLigaDB hinterlegt',true); return; }
     const heute=new Date(); heute.setHours(0,0,0,0);
-    const games=data.filter(m=>isStP(m.team1)||isStP(m.team2)).map(m=>{
-      const heim=isStP(m.team1), opp=heim?m.team2:m.team1, dt=m.matchDateTime||'';
-      return { ext:'oldb-'+m.matchID, gegner:(opp&&opp.teamName)||'Unbekannt',
-               anstoss:dt||null, datum:dt?dt.slice(0,10):null,
-               typ:heim?'heim':'auswaerts', st:(m.group&&m.group.groupOrderID)||null };
-    }).filter(g=>g.datum && new Date(g.datum)>=heute);
+    const lists=await Promise.all(OLDB_LEAGUES.map(l=>oldbLeague(l).catch(()=>[])));
+    let games=lists.flat().filter(g=>g.datum && new Date(g.datum)>=heute);
+    const seen=new Set(); games=games.filter(g=>!seen.has(g.ext)&&seen.add(g.ext)); // Dedup
     if(!games.length){ toast('Keine kommenden St.-Pauli-Termine gefunden',true); return; }
-    const{data:cur,error}=await sb.from('spiele').select('id,gegner,datum,typ,ext_id,anstoss');
+    const{data:cur,error}=await sb.from('spiele').select('id,gegner,datum,typ,ext_id,anstoss,logo');
     if(error) throw error;
     const byExt={}; (cur||[]).forEach(r=>{ if(r.ext_id) byExt[r.ext_id]=r; });
     let nUpd=0; const toInsert=[];
     for(const g of games){
-      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:g.anstoss,ext_id:g.ext};
+      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:g.anstoss,ext_id:g.ext,logo:g.logo};
       const ex=byExt[g.ext];
       if(ex){
-        if(ex.datum!==g.datum||ex.anstoss!==g.anstoss||ex.gegner!==g.gegner||ex.typ!==g.typ){
+        if(ex.datum!==g.datum||ex.anstoss!==g.anstoss||ex.gegner!==g.gegner||ex.typ!==g.typ||(ex.logo||null)!==(g.logo||null)){
           const{error:e2}=await sb.from('spiele').update(row).eq('id',ex.id); if(e2)throw e2; nUpd++;
         }
         continue;
       }
-      const ph=g.st?(cur||[]).find(r=>!r.ext_id&&new RegExp('(^|\\D)'+g.st+'\\.\\s*Spieltag').test(r.gegner||'')):null;
+      const ph=findPlaceholder(cur,g);
       if(ph){ const{error:e3}=await sb.from('spiele').update(row).eq('id',ph.id); if(e3)throw e3; ph.ext_id=g.ext; nUpd++; }
       else toInsert.push(row);
     }
@@ -1863,6 +1888,20 @@ async function updTermine(){
     await ldall(); ren();
     toast(`✓ Termine: ${nNew} neu, ${nUpd} aktualisiert`);
   }catch(e){ console.warn('updTermine',e); toast('Update fehlgeschlagen: '+(e.message||e),true); }
+  finally{ sld(false); }
+}
+// Logo-Suche für manuelle Spiele (TheSportsDB, CORS-frei) — Admin verifiziert den Treffer
+async function searchLogo(){
+  const g=(document.getElementById('sp-g').value||'').trim();
+  if(!g){ toast('Bitte zuerst den Gegner eingeben',true); return; }
+  try{ sld(true);
+    const r=await fetch('https://www.thesportsdb.com/api/v1/json/123/searchteams.php?t='+encodeURIComponent(g));
+    const d=await r.json();
+    const tm=d&&d.teams&&d.teams[0];
+    const badge=tm&&(tm.strBadge||tm.strTeamBadge);
+    if(badge){ document.getElementById('sp-logo').value=badge; toast('✓ Logo: '+(tm.strTeam||'')+' – bitte prüfen'); }
+    else toast('Kein Logo gefunden – ggf. URL manuell einfügen',true);
+  }catch(e){ toast('Logo-Suche fehlgeschlagen',true); }
   finally{ sld(false); }
 }
 
