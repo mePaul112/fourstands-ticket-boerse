@@ -40,3 +40,4 @@ Lebende Liste offener Punkte. Stand: 2026-06-18.
 - [ ] DB-Partial-Unique-Index gegen doppelte aktive Suchen (aktuell clientseitig).
 - [ ] `dealDone` atomar per Supabase-RPC (aktuell zwei Einzel-Updates).
 - [ ] CSV-Export, Countdown „in X Tagen".
+- [ ] **„Wieder öffnen"-Knopf** für eigene erledigte Einträge (versehentlichen „Deal"/„Erledigt" rückgängig machen, ohne Admin). In Feedback-Antwort an Katharina als „kommt noch" zugesagt (2026-06-19).
