@@ -487,6 +487,15 @@ a { color: inherit; text-decoration: none; }
 .mm-row:last-child { border-bottom:none; }
 .sp-logo { height:20px; width:auto; max-width:26px; object-fit:contain; vertical-align:middle; margin-right:7px; flex:0 0 auto; }
 .comp-badge { display:inline-block; font-family:'Barlow Condensed',sans-serif; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--mu); border:1px solid var(--bd); border-radius:4px; padding:1px 6px; margin-left:8px; vertical-align:middle; }
+/* Feedback-Board */
+.fb-item { background:var(--sf); border:1px solid var(--bd); border-radius:8px; padding:12px 14px; margin-bottom:10px; }
+.fb-head { font-family:'Barlow Condensed',sans-serif; font-size:12px; color:var(--mu); display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.fb-cat { font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--tx); }
+.fb-date { font-size:11px; color:var(--mu); }
+.fb-msg { margin-top:6px; font-size:14px; line-height:1.5; }
+.fb-ans { margin-top:10px; padding:8px 12px; border-left:3px solid var(--ma); background:#fbbf2410; border-radius:0 6px 6px 0; font-size:13px; line-height:1.5; }
+.fb-admin { margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.fb-hint { font-size:11px; color:var(--mu); }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -808,7 +817,7 @@ pre {
     <button class="icon-btn nav-ico" id="langbtn" onclick="toggleLang()" title="Sprache" style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px">EN</button>
     <button class="icon-btn nav-ico" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
     <button class="icon-btn nav-ico" onclick="shareApp()" title="Teilen">↗</button>
-    <button class="icon-btn nav-ico" onclick="openFB()" title="Feedback">💬</button>
+    <button class="icon-btn nav-ico" onclick="goFB()" title="Feedback">💬</button>
     <button class="nb nb-help" id="n-he" onclick="go('he')" title="Hilfe">?</button>
   </nav>
 </div>
@@ -829,6 +838,7 @@ pre {
   <div id="tab-bi" style="display:none"></div>
   <div id="tab-ta" style="display:none"></div>
   <div id="tab-he" style="display:none"></div>
+  <div id="tab-fb" style="display:none"></div>
   <div id="tab-se" style="display:none"></div>
 </div>
 
@@ -916,6 +926,20 @@ pre {
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeSM()">Abbrechen</button>
       <button class="btn-primary" onclick="saveSM()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK ANTWORT MODAL (Admin) -->
+<div id="am" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Feedback beantworten</div>
+    <p style="color:var(--mu);font-size:12px;line-height:1.5;margin:0 0 10px">Deine Antwort wird zusammen mit dem Feedback <strong>für alle sichtbar</strong>. Leer lassen = Antwort entfernen (Eintrag wird wieder unsichtbar).</p>
+    <div id="am-q" style="font-size:13px;color:var(--mu);background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;margin-bottom:10px"></div>
+    <div class="form-grid"><div class="fg" style="grid-column:1/-1"><label>Antwort</label><textarea id="am-t" rows="4"></textarea></div></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeAnswer()">Abbrechen</button>
+      <button class="btn-primary" onclick="saveAnswer()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1009,7 +1033,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Geht direkt ans Team.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Als erledigt markiert',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – beide erledigt',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1028,7 +1052,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Goes straight to the team.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Marked as done',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – both closed',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1554,7 +1578,7 @@ function helpPage(){
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">App aufs Handy (Homescreen)</div>
         <p><strong>iPhone (Safari):</strong> Teilen-Symbol → Zum Home-Bildschirm.<br>
-        <strong>Android (Chrome):</strong> Menü ⋮ → App installieren. Danach startet sie wie eine echte App im Vollbild.</p>
+        <strong>Android (Chrome):</strong> Tippe oben rechts im Browser auf das Drei-Punkte-Menü ⋮ → <strong>App installieren</strong> (je nach Handy auch <em>Zum Startbildschirm hinzufügen</em>). Danach öffnest du die Börse über das neue Icon auf dem Homescreen – dann läuft sie ohne Browserleiste über den ganzen Bildschirm.</p>
       </div>
       <div class="setup-section-title" style="margin-top:18px">🔒 Datenschutz</div>
       <div class="info-box" style="border-left-color:var(--red)">
@@ -1667,6 +1691,7 @@ function ren(){
   document.getElementById('tab-bi').innerHTML=!sp ? noSp : fBi(sp)+ctrlBar()+cgrp(['bi']);
   document.getElementById('tab-ta').innerHTML=!sp ? noSp : fTa(sp)+ctrlBar()+cgrp(['ta']);
   document.getElementById('tab-he').innerHTML=helpPage();
+  document.getElementById('tab-fb').innerHTML=feedbackPage();
 
   // Spiele
   const spL=!st.sp.length
@@ -1765,11 +1790,13 @@ INSERT INTO public.config(key,value) VALUES ('expiry_h','48') ON CONFLICT (key) 
 CREATE TABLE IF NOT EXISTS public.feedback (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   created_at timestamptz DEFAULT now(),
-  category text, name text, message text NOT NULL, ctx text
+  category text, name text, message text NOT NULL, ctx text,
+  answer text, answered_at timestamptz
 );
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "fs_fb_insert" ON public.feedback FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY "fs_fb_select" ON public.feedback FOR SELECT TO anon USING (true);`;
+CREATE POLICY "fs_fb_select" ON public.feedback FOR SELECT TO anon USING (true);
+CREATE POLICY "fs_fb_update" ON public.feedback FOR UPDATE TO anon USING (true) WITH CHECK (true);`;
 
   const cc=cm==='live'?'ok':cm==='local'?'lc':'er';
   const ct=cm==='live'?'✓ Verbunden mit Supabase – Real-time aktiv'
@@ -1846,7 +1873,7 @@ function go(tab){
   if(btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
   document.getElementById('mbnr').style.display=showExtra?'block':'none';
-  document.getElementById('spbar').style.display=['sp','se','he'].includes(tab)?'none':'flex';
+  document.getElementById('spbar').style.display=['sp','se','he','fb'].includes(tab)?'none':'flex';
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────
@@ -2051,7 +2078,53 @@ async function sendFB(){
     ctx:`${(gsp()||{}).ge||'—'} · ${lang} · ${(navigator.userAgent||'').slice(0,90)}` };
   try{ sld(true);
     const{error}=await sb.from('feedback').insert(row); if(error)throw error;
-    closeFB(); toast(t('t_fbsent'));
+    closeFB(); await ldFeedback(); ren(); toast(t('t_fbsent'));
+  }catch(e){ toast(t('t_err')+(e.message||e),true); }
+  finally{ sld(false); }
+}
+// ── FEEDBACK-BOARD (oeffentliches Q&A) ────────────────────────
+let fbList=[], amtgt=null;
+const mapfb=r=>({id:r.id,ts:r.created_at,cat:r.category,nm:r.name,msg:r.message,ctx:r.ctx,answer:r.answer||null,ats:r.answered_at||null});
+const FBCAT={Bug:'🐞',Idee:'💡',Frage:'❓',Lob:'👍',Test:'🧪'};
+async function ldFeedback(){
+  if(!sb){ fbList=[]; return; }
+  try{ const{data,error}=await sb.from('feedback').select('*').order('created_at',{ascending:false});
+    if(!error) fbList=(data||[]).map(mapfb); }catch(e){}
+}
+async function goFB(){ await ldFeedback(); ren(); go('fb'); }
+function feedbackPage(){
+  const items = adm ? fbList : fbList.filter(f=>f.answer); // Mitglieder: nur beantwortete; Admin: alle
+  const rows = items.length ? items.map(f=>`
+    <div class="fb-item">
+      <div class="fb-head"><span class="fb-cat">${FBCAT[f.cat]||'💬'} ${esc(f.cat||'')}</span> · <b>${esc(f.nm||'anonym')}</b> <span class="fb-date">${fmt(f.ts)}</span></div>
+      <div class="fb-msg">${esc(f.msg||'')}</div>
+      ${f.answer?`<div class="fb-ans"><strong>Antwort:</strong> ${esc(f.answer)} ${f.ats?`<span class="fb-date">${fmt(f.ats)}</span>`:''}</div>`:''}
+      ${adm?`<div class="fb-admin"><button class="btn-secondary" onclick="openAnswer('${f.id}')">${f.answer?'Antwort bearbeiten':'Antworten'}</button>${f.answer?'':'<span class="fb-hint">noch nicht öffentlich</span>'}${f.ctx?`<span class="fb-hint">🔒 ${esc(f.ctx)}</span>`:''}</div>`:''}
+    </div>`).join('') : `<div class="empty"><span class="empty-ico">💬</span>${adm?'Noch kein Feedback eingegangen.':'Noch keine veröffentlichten Antworten.'}</div>`;
+  return `
+    <div class="setup-section">
+      <div class="setup-section-title">💬 Feedback &amp; Antworten</div>
+      <div class="setup-block">
+        <p>Rückmeldungen aus der Testphase und unsere Antworten. ${adm?'<em>(Admin: du siehst alle Einträge — sobald du antwortest, wird ein Eintrag für alle sichtbar.)</em>':''}</p>
+        <button class="btn-primary" onclick="openFB()">✍️ Feedback geben</button>
+      </div>
+      ${rows}
+    </div>`;
+}
+function openAnswer(id){
+  const f=fbList.find(x=>x.id===id); if(!f)return; amtgt=id;
+  document.getElementById('am-q').innerHTML=`${FBCAT[f.cat]||'💬'} <b>${esc(f.nm||'anonym')}</b>: ${esc(f.msg||'')}`;
+  document.getElementById('am-t').value=f.answer||'';
+  document.getElementById('am').style.display='flex';
+}
+function closeAnswer(){ amtgt=null; document.getElementById('am').style.display='none'; }
+async function saveAnswer(){
+  const id=amtgt; if(!id)return;
+  const a=document.getElementById('am-t').value.trim();
+  try{ sld(true);
+    const f={ answer:a||null, answered_at: a? new Date().toISOString() : null };
+    if(sb){ const{error}=await sb.from('feedback').update(f).eq('id',id); if(error)throw error; }
+    closeAnswer(); await ldFeedback(); ren(); go('fb'); toast(a?'✓ Antwort veröffentlicht':'Antwort entfernt');
   }catch(e){ toast(t('t_err')+(e.message||e),true); }
   finally{ sld(false); }
 }
