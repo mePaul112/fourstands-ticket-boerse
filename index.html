@@ -969,6 +969,8 @@ let dtgt=null, adm=false, ptgt=null, pbuf='';
 let showDone=false, onlyMine=false, showArchiv=false, theme='dark', lang='de';
 let me={nm:'',si:''};
 let expiryH=48, evaluating=false;
+let adminPinHash=null; // globaler Admin-PIN (SHA-256-Hash, aus config-Tabelle) — geräteübergreifend
+const sha256hex=async s=>{ const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); };
 let newMatchN=0, seen=new Set();
 let firstLoad=true;  // beim allerersten Laden auf naechsten Spieltag defaulten, danach Auswahl erhalten
 
@@ -1002,7 +1004,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
-  l_name:'Name *',l_signal:'Signal-Kontakt',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',sw_search:'Ich suche',sw_offer:'Ich biete',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
+  l_name:'Name *',l_signal:'Signal-Kontakt *',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',t_signal:'Bitte Signal-Kontakt angeben (Nummer oder @Nickname)',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',sw_search:'Ich suche',sw_offer:'Ich biete',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
@@ -1021,7 +1023,7 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
-  l_name:'Name *',l_signal:'Signal contact',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',sw_search:'I am looking for',sw_offer:'I am offering',l_game:'Match *',t_taself:'Have and wanted are identical',
+  l_name:'Name *',l_signal:'Signal contact *',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',t_signal:'Please enter a Signal contact (number or @nickname)',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',sw_search:'I am looking for',sw_offer:'I am offering',l_game:'Match *',t_taself:'Have and wanted are identical',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
@@ -1222,8 +1224,10 @@ function subRT(){
 }
 async function loadConfig(){
   if(!sb)return;
-  try{ const{data,error}=await sb.from('config').select('value').eq('key','expiry_h').maybeSingle();
-    if(!error&&data&&data.value){ const n=parseInt(data.value); if(n>0)expiryH=n; } }catch(e){}
+  try{ const{data,error}=await sb.from('config').select('key,value');
+    if(!error&&Array.isArray(data)){ const m={}; data.forEach(r=>m[r.key]=r.value);
+      const n=parseInt(m.expiry_h); if(n>0)expiryH=n;
+      adminPinHash=m.admin_pin||null; } }catch(e){}
 }
 // Clientseitige Auswertung der Ablauffristen: Match-Start setzen, abgelaufene zurueckrutschen lassen
 async function evalQueue(){
@@ -1344,8 +1348,10 @@ function updPin(){ for(let i=0;i<4;i++){ const d=document.getElementById('pd'+i)
 function pi(x){ if(pbuf.length>=4)return; pbuf+=x; updPin(); if(pbuf.length===4)setTimeout(chkPin,90); }
 function pc(){ if(pbuf.length){ pbuf=pbuf.slice(0,-1); updPin(); } }
 function pcnl(){ pbuf=''; document.getElementById('pm').style.display='none'; ptgt=null; }
-function chkPin(){
-  if(pbuf===(cfg.pin||DPIN)){
+async function chkPin(){
+  // Global (config-Hash) hat Vorrang; sonst lokaler Fallback (Offline / noch kein globaler PIN gesetzt)
+  const ok = adminPinHash ? ((await sha256hex(pbuf))===adminPinHash) : (pbuf===(cfg.pin||DPIN));
+  if(ok){
     adm=true; document.getElementById('pm').style.display='none'; upadm(); ren(); toast('✓ Admin-Modus aktiv');
     if(ptgt){ const tgt=ptgt; ptgt=null; go(tgt); } else { go(cur); }
   }else{
@@ -1355,6 +1361,9 @@ function chkPin(){
   }
 }
 
+// Eigener Eintrag? Erkennung über Signal-Kontakt ODER Name (geräteübergreifend, wenn der Handle gleich ist)
+const isMine=e=>{ const ns=(me.si||'').trim().toLowerCase(), nn=(me.nm||'').trim().toLowerCase();
+  return (ns && (e.si||'').trim().toLowerCase()===ns) || (nn && (e.nm||'').trim().toLowerCase()===nn); };
 // ── RENDER: CARD ──────────────────────────────────────────────
 function cardH(e,nr,mi){
   const isM=mi.includes(e.id);
@@ -1366,8 +1375,9 @@ function cardH(e,nr,mi){
   const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${taCross?gicon(taWg)+' '+esc(taWg?taWg.ge:'?')+' · ':''}${esc(e.tg)||t('any_short')}</span></div>`:'';
   const mB=isM?`<span class="tag tag-match">${t('tag_match')}</span>`:'';
   const lb=e.typ==='su'?t('lbl_su'):e.typ==='bi'?t('lbl_bi'):t('lbl_ta');
-  const mine=(me.nm&&e.nm===me.nm)?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">${t('badge_mine')}</span>`:'';
-  const mineB=(me.nm&&e.nm===me.nm);
+  const _mn=isMine(e);
+  const mine=_mn?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">${t('badge_mine')}</span>`:'';
+  const mineB=_mn;
   let acts='';
   if(e.s==='erledigt'){
     acts=`<span style="font-family:'Barlow Condensed';font-size:10px;font-weight:800;letter-spacing:1.5px;color:#86efac;text-transform:uppercase">${t('done_lbl')}</span>`;
@@ -1405,7 +1415,7 @@ function cgrp(typs){
   let all=st.ei.filter(e=>e.sid===st.aktiv&&typs.includes(e.typ)&&e.typ!=='ta'&&e.s!=='entfernt');
   if(typs.includes('ta')) all=all.concat(taPool().filter(e=>e.s!=='entfernt'&&(e.sid===st.aktiv||(e.tsp||e.sid)===st.aktiv)));
   if(!showDone) all=all.filter(e=>e.s==='o');
-  if(onlyMine&&me.nm) all=all.filter(e=>e.nm===me.nm);
+  if(onlyMine&&(me.nm||me.si)) all=all.filter(isMine);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
   if(!all.length)return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?t('empty_mine'):showDone?t('empty_all'):t('empty_open')}</div>`;
   const nr={su:0,bi:0,ta:0};
@@ -1783,7 +1793,7 @@ CREATE POLICY "fs_fb_select" ON public.feedback FOR SELECT TO anon USING (true);
     <div class="setup-section">
       <div class="setup-section-title">🔑 Admin-PIN ändern</div>
       <div class="setup-block">
-        <p>Schützt Spiele-Anlage und Setup. Standard: <strong style="color:var(--tx)">0000</strong>. Wird lokal gespeichert (pro Gerät).</p>
+        <p>Schützt Spiele-Anlage und Setup. Standard: <strong style="color:var(--tx)">0000</strong>. Gilt – einmal gesetzt – <strong style="color:var(--tx)">für alle Geräte</strong> (zentral gespeichert, nur als Hash). Hinweis: Der Admin-PIN ist ein Komfortschutz vor versehentlichem Zugriff, kein vollwertiger Sicherheitsmechanismus.</p>
         <div class="form-grid" style="max-width:380px">
           <div class="fg"><label>Neuer PIN (4 Ziffern)</label><input id="np1" type="password" maxlength="4" inputmode="numeric" placeholder="z.B. 2810"></div>
           <div class="fg"><label>Wiederholen</label><input id="np2" type="password" maxlength="4" inputmode="numeric" placeholder="Wiederholen"></div>
@@ -1976,6 +1986,7 @@ async function addE(typ){
   const tsp=typ==='ta'?document.getElementById('ta-wg').value:null;
   const consent=document.getElementById(`${p}-c`).checked;
   if(!nm){ toast(t('t_name'),true); return; }
+  if(!si){ toast(t('t_signal'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
   if((typ==='bi'||typ==='ta') && !br){ toast(t('t_pickstand'),true); return; }
   if(typ==='ta'){
@@ -2047,7 +2058,8 @@ async function sendFB(){
 async function saveEM(){
   const e=findE(etgt); if(!e)return;
   const nm=document.getElementById('em-n').value.trim(); if(!nm){ toast(t('t_name'),true); return; }
-  e.nm=nm; e.si=normSi(document.getElementById('em-si').value);
+  const si=normSi(document.getElementById('em-si').value); if(!si){ toast(t('t_signal'),true); return; }
+  e.nm=nm; e.si=si;
   e.br=document.getElementById('em-b').value;
   if(e.typ==='ta') e.tg=document.getElementById('em-g').value; else e.az=parseInt(document.getElementById('em-a').value)||1;
   e.no=document.getElementById('em-no').value.trim();
@@ -2085,12 +2097,18 @@ async function svCfgR(){
   }
 }
 function clrCfg(){ cfg.url=''; cfg.key=''; svcfg(); sb=null; ch=null; cm='local'; ldbck(); upconn(); ren(); }
-function chgPin(){
+async function chgPin(){
   const p1=document.getElementById('np1').value.trim();
   const p2=document.getElementById('np2').value.trim();
   if(!/^\d{4}$/.test(p1)){ toast('PIN muss 4 Ziffern sein',true); return; }
   if(p1!==p2){ toast('PINs stimmen nicht überein',true); return; }
-  cfg.pin=p1; svcfg(); toast('✓ Admin-PIN gespeichert'); ren(); go('se');
+  try{ sld(true);
+    const hash=await sha256hex(p1);
+    if(sb){ const{error}=await sb.from('config').upsert({key:'admin_pin',value:hash},{onConflict:'key'}); if(error)throw error; }
+    adminPinHash=hash; cfg.pin=p1; svcfg();
+    toast('✓ Admin-PIN gespeichert (gilt für alle Geräte)'); ren(); go('se');
+  }catch(e){ toast('Fehler: '+(e.message||e),true); }
+  finally{ sld(false); }
 }
 function cpSQL(){
   navigator.clipboard.writeText(document.getElementById('sqlB').textContent)
