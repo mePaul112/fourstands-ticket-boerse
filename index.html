@@ -497,6 +497,11 @@ a { color: inherit; text-decoration: none; }
 .fb-admin { margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .fb-hint { font-size:11px; color:var(--mu); }
 .match-cta { margin-top:8px; padding:6px 10px; background:#fbbf2418; border:1px solid var(--ma); border-radius:6px; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--ma); }
+.mebar { margin:0 0 12px; padding:7px 12px; background:var(--sf); border:1px solid var(--bd); border-radius:7px; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:.5px; color:var(--mu); cursor:pointer; }
+.mebar b { color:var(--tx); }
+.mebar-edit { color:var(--ma); font-weight:700; }
+.fab { position:fixed; right:18px; bottom:18px; width:54px; height:54px; border-radius:50%; background:var(--red); color:#fff; border:none; font-size:30px; line-height:1; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:50; }
+.fab:hover { filter:brightness(1.12); }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -832,6 +837,7 @@ pre {
     <button class="btn-secondary" id="archbtn" onclick="toggleArchiv()" style="display:none">Archiv</button>
     <button class="match-pill" id="matchpill" onclick="openMM()" style="display:none" title="Matches anzeigen">⚡ <span id="mp-n">0</span> <span id="mp-lbl">Matches</span></button>
   </div>
+  <div class="mebar" id="mebar" onclick="openMe()"></div>
 
   <div id="mbnr"></div>
   <div id="tab-ov"></div>
@@ -945,6 +951,38 @@ pre {
   </div>
 </div>
 
+<!-- FAB: Neuer Eintrag -->
+<button class="fab" id="fab" onclick="openCho()" title="Neuer Eintrag" aria-label="Neuer Eintrag">＋</button>
+
+<!-- IDENTITAET MODAL -->
+<div id="im" class="overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-title" data-i18n="me_title">Das bin ich</div>
+    <p style="color:var(--mu);font-size:12px;line-height:1.5;margin:0 0 12px" data-i18n="me_intro">Damit die App deine eigenen Einträge erkennt (auch auf einem zweiten Gerät), trag hier deinen Namen und Signal-Kontakt ein – am besten überall gleich.</p>
+    <div class="form-grid">
+      <div class="fg"><label data-i18n="l_name">Name</label><input id="im-n"></div>
+      <div class="fg"><label data-i18n="l_signal">Signal-Kontakt</label><input id="im-si" placeholder="+49 … oder @handle"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" data-i18n="dm_cancel" onclick="closeMe()">Abbrechen</button>
+      <button class="btn-primary" data-i18n="em_save" onclick="saveMe()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEUER-EINTRAG AUSWAHL MODAL -->
+<div id="cho" class="overlay" style="display:none">
+  <div class="modal" style="max-width:320px">
+    <div class="modal-title" data-i18n="cho_title">Neuer Eintrag</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+      <button class="btn-primary su" onclick="quickAdd('su')">🔍 <span data-i18n="cho_su">Ticket suchen</span></button>
+      <button class="btn-primary bi" onclick="quickAdd('bi')">🎟️ <span data-i18n="cho_bi">Ticket anbieten</span></button>
+      <button class="btn-primary ta" onclick="quickAdd('ta')">🔄 <span data-i18n="cho_ta">Tauschen</span></button>
+    </div>
+    <div class="modal-actions"><button class="btn-secondary" data-i18n="dm_cancel" onclick="closeCho()">Abbrechen</button></div>
+  </div>
+</div>
+
 <!-- PIN MODAL -->
 <div id="pm" class="overlay" style="display:none">
   <div class="modal" style="max-width:300px;text-align:center">
@@ -1034,7 +1072,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Damit die App deine eigenen Einträge erkennt (auch auf einem zweiten Gerät), trag hier Namen und Signal-Kontakt ein – am besten überall gleich.',me_you:'Du bist',me_change:'ändern',me_setup:'Wer bist du? Tippen zum Einrichten',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1053,7 +1091,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'So the app recognizes your own entries (even on a second device), enter your name and Signal contact here – ideally the same everywhere.',me_you:'You are',me_change:'change',me_setup:'Who are you? Tap to set up',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1726,6 +1764,10 @@ function ren(){
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
   const _lg=document.getElementById('splogo'); // Logo des aktiven Spiels (Gegner)
   if(_lg){ if(sp&&sp.logo){ _lg.src=sp.logo; _lg.style.display='inline-block'; } else { _lg.removeAttribute('src'); _lg.style.display='none'; } }
+  const _mb=document.getElementById('mebar'); // Identitaets-Leiste "Das bin ich"
+  if(_mb){ _mb.innerHTML = (me.nm||me.si)
+    ? `👤 ${t('me_you')} <b>${esc(me.nm||'?')}</b>${me.si?` <span style="color:var(--mu)">(${esc(me.si)})</span>`:''} · <span class="mebar-edit">✏️ ${t('me_change')}</span>`
+    : `👤 <span class="mebar-edit">${t('me_setup')}</span>`; }
   // Counts
   ['su','bi','ta'].forEach(typ=>{
     document.getElementById('c-'+typ).textContent = typ==='ta' ? taForActive().length : gei(typ).length;
@@ -1929,7 +1971,10 @@ function go(tab){
   if(btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
   document.getElementById('mbnr').style.display=showExtra?'block':'none';
-  document.getElementById('spbar').style.display=['sp','se','he','fb'].includes(tab)?'none':'flex';
+  const _hideChrome=['sp','se','he','fb'].includes(tab);
+  document.getElementById('spbar').style.display=_hideChrome?'none':'flex';
+  const _mb2=document.getElementById('mebar'); if(_mb2) _mb2.style.display=_hideChrome?'none':'block';
+  const _fab=document.getElementById('fab'); if(_fab) _fab.style.display=_hideChrome?'none':'flex';
 }
 
 // ── ACTIONS ───────────────────────────────────────────────────
@@ -2129,6 +2174,27 @@ function openFB(){
   document.getElementById('fbm').style.display='flex';
 }
 function closeFB(){ document.getElementById('fbm').style.display='none'; }
+// ── IDENTITAET (Das bin ich) ──────────────────────────────────
+function openMe(){
+  document.getElementById('im-n').value=me.nm||'';
+  document.getElementById('im-si').value=me.si||'';
+  document.getElementById('im').style.display='flex';
+}
+function closeMe(){ document.getElementById('im').style.display='none'; }
+function saveMe(){
+  me.nm=document.getElementById('im-n').value.trim();
+  me.si=normSi(document.getElementById('im-si').value);
+  svme(); closeMe(); ren(); go(cur); toast(t('t_saved'));
+}
+// ── NEUER EINTRAG (FAB -> Auswahl -> Formular) ────────────────
+function openCho(){ document.getElementById('cho').style.display='flex'; }
+function closeCho(){ document.getElementById('cho').style.display='none'; }
+function quickAdd(typ){
+  closeCho();
+  if(!st.aktiv){ toast(t('t_nogame'),true); return; }
+  sf[typ]=true; ren(); go(typ);
+  const fp=document.querySelector('#tab-'+typ+' .form-panel'); if(fp) fp.scrollIntoView({block:'center'});
+}
 async function sendFB(){
   const msg=document.getElementById('fb-m').value.trim();
   if(!msg){ toast(t('fb_needmsg'),true); return; }
@@ -2255,6 +2321,7 @@ function helpBox(){
   return `<div class="info-box" style="border-left-color:var(--ma);position:relative;padding-right:34px">
     <button onclick="dismissHelp()" title="Ausblenden" style="position:absolute;top:6px;right:8px;background:none;border:none;color:var(--mu);font-size:18px;line-height:1;cursor:pointer">×</button>
     <strong>${t('help_title')}</strong><br>
+    <span style="display:block;margin:6px 0;color:var(--ma);font-weight:600">${t('help_steps')}</span>
     🔍 ${t('help_su')}<br>
     🎟️ ${t('help_bi')}<br>
     🔄 ${t('help_ta')}<br>
