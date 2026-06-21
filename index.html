@@ -958,10 +958,10 @@ pre {
 <div id="im" class="overlay" style="display:none">
   <div class="modal">
     <div class="modal-title" data-i18n="me_title">Das bin ich</div>
-    <p style="color:var(--mu);font-size:12px;line-height:1.5;margin:0 0 12px" data-i18n="me_intro">Damit die App deine eigenen Einträge erkennt (auch auf einem zweiten Gerät), trag hier deinen Namen und Signal-Kontakt ein – am besten überall gleich.</p>
+    <p style="color:var(--mu);font-size:12px;line-height:1.5;margin:0 0 12px" data-i18n="me_intro">Deine Einträge werden <strong>über den Signal-Kontakt</strong> erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.</p>
     <div class="form-grid">
-      <div class="fg"><label data-i18n="l_name">Name</label><input id="im-n"></div>
-      <div class="fg"><label data-i18n="l_signal">Signal-Kontakt</label><input id="im-si" placeholder="+49 … oder @handle"></div>
+      <div class="fg"><label data-i18n="l_signal">Signal-Kontakt *</label><input id="im-si" placeholder="+49 … oder @handle"></div>
+      <div class="fg"><label data-i18n="me_name">Anzeigename (optional)</label><input id="im-n"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" data-i18n="dm_cancel" onclick="closeMe()">Abbrechen</button>
@@ -1078,7 +1078,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Damit die App deine eigenen Einträge erkennt (auch auf einem zweiten Gerät), trag hier Namen und Signal-Kontakt ein – am besten überall gleich.',me_you:'Du bist',me_change:'ändern',me_setup:'Wer bist du? Tippen zum Einrichten',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',consent_once:'By posting, your name + Signal contact are stored and shown to everyone – you already consented to this (details: Help → Privacy).',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1097,7 +1097,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'So the app recognizes your own entries (even on a second device), enter your name and Signal contact here – ideally the same everywhere.',me_you:'You are',me_change:'change',me_setup:'Who are you? Tap to set up',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1450,9 +1450,8 @@ async function chkPin(){
   }
 }
 
-// Eigener Eintrag? Erkennung über Signal-Kontakt ODER Name (geräteübergreifend, wenn der Handle gleich ist)
-const isMine=e=>{ const ns=(me.si||'').trim().toLowerCase(), nn=(me.nm||'').trim().toLowerCase();
-  return (ns && (e.si||'').trim().toLowerCase()===ns) || (nn && (e.nm||'').trim().toLowerCase()===nn); };
+// Eigener Eintrag? Erkennung AUSSCHLIESSLICH über den Signal-Kontakt (eindeutige Identität; Name ist nur Anzeigename)
+const isMine=e=>{ const ns=(me.si||'').trim().toLowerCase(); return !!ns && (e.si||'').trim().toLowerCase()===ns; };
 // ── RENDER: CARD ──────────────────────────────────────────────
 function cardH(e,nr,mi){
   const isM=mi.includes(e.id);
@@ -1620,7 +1619,7 @@ function helpPage(){
         <p>🔄 <strong>Tausch</strong> – du hast Karten und möchtest andere: Stand A gegen Stand B im selben Spiel <em>oder</em> Karten für ein Spiel gegen Karten für ein anderes (z.&nbsp;B. ein Auswärtsspiel gegen das HSV-Heimspiel). Im Formular wählst du <strong>Habe</strong> (Spiel + Stand + Anzahl) und <strong>Tausche gegen</strong> (Spiel + Stand, „egal" möglich). Ein Match entsteht bei spiegelbildlichem Wunsch und <strong>gleicher Kartenzahl</strong>.</p>
         <p>⚡ <strong>Match</strong> – passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein Hinweis. Kontakt läuft direkt über den 📱 Signal-Link des Eintrags.</p>
         <p>✓ <strong>Erledigt</strong> – ist dein Anliegen erledigt, markiere deinen Eintrag entsprechend (versehentlich? siehe „Wieder öffnen" unten).</p>
-        <p>👤 <strong>Das bin ich</strong> – die Leiste über der Liste zeigt, als wer du einträgst. Tippe auf „ändern" und setze Name + Signal-Kontakt – nimm auf jedem Gerät <strong>denselben Signal-Handle</strong>, dann erkennt die App deine eigenen Einträge überall (zum Bearbeiten/Erledigen/Wieder öffnen).</p>
+        <p>👤 <strong>Das bin ich</strong> – die Leiste über der Liste zeigt, als wer du einträgst. Deine <strong>Identität ist der Signal-Kontakt</strong> (Pflicht) – nimm auf jedem Gerät <strong>denselben</strong>, dann erkennt die App deine eigenen Einträge überall (zum Bearbeiten/Erledigen/Wieder öffnen). Der <strong>Name</strong> ist nur ein Anzeigename und jederzeit änderbar.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
@@ -1696,7 +1695,7 @@ function helpPage(){
         <p>🔄 <strong>Swap</strong> – you have tickets and want others: stand A for stand B in the same match <em>or</em> tickets for one match for tickets for another (e.g. an away game for the HSV home game). In the form you pick <strong>I have</strong> (match + stand + quantity) and <strong>swap for</strong> (match + stand, „any" possible). A match needs a mirrored wish and the <strong>same number of tickets</strong>.</p>
         <p>⚡ <strong>Match</strong> – if a search fits an offer (or two swaps fit), a note appears at the top. Contact runs directly via the 📱 Signal link.</p>
         <p>✓ <strong>Done</strong> – mark your entry as done once resolved (by mistake? see “Reopen” below).</p>
-        <p>👤 <strong>This is me</strong> – the bar above the list shows who you post as. Tap “change” and set your name + Signal contact – use the <strong>same Signal handle on every device</strong> so the app recognizes your own entries everywhere (to edit/close/reopen).</p>
+        <p>👤 <strong>This is me</strong> – the bar above the list shows who you post as. Your <strong>identity is the Signal contact</strong> (required) – use the <strong>same one on every device</strong> so the app recognizes your own entries everywhere (to edit/close/reopen). The <strong>name</strong> is just a display label and can be changed anytime.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
@@ -1774,10 +1773,11 @@ function ren(){
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
   const _lg=document.getElementById('splogo'); // Logo des aktiven Spiels (Gegner)
   if(_lg){ if(sp&&sp.logo){ _lg.src=sp.logo; _lg.style.display='inline-block'; } else { _lg.removeAttribute('src'); _lg.style.display='none'; } }
-  const _mb=document.getElementById('mebar'); // Identitaets-Leiste "Das bin ich"
-  if(_mb){ _mb.innerHTML = (me.nm||me.si)
-    ? `👤 ${t('me_you')} <b>${esc(me.nm||'?')}</b>${me.si?` <span style="color:var(--mu)">(${esc(me.si)})</span>`:''} · <span class="mebar-edit">✏️ ${t('me_change')}</span>`
-    : `👤 <span class="mebar-edit">${t('me_setup')}</span>`; }
+  const _mb=document.getElementById('mebar'); // Identitaets-Leiste "Das bin ich" (Identitaet = Signal-Kontakt)
+  if(_mb){ const _lbl = me.nm ? `<b>${esc(me.nm)}</b> <span style="color:var(--mu)">(${esc(me.si)})</span>` : `<b>${esc(me.si)}</b>`;
+    _mb.innerHTML = me.si
+      ? `👤 ${t('me_you')} ${_lbl} · <span class="mebar-edit">✏️ ${t('me_change')}</span>`
+      : `👤 <span class="mebar-edit">${t('me_setup')}</span>`; }
   // Counts
   ['su','bi','ta'].forEach(typ=>{
     document.getElementById('c-'+typ).textContent = typ==='ta' ? taForActive().length : gei(typ).length;
@@ -2132,9 +2132,9 @@ async function addE(typ){
     if(tsp===st.aktiv && (tg||'')===(br||'')){ toast(t('t_taself'),true); return; } // Habe == Will
   }
   if(!consent){ toast(t('t_consent'),true); return; }
-  if(typ==='su'){ // keine doppelte AKTIVE Suche pro Spiel (verifiziert am Signal-Kontakt, sonst Name)
-    const nsi=si.toLowerCase(), nnm=nm.toLowerCase();
-    const dup=st.ei.some(x=>x.sid===st.aktiv&&x.typ==='su'&&x.s==='o'&&(nsi?(x.si||'').trim().toLowerCase()===nsi:(x.nm||'').toLowerCase()===nnm));
+  if(typ==='su'){ // keine doppelte AKTIVE Suche pro Spiel (Identität = Signal-Kontakt)
+    const nsi=si.trim().toLowerCase();
+    const dup=st.ei.some(x=>x.sid===st.aktiv&&x.typ==='su'&&x.s==='o'&&(x.si||'').trim().toLowerCase()===nsi);
     if(dup){ toast(t('t_dupsu'),true); return; }
   }
   const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,tsp,no,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
@@ -2192,8 +2192,9 @@ function openMe(){
 }
 function closeMe(){ document.getElementById('im').style.display='none'; }
 function saveMe(){
-  me.nm=document.getElementById('im-n').value.trim();
-  me.si=normSi(document.getElementById('im-si').value);
+  const si=normSi(document.getElementById('im-si').value);
+  if(!si){ toast(t('t_signal'),true); return; } // Signal = Identität, Pflicht
+  me.nm=document.getElementById('im-n').value.trim(); me.si=si;
   svme(); closeMe(); ren(); go(cur); toast(t('t_saved'));
 }
 // ── NEUER EINTRAG (FAB -> Auswahl -> Formular) ────────────────
