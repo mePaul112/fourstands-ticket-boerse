@@ -1042,7 +1042,13 @@ const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} }
 const ldcfg=()=>{ try{const r=localStorage.getItem(KC);if(r)cfg={...cfg,...JSON.parse(r)};}catch(e){} };
 const svbck=()=>{ try{localStorage.setItem(KB,JSON.stringify(st));}catch(e){} };
 const ldbck=()=>{ try{const r=localStorage.getItem(KB);if(r)st=JSON.parse(r);}catch(e){} };
-const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang', KS='fs-seen';
+const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang', KS='fs-seen', KCO='fs-consent';
+const consentGiven=()=>{ try{return !!localStorage.getItem(KCO);}catch(e){return false;} };
+// Einwilligung: erstes Mal Pflicht-Haekchen, danach (einmal erteilt) nur noch Hinweis
+function consentBlock(p){
+  if(consentGiven()) return `<div style="margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu)">ℹ️ ${t('consent_once')}</div>`;
+  return `<label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="${p}-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>`;
+}
 const svme=()=>{ try{localStorage.setItem(KM,JSON.stringify(me));}catch(e){} };
 const ldme=()=>{ try{const r=localStorage.getItem(KM);if(r)me={...me,...JSON.parse(r)};}catch(e){} };
 const svseen=()=>{ try{localStorage.setItem(KS,JSON.stringify([...seen].slice(-400)));}catch(e){} };
@@ -1054,7 +1060,7 @@ function toggleTheme(){ theme=theme==='light'?'dark':'light'; try{localStorage.s
 
 // ── I18N (DE/EN) ──────────────────────────────────────────────
 const I18N={
- de:{ nav_ov:'Übersicht',nav_su:'Suche',nav_bi:'Biete',nav_ta:'Tausch',nav_sp:'Spiele',nav_se:'Setup',nav_he:'Hilfe',consent_label:'Ich willige ein, dass mein Name und mein Signal-Kontakt für alle Nutzer der Börse sichtbar gespeichert werden (Details: Hilfe → Datenschutz).',t_consent:'Bitte der Datenspeicherung zustimmen',consent_proof:'Einwilligung erteilt',
+ de:{ nav_ov:'Übersicht',nav_su:'Suche',nav_bi:'Biete',nav_ta:'Tausch',nav_sp:'Spiele',nav_se:'Setup',nav_he:'Hilfe',consent_label:'Ich willige ein, dass mein Name und mein Signal-Kontakt für alle Nutzer der Börse sichtbar gespeichert werden (Details: Hilfe → Datenschutz).',t_consent:'Bitte der Datenspeicherung zustimmen',consent_proof:'Einwilligung erteilt',consent_once:'Mit dem Eintragen werden Name + Signal-Kontakt für alle sichtbar gespeichert – du hast dem bereits zugestimmt (Details: Hilfe → Datenschutz).',
   tb_share:'↗ Teilen',tb_help:'? Hilfe', conn_live:'Live',conn_local:'Lokal',conn_off:'Offline',
   th_light:'☀ Hell',th_dark:'🌙 Dunkel', sb_current:'Aktuelles Spiel',archiv:'Archiv',archiv_on:'Archiv ✓',
   st_su:'Suchen',st_bi:'Angebote',st_ta:'Tausche', eyebrow:'FC St. Pauli Fanclub',eyebrow_tool:'Ticket-Tausch-Börse',
@@ -1073,7 +1079,7 @@ const I18N={
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
   t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Damit die App deine eigenen Einträge erkennt (auch auf einem zweiten Gerät), trag hier Namen und Signal-Kontakt ein – am besten überall gleich.',me_you:'Du bist',me_change:'ändern',me_setup:'Wer bist du? Tippen zum Einrichten',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',t_err:'Fehler: ' },
- en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
+ en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',consent_once:'By posting, your name + Signal contact are stored and shown to everyone – you already consented to this (details: Help → Privacy).',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
   st_su:'Searches',st_bi:'Offers',st_ta:'Swaps', eyebrow:'FC St. Pauli supporters club',eyebrow_tool:'Ticket swap board',
@@ -1531,7 +1537,7 @@ ${sf.su?`<div class="form-panel su">
   <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
-  <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="su-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
+  ${consentBlock('su')}
   <button class="btn-primary su" onclick="addE('su')">${t('btn_su')}</button>
 </div>`:''}`;
 }
@@ -1555,7 +1561,7 @@ ${sf.bi?`<div class="form-panel bi">
   <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="bi-no" placeholder="${t('ph_no_bi')}"></div>
   </div>
-  <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="bi-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
+  ${consentBlock('bi')}
   <button class="btn-primary" onclick="addE('bi')">${t('btn_bi')}</button>
 </div>`:''}`;
 }
@@ -1588,7 +1594,7 @@ ${sf.ta?`<div class="form-panel ta">
   <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="ta-no" placeholder="${t('ph_no_ta')}"></div>
   </div>
-  <label style="display:flex;gap:8px;align-items:flex-start;margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu);cursor:pointer"><input type="checkbox" id="ta-c" style="margin-top:2px;flex-shrink:0"> <span>${t('consent_label')}</span></label>
+  ${consentBlock('ta')}
   <button class="btn-primary ta" onclick="addE('ta')">${t('btn_ta')}</button>
 </div>`:''}`;
 }
@@ -2112,7 +2118,7 @@ async function addE(typ){
   const az=parseInt(document.getElementById(`${p}-a`).value)||1;
   const tg=typ==='ta'?document.getElementById('ta-g').value:null;
   const tsp=typ==='ta'?document.getElementById('ta-wg').value:null;
-  const consent=document.getElementById(`${p}-c`).checked;
+  const cbox=document.getElementById(`${p}-c`); const consent = consentGiven() || (cbox&&cbox.checked);
   if(!nm){ toast(t('t_name'),true); return; }
   if(!si){ toast(t('t_signal'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
@@ -2128,7 +2134,7 @@ async function addE(typ){
     if(dup){ toast(t('t_dupsu'),true); return; }
   }
   const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,tsp,no,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
-  try{ sld(true); await dbAE(e); me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
+  try{ sld(true); await dbAE(e); if(!consentGiven()){ try{localStorage.setItem(KCO,new Date().toISOString());}catch(_){} } me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
   catch(er){ toast(t('t_err')+er.message,true); }
   finally{ sld(false); }
 }
