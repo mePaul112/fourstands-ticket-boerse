@@ -496,6 +496,7 @@ a { color: inherit; text-decoration: none; }
 .fb-ans { margin-top:10px; padding:8px 12px; border-left:3px solid var(--ma); background:#fbbf2410; border-radius:0 6px 6px 0; font-size:13px; line-height:1.5; }
 .fb-admin { margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .fb-hint { font-size:11px; color:var(--mu); }
+.match-cta { margin-top:8px; padding:6px 10px; background:#fbbf2418; border:1px solid var(--ma); border-radius:6px; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--ma); }
 .fg input:focus, .fg select:focus {
   outline: none;
   border-bottom-color: var(--red);
@@ -1024,7 +1025,7 @@ const I18N={
   help_title:"So funktioniert's", help_su:'<strong>Suche</strong> – du brauchst ein Ticket → du kommst mit Zeitstempel in die Warteschlange.',
   help_bi:'<strong>Biete</strong> – du hast ein Ticket übrig → Bereich &amp; Anzahl eintragen.', help_ta:'<strong>Tausch</strong> – du hast Bereich A und willst Bereich B.',
   help_match:'Passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein <span style="color:var(--ma)">⚡ Match</span>. Kontakt läuft direkt über den 📱 Signal-Link.',
-  lbl_su:'Suche',lbl_bi:'Biete',lbl_ta:'Tausch', badge_mine:'Dein',tag_match:'⚡ Match', done_btn:'✓ Erledigt',done_lbl:'✓ ERLEDIGT', card_tg:'Tausche gegen:',anz:'× Tickets',
+  lbl_su:'Suche',lbl_bi:'Biete',lbl_ta:'Tausch', badge_mine:'Dein',tag_match:'⚡ Match',match_cta:'⚡ Passt zu dir – jetzt per 📱 Signal melden', done_btn:'✓ Erledigt',done_lbl:'✓ ERLEDIGT', card_tg:'Tausche gegen:',anz:'× Tickets',
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
@@ -1033,7 +1034,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1043,7 +1044,7 @@ const I18N={
   help_title:'How it works', help_su:'<strong>Search</strong> – you need a ticket → you join the queue with a timestamp.',
   help_bi:'<strong>Offer</strong> – you have a spare ticket → enter area &amp; quantity.', help_ta:'<strong>Swap</strong> – you have area A and want area B.',
   help_match:'If a search matches an offer (or two swaps fit), a <span style="color:var(--ma)">⚡ Match</span> appears at the top. Contact runs directly via the 📱 Signal link.',
-  lbl_su:'Search',lbl_bi:'Offer',lbl_ta:'Swap', badge_mine:'Yours',tag_match:'⚡ Match', done_btn:'✓ Done',done_lbl:'✓ DONE', card_tg:'Wants in return:',anz:'× tickets',
+  lbl_su:'Search',lbl_bi:'Offer',lbl_ta:'Swap', badge_mine:'Yours',tag_match:'⚡ Match',match_cta:'⚡ Matches you – get in touch via 📱 Signal', done_btn:'✓ Done',done_lbl:'✓ DONE', card_tg:'Wants in return:',anz:'× tickets',
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
@@ -1052,7 +1053,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1111,6 +1112,21 @@ const nextGameId=()=>{
   if(up.length) return up[0].id;
   return [...st.sp].sort((a,b)=>new Date(b.da)-new Date(a.da))[0].id;
 };
+// Beim Start bevorzugt das naechste anstehende Spiel MIT offenen Eintraegen waehlen (sonst naechstes Datum)
+async function nextGameSmart(){
+  if(!sb) return nextGameId();
+  try{
+    const{data,error}=await sb.from('eintraege').select('spiel_id').eq('status','offen');
+    if(!error){
+      const ids=new Set((data||[]).map(r=>r.spiel_id));
+      const h0=new Date(); h0.setHours(0,0,0,0);
+      const up=st.sp.filter(s=>s.da&&new Date(s.da)>=h0).sort((a,b)=>new Date(a.da)-new Date(b.da));
+      const hit=up.find(s=>ids.has(s.id));
+      if(hit) return hit.id;
+    }
+  }catch(e){}
+  return nextGameId();
+}
 const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
              .sort((a,b)=>((a.defer||0)-(b.defer||0))||(new Date(a.ts)-new Date(b.ts)));
 const spById=id=>st.sp.find(s=>s.id===id)||null;
@@ -1219,8 +1235,8 @@ async function ldall(){
     const{data,error}=await sb.from('spiele').select('*').order('datum',{ascending:true});
     if(error)throw error;
     st.sp=(data||[]).map(mapsp);
-    // Start: naechsten Spieltag waehlen. Live-Refresh: gueltige Auswahl erhalten, nur ungueltige korrigieren.
-    if(st.sp.length && (firstLoad || !st.aktiv || !st.sp.some(s=>s.id===st.aktiv))) st.aktiv=nextGameId();
+    // Start: naechstes Spiel MIT Eintraegen (sonst naechstes Datum). Live-Refresh: gueltige Auswahl erhalten.
+    if(st.sp.length && (firstLoad || !st.aktiv || !st.sp.some(s=>s.id===st.aktiv))) st.aktiv = firstLoad ? (await nextGameSmart()) : nextGameId();
     firstLoad=false;
     if(st.aktiv)await ldei();
     await ldTausch();
@@ -1331,6 +1347,7 @@ async function passOnce(id){
 async function dealDone(id){
   const m=mats().find(x=> x.t==='sb' ? (x.s.id===id||x.b.id===id) : (x.t1.id===id||x.t2.id===id));
   if(!m){ ren(); go(cur); return; }
+  if(!confirm(t('confirm_deal'))) return; // Sicherheitsabfrage
   const ids = m.t==='sb' ? [m.s.id,m.b.id] : [m.t1.id,m.t2.id];
   try{ sld(true); for(const i of ids){ await dbDN(i); } ren(); go(cur); toast(t('t_dealdone')); }
   catch(er){ toast(t('t_err')+(er.message||er),true); }
@@ -1429,6 +1446,7 @@ function cardH(e,nr,mi){
         ${isM&&e.typ==='su'&&e.msince?`<span class="meta-time" style="color:var(--ma)">⏳ ${fristTxt(e)}</span>`:''}
       </div>
       ${e.no?`<div class="card-note">💬 ${esc(e.no)}</div>`:''}
+      ${isM&&e.s==='o'?`<div class="match-cta">${t('match_cta')}</div>`:''}
       ${adm&&e.cat?`<div class="card-note" style="font-style:normal;color:var(--mu)">🔒 ${t('consent_proof')}: ${new Date(e.cat).toLocaleString(lang==='en'?'en-GB':'de-DE')}</div>`:''}
     </div>
     <div class="card-acts">
@@ -1446,7 +1464,10 @@ function cgrp(typs){
   if(!showDone) all=all.filter(e=>e.s==='o');
   if(onlyMine&&(me.nm||me.si)) all=all.filter(isMine);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
-  if(!all.length)return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?t('empty_mine'):showDone?t('empty_all'):t('empty_open')}</div>`;
+  if(!all.length){
+    if(cm!=='live') return`<div class="empty"><span class="empty-ico">⚠️</span>${t('empty_offline')}</div>`;
+    return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?t('empty_mine'):showDone?t('empty_all'):t('empty_first')}</div>`;
+  }
   const nr={su:0,bi:0,ta:0};
   return`<div class="card-grid">${all.map(e=>{ if(e.s==='o')nr[e.typ]++; return cardH(e,e.s==='o'?nr[e.typ]:'✓',mi);}).join('')}</div>`;
 }
