@@ -496,7 +496,11 @@ a { color: inherit; text-decoration: none; }
 .fb-ans { margin-top:10px; padding:8px 12px; border-left:3px solid var(--ma); background:#fbbf2410; border-radius:0 6px 6px 0; font-size:13px; line-height:1.5; }
 .fb-admin { margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .fb-hint { font-size:11px; color:var(--mu); }
-.match-cta { margin-top:8px; padding:6px 10px; background:#fbbf2418; border:1px solid var(--ma); border-radius:6px; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--ma); }
+.match-cta { margin-top:8px; padding:6px 10px; background:#fbbf2418; border:1px solid var(--ma); border-radius:6px; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--ma); cursor:pointer; }
+.match-cta:hover { background:#fbbf2430; }
+.mm-link { color:var(--ma); font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+.card.flash { animation:cardflash 1.6s ease-out; }
+@keyframes cardflash { 0%,15%{ background:#fbbf2433; box-shadow:0 0 0 2px var(--ma) inset; } 100%{ background:transparent; box-shadow:none; } }
 .mebar { margin:0 0 12px; padding:7px 12px; background:var(--sf); border:1px solid var(--bd); border-radius:7px; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:.5px; color:var(--mu); cursor:pointer; }
 .mebar b { color:var(--tx); }
 .mebar-edit { color:var(--ma); font-weight:700; }
@@ -1069,7 +1073,7 @@ const I18N={
   help_title:"So funktioniert's", help_su:'<strong>Suche</strong> – du brauchst ein Ticket → du kommst mit Zeitstempel in die Warteschlange.',
   help_bi:'<strong>Biete</strong> – du hast ein Ticket übrig → Bereich &amp; Anzahl eintragen.', help_ta:'<strong>Tausch</strong> – du hast Bereich A und willst Bereich B.',
   help_match:'Passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein <span style="color:var(--ma)">⚡ Match</span>. Kontakt läuft direkt über den 📱 Signal-Link.',
-  lbl_su:'Suche',lbl_bi:'Biete',lbl_ta:'Tausch', badge_mine:'Dein',tag_match:'⚡ Match',match_cta:'⚡ Passt zu dir – jetzt per 📱 Signal melden', done_btn:'✓ Erledigt',done_lbl:'✓ ERLEDIGT', card_tg:'Tausche gegen:',anz:'× Tickets',
+  lbl_su:'Suche',lbl_bi:'Biete',lbl_ta:'Tausch', badge_mine:'Dein',tag_match:'⚡ Match',match_cta:'⚡ Passt zu dir – Partner-Eintrag öffnen 👉', done_btn:'✓ Erledigt',done_lbl:'✓ ERLEDIGT', card_tg:'Tausche gegen:',anz:'× Tickets',
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
@@ -1088,7 +1092,7 @@ const I18N={
   help_title:'How it works', help_su:'<strong>Search</strong> – you need a ticket → you join the queue with a timestamp.',
   help_bi:'<strong>Offer</strong> – you have a spare ticket → enter area &amp; quantity.', help_ta:'<strong>Swap</strong> – you have area A and want area B.',
   help_match:'If a search matches an offer (or two swaps fit), a <span style="color:var(--ma)">⚡ Match</span> appears at the top. Contact runs directly via the 📱 Signal link.',
-  lbl_su:'Search',lbl_bi:'Offer',lbl_ta:'Swap', badge_mine:'Yours',tag_match:'⚡ Match',match_cta:'⚡ Matches you – get in touch via 📱 Signal', done_btn:'✓ Done',done_lbl:'✓ DONE', card_tg:'Wants in return:',anz:'× tickets',
+  lbl_su:'Search',lbl_bi:'Offer',lbl_ta:'Swap', badge_mine:'Yours',tag_match:'⚡ Match',match_cta:'⚡ Matches you – open the partner entry 👉', done_btn:'✓ Done',done_lbl:'✓ DONE', card_tg:'Wants in return:',anz:'× tickets',
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
@@ -1221,6 +1225,15 @@ function mats(){
   return ms;
 }
 const mids=()=>mats().flatMap(m=>m.t==='sb'?[m.s.id,m.b.id]:[m.t1.id,m.t2.id]);
+let partnerMap={}; // Eintrag-ID -> Match-Partner-ID (in ren() aktualisiert)
+function matchPartners(){ const mp={}; mats().forEach(m=>{ if(m.t==='sb'){mp[m.s.id]=m.b.id;mp[m.b.id]=m.s.id;} else {mp[m.t1.id]=m.t2.id;mp[m.t2.id]=m.t1.id;} }); return mp; }
+// Zu einem Eintrag springen (in der Liste) und kurz hervorheben — wechselt nötigenfalls in die Übersicht
+function gotoEntry(id){
+  if(!id) return;
+  let el=document.querySelector('.card[data-id="'+id+'"]');
+  if(!el){ go('ov'); el=document.querySelector('.card[data-id="'+id+'"]'); }
+  if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),1700); }
+}
 // Stabile Schlüssel je Match (sortiertes ID-Paar) für "neue seit letztem Besuch"
 const matchKeys=()=>mats().map(m=>m.t==='sb'?'sb~'+[m.s.id,m.b.id].sort().join('~'):'tt~'+[m.t1.id,m.t2.id].sort().join('~'));
 // Einmaliger Schnappschuss beim App-Start: wie viele Matches sind neu ggü. gesehenen?
@@ -1232,8 +1245,8 @@ function openMM(){
   const ms=mats();
   document.getElementById('mm-list').innerHTML = ms.length
     ? ms.map(m=> m.t==='sb'
-        ? `<div class="mm-row">🎯 <b>${esc(m.s.nm)}</b> ${t('mb_seeks')} ${esc(m.s.br||t('any_short'))} ↔ <b>${esc(m.b.nm)}</b> ${t('mb_offers')} ${esc(m.b.br)}</div>`
-        : `<div class="mm-row">🔄 <b>${esc(m.t1.nm)}</b> · ${gicon(spById(m.t1.sid))} ${esc((spById(m.t1.sid)||{}).ge||'')} ${esc(m.t1.br)} ↔ <b>${esc(m.t2.nm)}</b> · ${gicon(spById(m.t2.sid))} ${esc((spById(m.t2.sid)||{}).ge||'')} ${esc(m.t2.br)}</div>`
+        ? `<div class="mm-row">🎯 <a class="mm-link" onclick="closeMM();gotoEntry('${m.s.id}')">${esc(m.s.nm)}</a> ${t('mb_seeks')} ${esc(m.s.br||t('any_short'))} ↔ <a class="mm-link" onclick="closeMM();gotoEntry('${m.b.id}')">${esc(m.b.nm)}</a> ${t('mb_offers')} ${esc(m.b.br)}</div>`
+        : `<div class="mm-row">🔄 <a class="mm-link" onclick="closeMM();gotoEntry('${m.t1.id}')">${esc(m.t1.nm)}</a> · ${gicon(spById(m.t1.sid))} ${esc((spById(m.t1.sid)||{}).ge||'')} ${esc(m.t1.br)} ↔ <a class="mm-link" onclick="closeMM();gotoEntry('${m.t2.id}')">${esc(m.t2.nm)}</a> · ${gicon(spById(m.t2.sid))} ${esc((spById(m.t2.sid)||{}).ge||'')} ${esc(m.t2.br)}</div>`
       ).join('')
     : `<p style="color:var(--mu);font-size:13px;margin:0">${t('mm_none')}</p>`;
   document.getElementById('mm').style.display='flex';
@@ -1476,7 +1489,7 @@ function cardH(e,nr,mi){
     if(mineB) acts+=`<button class="btn-edit" onclick="editE('${e.id}')" title="${t('edit_t')}">✏️</button>`;
     if(mineB) acts+=`<button class="btn-done" onclick="mkDn('${e.id}')">${t('done_btn')}</button>`;
   }
-  return`<div class="card ${isM?'is-match':''} ${e.s==='erledigt'?'done':''}">
+  return`<div class="card ${isM?'is-match':''} ${e.s==='erledigt'?'done':''}" data-id="${e.id}">
     <div class="card-nr">${nr}</div>
     <div>
       <div><span class="tag tag-${e.typ}">${lb}</span>${mB}${mine}</div>
@@ -1489,7 +1502,7 @@ function cardH(e,nr,mi){
         ${isM&&e.typ==='su'&&e.msince?`<span class="meta-time" style="color:var(--ma)">⏳ ${fristTxt(e)}</span>`:''}
       </div>
       ${e.no?`<div class="card-note">💬 ${esc(e.no)}</div>`:''}
-      ${isM&&e.s==='o'?`<div class="match-cta">${t('match_cta')}</div>`:''}
+      ${isM&&e.s==='o'&&partnerMap[e.id]?`<div class="match-cta" onclick="gotoEntry('${partnerMap[e.id]}')">${t('match_cta')}</div>`:''}
       ${adm&&e.cat?`<div class="card-note" style="font-style:normal;color:var(--mu)">🔒 ${t('consent_proof')}: ${new Date(e.cat).toLocaleString(lang==='en'?'en-GB':'de-DE')}</div>`:''}
     </div>
     <div class="card-acts">
@@ -1623,7 +1636,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
-        <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Gibt es Matches, zeigt eine goldene <strong>⚡-Pille</strong> im Spielbalken die Anzahl; ein Tipp darauf öffnet die Match-Liste. Zusätzlich sind passende Einträge in der Liste mit ⚡ markiert.</p>
+        <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Gibt es Matches, zeigt eine goldene <strong>⚡-Pille</strong> im Spielbalken die Anzahl; ein Tipp darauf öffnet die Match-Liste. Zusätzlich sind passende Einträge in der Liste mit ⚡ markiert. <strong>Direkt zum Partner:</strong> Tippe im Popup auf einen Namen – oder bei einem markierten Eintrag auf „Partner-Eintrag öffnen" – und du springst direkt zum passenden Eintrag (dort ist der Signal-Kontakt).</p>
         <p><strong>Vergabe nach Reihenfolge:</strong> Suchen sind nach Eingang nummeriert (#1, #2 …). Pro Angebot erhält nur die <strong>früheste passende</strong> Suche das Match – die anderen warten.</p>
         <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du einen Platz zurück – die/der Nächste kommt dran, du behältst die zweite Chance.<br>
@@ -1699,7 +1712,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
-        <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. When there are matches, a gold <strong>⚡ pill</strong> in the match bar shows the count; tapping it opens the match list. Matching entries are also marked with ⚡ in the list.</p>
+        <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. When there are matches, a gold <strong>⚡ pill</strong> in the match bar shows the count; tapping it opens the match list. Matching entries are also marked with ⚡ in the list. <strong>Jump to the partner:</strong> tap a name in the popup – or “open the partner entry” on a marked entry – to jump straight to the matching entry (where the Signal contact is).</p>
         <p><strong>Allocation by order:</strong> searches are numbered by arrival (#1, #2 …). Each offer goes to the <strong>earliest matching</strong> search only – the others wait.</p>
         <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop one place – the next person gets a turn and you keep a second chance.<br>
@@ -1784,6 +1797,7 @@ function ren(){
   });
   // Match-Hinweis: kompakte Pille im Spielbalken (Details im Popup), statt Inline-Banner
   const _ms=mats();
+  partnerMap=matchPartners();
   const _pill=document.getElementById('matchpill');
   if(_pill){
     if(_ms.length){ _pill.style.display='inline-flex'; document.getElementById('mp-n').textContent=_ms.length; document.getElementById('mp-lbl').textContent=_ms.length===1?t('mp_one'):t('mp_lbl'); _pill.classList.toggle('mp-new',newMatchN>0); }
