@@ -2084,9 +2084,12 @@ async function updTermine(){
     sld(true);
     const heute=new Date(); heute.setHours(0,0,0,0);
     const lists=await Promise.all(OLDB_LEAGUES.map(l=>oldbLeague(l).catch(()=>[])));
+    const LNAME={bl2:'2. Bundesliga',dfb:'DFB-Pokal'};
+    const empties=OLDB_LEAGUES.filter((l,i)=>!(lists[i]||[]).some(g=>g.datum&&new Date(g.datum)>=heute)).map(l=>LNAME[l]||l);
+    const note = empties.length? ` · ${empties.join(', ')}: noch keine Termine bei OpenLigaDB` : '';
     let games=lists.flat().filter(g=>g.datum && new Date(g.datum)>=heute);
     const seen=new Set(); games=games.filter(g=>!seen.has(g.ext)&&seen.add(g.ext)); // Dedup
-    if(!games.length){ toast('Keine kommenden St.-Pauli-Termine gefunden',true); return; }
+    if(!games.length){ toast('OpenLigaDB hat noch keine Termine hinterlegt'+(empties.length?' ('+empties.join(', ')+')':''),true); return; }
     const{data:cur,error}=await sb.from('spiele').select('id,gegner,datum,typ,ext_id,anstoss,logo,wettbewerb');
     if(error) throw error;
     const byExt={}; (cur||[]).forEach(r=>{ if(r.ext_id) byExt[r.ext_id]=r; });
@@ -2100,14 +2103,16 @@ async function updTermine(){
         }
         continue;
       }
-      const ph=findPlaceholder(cur,g);
+      // Adoptieren: Platzhalter (N. Spieltag / N. Runde) ODER bereits vorhandenes Spiel (Gegner + Heim/Auswaerts, ohne ext_id)
+      let ph=findPlaceholder(cur,g);
+      if(!ph) ph=(cur||[]).find(r=>!r.ext_id && r.typ===g.typ && (r.gegner||'').trim().toLowerCase()===(g.gegner||'').trim().toLowerCase());
       if(ph){ const{error:e3}=await sb.from('spiele').update(row).eq('id',ph.id); if(e3)throw e3; ph.ext_id=g.ext; nUpd++; }
       else toInsert.push(row);
     }
     let nNew=0;
     if(toInsert.length){ const{error:e4}=await sb.from('spiele').insert(toInsert); if(e4)throw e4; nNew=toInsert.length; }
     await ldall(); ren();
-    toast(`✓ Termine: ${nNew} neu, ${nUpd} aktualisiert`);
+    toast(`✓ Termine: ${nNew} neu, ${nUpd} aktualisiert${note}`);
   }catch(e){ console.warn('updTermine',e); toast('Update fehlgeschlagen: '+(e.message||e),true); }
   finally{ sld(false); }
 }
