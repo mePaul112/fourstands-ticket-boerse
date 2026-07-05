@@ -2073,6 +2073,17 @@ async function oldbLeague(league){
              runde:(league==='dfb'&&m.group&&m.group.groupOrderID)||null };
   });
 }
+// Gegnername für den Abgleich normalisieren: Vereins-Rechtsformen (FC, SV, SpVgg …),
+// führende Ordnungszahl (1.) und angehängte Gründungsjahre (98, 03, 1846 …) wegfiltern,
+// damit „FC Energie Cottbus" und „Energie Cottbus" als dasselbe Spiel erkannt werden.
+const GEG_STOP=new Set(['fc','sv','sc','spvgg','vfl','vfb','tsv','tsg','dsc','sg','fsv','msv','ksv','vfr','1']);
+function normGeg(s){
+  return (s||'').toLowerCase()
+    .replace(/[.\-_]/g,' ')
+    .split(/\s+/)
+    .filter(w=>w && !GEG_STOP.has(w) && !/^\d+$/.test(w)) // Rechtsform- + reine Zahl-Tokens raus
+    .join(' ').trim();
+}
 function findPlaceholder(cur,g){ // Platzhalter adoptieren: Liga „N. Spieltag", Pokal „N. Runde"
   if(g.spieltag) return (cur||[]).find(r=>!r.ext_id&&new RegExp('(^|\\D)'+g.spieltag+'\\.\\s*Spieltag').test(r.gegner||''));
   if(g.runde)    return (cur||[]).find(r=>!r.ext_id&&/pokal/i.test(r.gegner||'')&&new RegExp('(^|\\D)'+g.runde+'\\.\\s*Runde').test(r.gegner||''));
@@ -2105,7 +2116,7 @@ async function updTermine(){
       }
       // Adoptieren: Platzhalter (N. Spieltag / N. Runde) ODER bereits vorhandenes Spiel (Gegner + Heim/Auswaerts, ohne ext_id)
       let ph=findPlaceholder(cur,g);
-      if(!ph) ph=(cur||[]).find(r=>!r.ext_id && r.typ===g.typ && (r.gegner||'').trim().toLowerCase()===(g.gegner||'').trim().toLowerCase());
+      if(!ph){ const gn=normGeg(g.gegner); ph=gn && (cur||[]).find(r=>!r.ext_id && r.typ===g.typ && normGeg(r.gegner)===gn); }
       if(ph){ const{error:e3}=await sb.from('spiele').update(row).eq('id',ph.id); if(e3)throw e3; ph.ext_id=g.ext; nUpd++; }
       else toInsert.push(row);
     }
