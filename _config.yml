@@ -1,0 +1,10 @@
+# GitHub Pages (Jekyll) — Dev-/Interna nicht ausliefern.
+# Betrifft nur die veroeffentlichte Seite; im Repo bleiben die Dateien erhalten.
+exclude:
+  - TODO.md
+  - CLAUDE.md
+  - README.md
+  - setup.sh
+  - setup-windows.ps1
+  - .claude
+  - .github
