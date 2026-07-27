@@ -1472,7 +1472,9 @@ function cardH(e,nr,mi){
   const az=e.az>1?`<span class="meta-anz">${e.az}${t('anz')}</span>`:'';
   const taCross=e.typ==='ta'&&e.tsp&&e.tsp!==e.sid;
   const taHg=e.typ==='ta'?spById(e.sid):null, taWg=e.typ==='ta'?spById(e.tsp||e.sid):null;
-  const headTxt=taCross?`${gicon(taHg)} ${esc(taHg?taHg.ge:'?')} · ${esc(e.br)}`:(esc(e.br)||t('any_short'));
+  // Tausch-Karten nennen IMMER das Spiel (auch beim Tausch innerhalb desselben Spiels) - sonst
+  // wirkt der eigene Eintrag so, als waere gar kein Spiel gewaehlt worden.
+  const headTxt=e.typ==='ta'?`${gicon(taHg)} ${esc(taHg?taHg.ge:'?')} · ${esc(e.br)||t('any_short')}`:(esc(e.br)||t('any_short'));
   const tg=e.typ==='ta'?`<div class="card-tgg">${t('card_tg')} <span>${taCross?gicon(taWg)+' '+esc(taWg?taWg.ge:'?')+' · ':''}${esc(e.tg)||t('any_short')}</span></div>`:'';
   const mB=isM?`<span class="tag tag-match">${t('tag_match')}</span>`:'';
   const lb=e.typ==='su'?t('lbl_su'):e.typ==='bi'?t('lbl_bi'):t('lbl_ta');
@@ -1629,7 +1631,7 @@ function helpPage(){
         <p>➕ <strong>Eintrag erstellen</strong> – tippe unten rechts auf den roten <strong>Plus-Knopf</strong> und wähle Suchen / Anbieten / Tauschen (alternativ über die Reiter oben).</p>
         <p>🔍 <strong>Suche</strong> – du brauchst ein Ticket und kommst mit Zeitstempel in eine Warteschlange. Der gewünschte Stand ist optional (egal).</p>
         <p>🎟️ <strong>Biete</strong> – du hast ein Ticket übrig. Stand und Anzahl sind Pflicht.</p>
-        <p>🔄 <strong>Tausch</strong> – du hast Karten und möchtest andere: Stand A gegen Stand B im selben Spiel <em>oder</em> Karten für ein Spiel gegen Karten für ein anderes (z.&nbsp;B. ein Auswärtsspiel gegen das HSV-Heimspiel). Im Formular wählst du <strong>Habe</strong> (Spiel + Stand + Anzahl) und <strong>Tausche gegen</strong> (Spiel + Stand, „egal" möglich). Ein Match entsteht bei spiegelbildlichem Wunsch und <strong>gleicher Kartenzahl</strong>.</p>
+        <p>🔄 <strong>Tausch</strong> – du hast Karten und möchtest andere: Stand A gegen Stand B im selben Spiel <em>oder</em> Karten für ein Spiel gegen Karten für ein anderes (z.&nbsp;B. ein Auswärtsspiel gegen das HSV-Heimspiel). Im Formular wählst du <strong>Habe</strong> (Spiel + Stand + Anzahl) und <strong>Tausche gegen</strong> (Spiel + Stand, „egal" möglich). Ein Match entsteht bei spiegelbildlichem Wunsch und <strong>gleicher Kartenzahl</strong>. Jede Tausch-Karte nennt in der Überschrift immer das Spiel, zu dem dein Ticket gehört; das Spiel hinter „Tausche gegen" wird nur genannt, wenn es ein <em>anderes</em> ist.</p>
         <p>⚡ <strong>Match</strong> – passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein Hinweis. Kontakt läuft direkt über den 📱 Signal-Link des Eintrags.</p>
         <p>✓ <strong>Erledigt</strong> – ist dein Anliegen erledigt, markiere deinen Eintrag entsprechend (versehentlich? siehe „Wieder öffnen" unten).</p>
         <p>👤 <strong>Das bin ich</strong> – die Leiste über der Liste zeigt, als wer du einträgst. Deine <strong>Identität ist der Signal-Kontakt</strong> (Pflicht) – nimm auf jedem Gerät <strong>denselben</strong>, dann erkennt die App deine eigenen Einträge überall (zum Bearbeiten/Erledigen/Wieder öffnen). Der <strong>Name</strong> ist nur ein Anzeigename und jederzeit änderbar.</p>
@@ -1705,7 +1707,7 @@ function helpPage(){
         <p>➕ <strong>Create an entry</strong> – tap the red <strong>plus button</strong> at the bottom right and pick Search / Offer / Swap (or use the tabs at the top).</p>
         <p>🔍 <strong>Search</strong> – you need a ticket and join a queue with a timestamp. The desired stand is optional (any).</p>
         <p>🎟️ <strong>Offer</strong> – you have a spare ticket. Stand and quantity are required.</p>
-        <p>🔄 <strong>Swap</strong> – you have tickets and want others: stand A for stand B in the same match <em>or</em> tickets for one match for tickets for another (e.g. an away game for the HSV home game). In the form you pick <strong>I have</strong> (match + stand + quantity) and <strong>swap for</strong> (match + stand, „any" possible). A match needs a mirrored wish and the <strong>same number of tickets</strong>.</p>
+        <p>🔄 <strong>Swap</strong> – you have tickets and want others: stand A for stand B in the same match <em>or</em> tickets for one match for tickets for another (e.g. an away game for the HSV home game). In the form you pick <strong>I have</strong> (match + stand + quantity) and <strong>swap for</strong> (match + stand, „any" possible). A match needs a mirrored wish and the <strong>same number of tickets</strong>. Every swap card always names the match your ticket belongs to in its heading; the match behind „wants in return" is only named when it is a <em>different</em> one.</p>
         <p>⚡ <strong>Match</strong> – if a search fits an offer (or two swaps fit), a note appears at the top. Contact runs directly via the 📱 Signal link.</p>
         <p>✓ <strong>Done</strong> – mark your entry as done once resolved (by mistake? see “Reopen” below).</p>
         <p>👤 <strong>This is me</strong> – the bar above the list shows who you post as. Your <strong>identity is the Signal contact</strong> (required) – use the <strong>same one on every device</strong> so the app recognizes your own entries everywhere (to edit/close/reopen). The <strong>name</strong> is just a display label and can be changed anytime.</p>
