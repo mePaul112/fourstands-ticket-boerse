@@ -50,4 +50,7 @@ jobs:
 
       - name: Hinweis falls SMTP fehlt
         if: steps.check.outputs.has_smtp != 'true'
-        run: echo "::notice::SMTP-Secrets (SMTP_USERNAME/SMTP_PASSWORD) fehlen noch - es wurde keine E-Mail gesendet. Neue Eintraege im Zeitraum: ${{ steps.check.outputs.count }}"
+        # Block-Skalar (|): der Text enthaelt "Zeitraum: " - ein Doppelpunkt+Leerzeichen in einem
+        # unquotierten YAML-Wert macht die ganze Datei ungueltig (Workflow startet dann gar nicht).
+        run: |
+          echo "::notice::SMTP-Secrets (SMTP_USERNAME/SMTP_PASSWORD) fehlen noch - es wurde keine E-Mail gesendet. Neue Eintraege im Zeitraum: ${{ steps.check.outputs.count }}"
