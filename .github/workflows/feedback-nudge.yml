@@ -17,21 +17,44 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           # Oeffentlicher, RLS-geschuetzter Anon-Key (steht auch in der oeffentlichen index.html)
           SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxY2F6dXFwZ2Nta3J5dmJrZ2tsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTM1ODYsImV4cCI6MjA5NzI4OTU4Nn0.cpyjY1PjeWYVGKd15o9f3-3MAjk6Ze7FkmO1VX2QP0s
+        # Kein Falsch-Negativ: "nichts Neues" darf nur bei bestaetigtem HTTP 200 und
+        # einem echten JSON-Array herauskommen. Transport- und HTTP-Fehler brechen den
+        # Lauf ab (rote Action + GitHub-Benachrichtigung), statt still 0 zu melden.
         run: |
+          set -euo pipefail
           CUTOFF=$(date -u -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
           URL="https://tqcazuqpgcmkryvbkgkl.supabase.co/rest/v1/feedback?select=created_at,category,name,message&created_at=gte.${CUTOFF}&order=created_at.desc"
-          RESP=$(curl -s -H "apikey: ${SUPABASE_KEY}" -H "Authorization: Bearer ${SUPABASE_KEY}" "$URL")
-          COUNT=$(printf '%s' "$RESP" | jq 'if type=="array" then length else 0 end' 2>/dev/null || echo 0)
+
+          # Body nach resp.json, Statuscode auf stdout. Kein --fail: sonst geht der
+          # Fehlertext von PostgREST verloren, der die Ursache benennt.
+          if ! HTTP=$(curl -sS --max-time 30 -o resp.json -w '%{http_code}' \
+                        -H "apikey: ${SUPABASE_KEY}" \
+                        -H "Authorization: Bearer ${SUPABASE_KEY}" "$URL"); then
+            echo "::error::Supabase nicht erreichbar - Verbindung kam nicht zustande (curl-Transportfehler). Kein Rueckschluss auf neues Feedback moeglich."
+            exit 1
+          fi
+          if [ "$HTTP" != "200" ]; then
+            echo "::error::Supabase antwortete mit HTTP ${HTTP} statt 200 (haeufig - abgelaufener Anon-Key oder RLS). Kein Rueckschluss auf neues Feedback moeglich."
+            head -c 500 resp.json || true
+            exit 1
+          fi
+          if ! jq -e 'type=="array"' resp.json >/dev/null 2>&1; then
+            echo "::error::Antwort ist kein JSON-Array - unerwartetes Format, Ergebnis nicht verwertbar."
+            head -c 500 resp.json || true
+            exit 1
+          fi
+
+          COUNT=$(jq 'length' resp.json)
           echo "count=${COUNT}" >> "$GITHUB_OUTPUT"
           if [ -n "${SMTP_PASSWORD:-}" ]; then echo "has_smtp=true" >> "$GITHUB_OUTPUT"; else echo "has_smtp=false" >> "$GITHUB_OUTPUT"; fi
           {
             echo "Neue Feedback-Eintraege der FourStands-Ticketboerse (letzte 24 h): ${COUNT}"
             echo ""
-            printf '%s' "$RESP" | jq -r 'if type=="array" then (.[] | "- [\(.category // "?")] \(.name // "anonym"): \(.message // "")") else "" end'
+            jq -r '.[] | "- [\(.category // "?")] \(.name // "anonym"): \(.message // "")"' resp.json
             echo ""
             echo "Fuer die ausfuehrliche Analyse einfach in Claude nach dem Feedback fragen."
           } > body.txt
-          echo "----- Vorschau -----"
+          echo "----- Vorschau (HTTP ${HTTP} bestaetigt) -----"
           cat body.txt
 
       - name: Stups per E-Mail (nur bei neuen Eintraegen)
