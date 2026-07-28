@@ -181,19 +181,55 @@ a { color: inherit; text-decoration: none; }
 .nav-ico { align-self: center; }
 .nb-help { font-size: 15px; }
 
+/* ─── ⋮ MENUE (Einstellungen, Identitaet, Hilfe, Setup) ─
+   Panel liegt auf Body-Ebene und wird per JS am Knopf ausgerichtet:
+   .nav scrollt horizontal (overflow-x), ein Dropdown darin wuerde abgeschnitten. */
+.nav-tools { display: flex; align-items: center; gap: 4px; padding-right: 6px; flex: 0 0 auto; }
+.kebab { background: none; border: none; color: var(--mu); font-size: 20px; line-height: 1; cursor: pointer; padding: 8px 10px; border-radius: 6px; transition: color .15s, background .15s; }
+.kebab:hover, .kebab.open { color: var(--tx); background: #ffffff14; }
+.menu-bd { position: fixed; inset: 0; z-index: 150; }
+.menu {
+  position: fixed; z-index: 151; min-width: 232px; max-width: min(290px, calc(100vw - 16px));
+  background: var(--sf); border: 1px solid var(--bd); border-radius: 9px;
+  box-shadow: 0 12px 34px rgba(0,0,0,.5); padding: 6px;
+}
+.menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  background: none; border: none; text-align: left; color: var(--tx);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; letter-spacing: .5px;
+  padding: 9px 10px; border-radius: 6px; cursor: pointer;
+}
+.menu-item:hover { background: #ffffff10; }
+.menu-ico { width: 18px; flex-shrink: 0; text-align: center; font-size: 15px; }
+.menu-sub { color: var(--mu); font-size: 12px; margin-left: auto; padding-left: 10px; }
+.menu-me { color: var(--mu); }
+.menu-me b { color: var(--tx); }
+.menu-me.unset { color: var(--ma); font-weight: 700; }
+.menu-sep { height: 1px; background: var(--bd); margin: 5px 4px; }
+body.light .kebab:hover, body.light .kebab.open { background: #00000010; }
+body.light .menu-item:hover { background: #00000008; }
+
 /* ─── NAVIGATION ─────────────────────────────────────── */
 .nav-wrap {
   background: #0c0a07;
   border-bottom: 1px solid var(--bd);
   position: sticky;
-  top: 31px;
+  top: 0;            /* frueher 31px: Hoehe der entfallenen oberen Leiste */
   z-index: 99;
+}
+/* Reiter scrollen bei Bedarf seitlich — die Werkzeuge rechts (Punkt + ⋮) liegen
+   ausserhalb des Scrollbereichs und bleiben dadurch immer erreichbar. */
+.nav-inner {
+  display: flex;
+  align-items: stretch;
+  max-width: 980px;
+  margin: 0 auto;
 }
 .nav {
   display: flex;
   overflow-x: auto;
-  max-width: 980px;
-  margin: 0 auto;
+  flex: 1 1 auto;
+  min-width: 0;
   scrollbar-width: none;
 }
 .nav::-webkit-scrollbar { display: none; }
@@ -212,6 +248,10 @@ a { color: inherit; text-decoration: none; }
   white-space: nowrap;
   flex-shrink: 0;
   transition: all .15s;
+}
+/* Schmale Handys: enger setzen, damit alle vier Reiter ohne Wischen nebeneinander passen */
+@media (max-width: 430px) {
+  .nb { padding: 12px 10px; letter-spacing: 1.2px; }
 }
 .nb:hover { color: var(--tx); }
 .nb.active { color: var(--tx); border-bottom-color: var(--red); }
@@ -439,7 +479,16 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+/* Schliessen des Formulars — ersetzt den frueheren Aufklapp-Knopf ueber dem Formular */
+.form-x {
+  margin-left: auto; background: none; border: none; color: var(--mu);
+  font-size: 22px; line-height: 1; padding: 0 2px; cursor: pointer; transition: color .15s;
+}
+.form-x:hover { color: var(--tx); }
 .form-heading.su { color: #93c5fd; }
 .form-heading.bi { color: #86efac; }
 .form-heading.ta { color: #fdba74; }
@@ -501,9 +550,6 @@ a { color: inherit; text-decoration: none; }
 .mm-link { color:var(--ma); font-weight:700; cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
 .card.flash { animation:cardflash 1.6s ease-out; }
 @keyframes cardflash { 0%,15%{ background:#fbbf2433; box-shadow:0 0 0 2px var(--ma) inset; } 100%{ background:transparent; box-shadow:none; } }
-.mebar { margin:0 0 12px; padding:7px 12px; background:var(--sf); border:1px solid var(--bd); border-radius:7px; font-family:'Barlow Condensed',sans-serif; font-size:12px; letter-spacing:.5px; color:var(--mu); cursor:pointer; }
-.mebar b { color:var(--tx); }
-.mebar-edit { color:var(--ma); font-weight:700; }
 .fab { position:fixed; right:18px; bottom:18px; width:54px; height:54px; border-radius:50%; background:var(--red); color:#fff; border:none; font-size:30px; line-height:1; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:50; }
 .fab:hover { filter:brightness(1.12); }
 .fg input:focus, .fg select:focus {
@@ -545,30 +591,6 @@ a { color: inherit; text-decoration: none; }
   transition: all .15s;
 }
 .btn-secondary:hover { border-color: var(--tx); color: var(--tx); }
-
-/* ─── TOGGLE BUTTON ──────────────────────────────────── */
-.toggler {
-  width: 100%;
-  background: transparent;
-  border: 1px solid var(--bd);
-  color: var(--mu);
-  padding: 10px 16px;
-  cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  text-align: left;
-  transition: all .15s;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.toggler::before { content: '+'; font-size: 18px; color: var(--red); font-weight: 300; }
-.toggler.open::before { content: '−'; }
-.toggler:hover { border-color: var(--red); color: var(--tx); }
 
 /* ─── DIVIDER ────────────────────────────────────────── */
 .section-divider {
@@ -789,13 +811,6 @@ pre {
 <div id="load-bar" style="display:none"></div>
 <div id="toast" class="toast"></div>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="conn-dot off" id="cd" title="Verbindung"></div>
-  <button class="admin-btn" id="setupbtn" onclick="go('se')" title="Setup">⚙</button>
-  <button class="admin-btn" id="abtn" onclick="toggleAdmin()" title="Admin">🔒</button>
-</div>
-
 <!-- HEADER -->
 <header class="hdr">
   <div class="hdr-inner">
@@ -819,17 +834,18 @@ pre {
 
 <!-- NAVIGATION -->
 <div class="nav-wrap">
+  <div class="nav-inner">
   <nav class="nav">
     <button class="nb active"   onclick="go('ov')"><span data-i18n="nav_ov">Übersicht</span></button>
     <button class="nb su"       onclick="go('su')"><span data-i18n="nav_su">Suche</span> <span class="nbadge" id="c-su">0</span></button>
     <button class="nb bi"       onclick="go('bi')"><span data-i18n="nav_bi">Biete</span> <span class="nbadge" id="c-bi">0</span></button>
     <button class="nb ta"       onclick="go('ta')"><span data-i18n="nav_ta">Tausch</span> <span class="nbadge" id="c-ta">0</span></button>
-    <button class="icon-btn nav-ico" id="langbtn" onclick="toggleLang()" title="Sprache" style="margin-left:auto;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px">EN</button>
-    <button class="icon-btn nav-ico" id="thbtn" onclick="toggleTheme()" title="Theme">☀</button>
-    <button class="icon-btn nav-ico" onclick="shareApp()" title="Teilen">↗</button>
-    <button class="icon-btn nav-ico" onclick="goFB()" title="Feedback">💬</button>
-    <button class="nb nb-help" id="n-he" onclick="go('he')" title="Hilfe">?</button>
   </nav>
+    <div class="nav-tools">
+      <div class="conn-dot off" id="cd" title="Verbindung"></div>
+      <button class="kebab" id="menubtn" onclick="toggleMenu(event)" title="Menü" aria-label="Menü" aria-haspopup="true">⋮</button>
+    </div>
+  </div>
 </div>
 
 <!-- MAIN -->
@@ -841,8 +857,6 @@ pre {
     <button class="btn-secondary" id="archbtn" onclick="toggleArchiv()" style="display:none">Archiv</button>
     <button class="match-pill" id="matchpill" onclick="openMM()" style="display:none" title="Matches anzeigen">⚡ <span id="mp-n">0</span> <span id="mp-lbl">Matches</span></button>
   </div>
-  <div class="mebar" id="mebar" onclick="openMe()"></div>
-
   <div id="mbnr"></div>
   <div id="tab-ov"></div>
   <div id="tab-su" style="display:none"></div>
@@ -957,6 +971,10 @@ pre {
 
 <!-- FAB: Neuer Eintrag -->
 <button class="fab" id="fab" onclick="openCho()" title="Neuer Eintrag" aria-label="Neuer Eintrag">＋</button>
+
+<!-- ⋮ MENUE (Inhalt wird von renderMenu() erzeugt) -->
+<div class="menu-bd" id="menu-bd" style="display:none" onclick="closeMenu()"></div>
+<div class="menu" id="menu" style="display:none" role="menu"></div>
 
 <!-- IDENTITAET MODAL -->
 <div id="im" class="overlay" style="display:none">
@@ -1075,7 +1093,9 @@ const I18N={
   help_match:'Passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein <span style="color:var(--ma)">⚡ Match</span>. Kontakt läuft direkt über den 📱 Signal-Link.',
   lbl_su:'Suche',lbl_bi:'Biete',lbl_ta:'Tausch', badge_mine:'Dein',tag_match:'⚡ Match',match_cta:'⚡ Passt zu dir – Partner-Eintrag öffnen 👉', done_btn:'✓ Erledigt',done_lbl:'✓ ERLEDIGT', card_tg:'Tausche gegen:',anz:'× Tickets',
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
-  f_open:'Formular ausblenden',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
+  f_open:'Formular schließen',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
+  m_lang:'Sprache',m_help:'Anleitung & Hilfe',m_fb:'Feedback geben',m_share:'Börse teilen',m_setup:'Setup',m_admin_on:'Admin anmelden',m_admin_off:'Admin abmelden',
+  m_ident:'Signal-Kontakt setzen',m_th_light:'Helles Design',m_th_dark:'Dunkles Design',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
   l_name:'Name *',l_signal:'Signal-Kontakt *',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',t_signal:'Bitte Signal-Kontakt angeben (Nummer oder @Nickname)',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',sw_search:'Ich suche',sw_offer:'Ich biete',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
   ph_name:'Max Mustermann',ph_signal:'+49 123 … oder @handle',ph_no_su:'z.B. Rollstuhlplatz, mit Kind…',ph_no_bi:'z.B. Preis, Treffpunkt…',ph_no_ta:'z.B. Reihe, Sektor…',
@@ -1094,7 +1114,9 @@ const I18N={
   help_match:'If a search matches an offer (or two swaps fit), a <span style="color:var(--ma)">⚡ Match</span> appears at the top. Contact runs directly via the 📱 Signal link.',
   lbl_su:'Search',lbl_bi:'Offer',lbl_ta:'Swap', badge_mine:'Yours',tag_match:'⚡ Match',match_cta:'⚡ Matches you – open the partner entry 👉', done_btn:'✓ Done',done_lbl:'✓ DONE', card_tg:'Wants in return:',anz:'× tickets',
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
-  f_open:'Hide form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
+  f_open:'Close form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
+  m_lang:'Language',m_help:'Guide & help',m_fb:'Give feedback',m_share:'Share the board',m_setup:'Setup',m_admin_on:'Admin sign in',m_admin_off:'Admin sign out',
+  m_ident:'Set Signal contact',m_th_light:'Light theme',m_th_dark:'Dark theme',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
   l_name:'Name *',l_signal:'Signal contact *',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',t_signal:'Please enter a Signal contact (number or @nickname)',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',sw_search:'I am looking for',sw_offer:'I am offering',l_game:'Match *',t_taself:'Have and wanted are identical',
   ph_name:'John Doe',ph_signal:'+49 123 … or @handle',ph_no_su:'e.g. wheelchair space, with child…',ph_no_bi:'e.g. price, meeting point…',ph_no_ta:'e.g. row, sector…',
@@ -1425,16 +1447,60 @@ function upconn(){
   else{ d.className='conn-dot off'; d.title=t('conn_off'); }
 }
 function upadm(){
-  const b=document.getElementById('abtn');
   const lk=document.getElementById('lk-se');
-  if(adm){
-    b.textContent='🔓'; b.className='admin-btn on'; b.title='Admin (angemeldet)';
-    if(lk)lk.style.display='none';
-  }else{
-    b.textContent='🔒'; b.className='admin-btn'; b.title='Admin';
-    if(lk)lk.style.display='inline';
-  }
+  if(lk)lk.style.display=adm?'none':'inline';
+  renderMenu();
 }
+
+// ── ⋮ MENUE ───────────────────────────────────────────────────
+// Sammelt alles, was nicht zur taeglichen Nutzung gehoert: Identitaet,
+// Darstellung, Sprache, Hilfe/Feedback/Teilen sowie Setup + Admin.
+function renderMenu(){
+  const m=document.getElementById('menu'); if(!m)return;
+  const meLbl = me.si
+    ? `<span class="menu-me">${t('me_you')} <b>${esc(me.nm||me.si)}</b>${me.nm?` (${esc(me.si)})`:''}</span>`
+    : `<span class="menu-me unset">${t('m_ident')}</span>`;
+  m.innerHTML=`
+    <button class="menu-item" role="menuitem" onclick="closeMenu();openMe()">
+      <span class="menu-ico">👤</span>${meLbl}</button>
+    <div class="menu-sep"></div>
+    <button class="menu-item" role="menuitem" onclick="toggleTheme();renderMenu()">
+      <span class="menu-ico">${theme==='light'?'🌙':'☀'}</span>${theme==='light'?t('m_th_dark'):t('m_th_light')}</button>
+    <button class="menu-item" role="menuitem" onclick="toggleLang();renderMenu()">
+      <span class="menu-ico">🌐</span>${t('m_lang')}<span class="menu-sub">${lang==='de'?'Deutsch':'English'}</span></button>
+    <div class="menu-sep"></div>
+    <button class="menu-item" role="menuitem" onclick="closeMenu();go('he')">
+      <span class="menu-ico">❓</span>${t('m_help')}</button>
+    <button class="menu-item" role="menuitem" onclick="closeMenu();goFB()">
+      <span class="menu-ico">💬</span>${t('m_fb')}</button>
+    <button class="menu-item" role="menuitem" onclick="closeMenu();shareApp()">
+      <span class="menu-ico">↗</span>${t('m_share')}</button>
+    <div class="menu-sep"></div>
+    <button class="menu-item" role="menuitem" onclick="closeMenu();go('se')">
+      <span class="menu-ico">⚙</span>${t('m_setup')}</button>
+    <button class="menu-item" role="menuitem" onclick="closeMenu();toggleAdmin()">
+      <span class="menu-ico">${adm?'🔓':'🔒'}</span>${adm?t('m_admin_off'):t('m_admin_on')}</button>`;
+}
+function toggleMenu(ev){
+  if(ev)ev.stopPropagation();
+  const m=document.getElementById('menu');
+  if(m.style.display==='block'){ closeMenu(); return; }
+  renderMenu();
+  m.style.display='block';
+  const r=document.getElementById('menubtn').getBoundingClientRect();
+  m.style.top=(r.bottom+6)+'px';
+  m.style.right=Math.max(8, window.innerWidth-r.right)+'px';
+  document.getElementById('menu-bd').style.display='block';
+  document.getElementById('menubtn').classList.add('open');
+}
+function closeMenu(){
+  const m=document.getElementById('menu'); if(!m)return;
+  m.style.display='none';
+  document.getElementById('menu-bd').style.display='none';
+  document.getElementById('menubtn').classList.remove('open');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeMenu(); });
+window.addEventListener('resize',closeMenu); // feste Position wuerde sonst verrutschen
 
 // ── PIN ───────────────────────────────────────────────────────
 function toggleAdmin(){
@@ -1531,10 +1597,10 @@ function cgrp(typs){
 }
 
 // ── RENDER: FORMS ─────────────────────────────────────────────
+// Kein Aufklapp-Knopf mehr: Formulare oeffnet ausschliesslich der ➕-Knopf (war doppelt).
 function fSu(sp){ return`
-<button class="toggler${sf.su?' open':''}" onclick="tf('su')">${sf.su?t('f_open'):t('f_su_add')}</button>
 ${sf.su?`<div class="form-panel su">
-  <div class="form-heading su">${t('fh_su')}</div>
+  <div class="form-heading su">${t('fh_su')}<button class="form-x" onclick="tf('su')" title="${t('f_open')}" aria-label="${t('f_open')}">×</button></div>
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="su-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="su-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
@@ -1556,9 +1622,8 @@ ${sf.su?`<div class="form-panel su">
 </div>`:''}`;
 }
 function fBi(sp){ return`
-<button class="toggler${sf.bi?' open':''}" onclick="tf('bi')">${sf.bi?t('f_open'):t('f_bi_add')}</button>
 ${sf.bi?`<div class="form-panel bi">
-  <div class="form-heading bi">${t('fh_bi')}</div>
+  <div class="form-heading bi">${t('fh_bi')}<button class="form-x" onclick="tf('bi')" title="${t('f_open')}" aria-label="${t('f_open')}">×</button></div>
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="bi-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="bi-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
@@ -1582,9 +1647,8 @@ ${sf.bi?`<div class="form-panel bi">
 function fTa(sp){
   const gameOpts=st.sp.map(s=>`<option value="${s.id}"${s.id===st.aktiv?' selected':''}>${gicon(s)} ${esc(s.ge)}</option>`).join('');
   return`
-<button class="toggler${sf.ta?' open':''}" onclick="tf('ta')">${sf.ta?t('f_open'):t('f_ta_add')}</button>
 ${sf.ta?`<div class="form-panel ta">
-  <div class="form-heading ta">${t('fh_ta')}</div>
+  <div class="form-heading ta">${t('fh_ta')}<button class="form-x" onclick="tf('ta')" title="${t('f_open')}" aria-label="${t('f_open')}">×</button></div>
   <div class="form-grid">
     <div class="fg"><label>${t('l_name')}</label><input id="ta-n" placeholder="${t('ph_name')}" value="${esc(me.nm)}"></div>
     <div class="fg"><label>${t('l_signal')}</label><input id="ta-si" placeholder="${t('ph_signal')}" value="${esc(me.si)}"></div>
@@ -1628,13 +1692,14 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">So funktioniert's</div>
-        <p>➕ <strong>Eintrag erstellen</strong> – tippe unten rechts auf den roten <strong>Plus-Knopf</strong> und wähle Suchen / Anbieten / Tauschen (alternativ über die Reiter oben).</p>
+        <p>➕ <strong>Eintrag erstellen</strong> – tippe unten rechts auf den roten <strong>Plus-Knopf</strong> und wähle Suchen / Anbieten / Tauschen. Das Formular öffnet sich im passenden Reiter; mit dem <strong>×</strong> in der Formular-Überschrift schließt du es wieder.</p>
         <p>🔍 <strong>Suche</strong> – du brauchst ein Ticket und kommst mit Zeitstempel in eine Warteschlange. Der gewünschte Stand ist optional (egal).</p>
         <p>🎟️ <strong>Biete</strong> – du hast ein Ticket übrig. Stand und Anzahl sind Pflicht.</p>
         <p>🔄 <strong>Tausch</strong> – du hast Karten und möchtest andere: Stand A gegen Stand B im selben Spiel <em>oder</em> Karten für ein Spiel gegen Karten für ein anderes (z.&nbsp;B. ein Auswärtsspiel gegen das HSV-Heimspiel). Im Formular wählst du <strong>Habe</strong> (Spiel + Stand + Anzahl) und <strong>Tausche gegen</strong> (Spiel + Stand, „egal" möglich). Ein Match entsteht bei spiegelbildlichem Wunsch und <strong>gleicher Kartenzahl</strong>. Jede Tausch-Karte nennt in der Überschrift immer das Spiel, zu dem dein Ticket gehört; das Spiel hinter „Tausche gegen" wird nur genannt, wenn es ein <em>anderes</em> ist.</p>
         <p>⚡ <strong>Match</strong> – passt eine Suche zu einem Angebot (oder zwei Tausche zueinander), erscheint oben ein Hinweis. Kontakt läuft direkt über den 📱 Signal-Link des Eintrags.</p>
         <p>✓ <strong>Erledigt</strong> – ist dein Anliegen erledigt, markiere deinen Eintrag entsprechend (versehentlich? siehe „Wieder öffnen" unten).</p>
-        <p>👤 <strong>Das bin ich</strong> – die Leiste über der Liste zeigt, als wer du einträgst. Deine <strong>Identität ist der Signal-Kontakt</strong> (Pflicht) – nimm auf jedem Gerät <strong>denselben</strong>, dann erkennt die App deine eigenen Einträge überall (zum Bearbeiten/Erledigen/Wieder öffnen). Der <strong>Name</strong> ist nur ein Anzeigename und jederzeit änderbar.</p>
+        <p>👤 <strong>Das bin ich</strong> – im <strong>⋮-Menü</strong> oben rechts steht ganz oben, als wer du einträgst; ein Tipp darauf ändert es. Deine <strong>Identität ist der Signal-Kontakt</strong> (Pflicht) – nimm auf jedem Gerät <strong>denselben</strong>, dann erkennt die App deine eigenen Einträge überall (zum Bearbeiten/Erledigen/Wieder öffnen). Der <strong>Name</strong> ist nur ein Anzeigename und jederzeit änderbar.</p>
+        <p>⋮ <strong>Menü</strong> – hinter den drei Punkten oben rechts liegen Identität, helles/dunkles Design, Sprache, diese Anleitung, Feedback, Teilen sowie Setup und Admin.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
@@ -1655,7 +1720,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">🟢 Keine Spiele oder Einträge zu sehen?</div>
-        <p>Wirkt die Börse leer (keine Spiele, keine Einträge)? Dann bist du sehr wahrscheinlich gerade <strong>nicht mit der Datenbank verbunden</strong> – die Daten werden dann einfach nicht geladen. Den Status zeigt der kleine <strong>Punkt oben rechts</strong> (neben Zahnrad&nbsp;⚙ und Schloss&nbsp;🔒):</p>
+        <p>Wirkt die Börse leer (keine Spiele, keine Einträge)? Dann bist du sehr wahrscheinlich gerade <strong>nicht mit der Datenbank verbunden</strong> – die Daten werden dann einfach nicht geladen. Den Status zeigt der kleine <strong>Punkt oben rechts</strong> (links neben dem ⋮-Menü):</p>
         <p>🟢 <strong>grün</strong> (blinkt) = verbunden, alles aktuell aus der Cloud<br>
         🟡 <strong>gelb</strong> = lokaler Modus (keine Verbindung)<br>
         🔴 <strong>rot</strong> = offline / keine Verbindung</p>
@@ -1664,7 +1729,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">💬 Feedback (Testphase)</div>
-        <p>Wir testen gerade. Über den <strong>💬-Button</strong> oben gibst du jederzeit Feedback – Fehler, Ideen, Verständnisfragen oder Lob. Das geht direkt ans Team und hilft, die Börse zu verbessern.</p>
+        <p>Wir testen gerade. Über <strong>⋮ → 💬 Feedback geben</strong> meldest du jederzeit zurück – Fehler, Ideen, Verständnisfragen oder Lob. Das geht direkt ans Team und hilft, die Börse zu verbessern.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">📱 Signal ohne Telefonnummer</div>
@@ -1704,13 +1769,14 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">How it works</div>
-        <p>➕ <strong>Create an entry</strong> – tap the red <strong>plus button</strong> at the bottom right and pick Search / Offer / Swap (or use the tabs at the top).</p>
+        <p>➕ <strong>Create an entry</strong> – tap the red <strong>plus button</strong> at the bottom right and pick Search / Offer / Swap. The form opens in the matching tab; the <strong>×</strong> in the form heading closes it again.</p>
         <p>🔍 <strong>Search</strong> – you need a ticket and join a queue with a timestamp. The desired stand is optional (any).</p>
         <p>🎟️ <strong>Offer</strong> – you have a spare ticket. Stand and quantity are required.</p>
         <p>🔄 <strong>Swap</strong> – you have tickets and want others: stand A for stand B in the same match <em>or</em> tickets for one match for tickets for another (e.g. an away game for the HSV home game). In the form you pick <strong>I have</strong> (match + stand + quantity) and <strong>swap for</strong> (match + stand, „any" possible). A match needs a mirrored wish and the <strong>same number of tickets</strong>. Every swap card always names the match your ticket belongs to in its heading; the match behind „wants in return" is only named when it is a <em>different</em> one.</p>
         <p>⚡ <strong>Match</strong> – if a search fits an offer (or two swaps fit), a note appears at the top. Contact runs directly via the 📱 Signal link.</p>
         <p>✓ <strong>Done</strong> – mark your entry as done once resolved (by mistake? see “Reopen” below).</p>
-        <p>👤 <strong>This is me</strong> – the bar above the list shows who you post as. Your <strong>identity is the Signal contact</strong> (required) – use the <strong>same one on every device</strong> so the app recognizes your own entries everywhere (to edit/close/reopen). The <strong>name</strong> is just a display label and can be changed anytime.</p>
+        <p>👤 <strong>This is me</strong> – the <strong>⋮ menu</strong> at the top right shows who you post as in its first line; tap it to change. Your <strong>identity is the Signal contact</strong> (required) – use the <strong>same one on every device</strong> so the app recognizes your own entries everywhere (to edit/close/reopen). The <strong>name</strong> is just a display label and can be changed anytime.</p>
+        <p>⋮ <strong>Menu</strong> – the three dots at the top right hold your identity, light/dark theme, language, this guide, feedback, sharing as well as setup and admin.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
@@ -1731,7 +1797,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">🟢 No matches or entries showing?</div>
-        <p>If the board looks empty (no matches, no entries), you are most likely <strong>not connected to the database</strong> right now – the data simply isn't loaded. The little <strong>dot at the top right</strong> (next to the gear&nbsp;⚙ and lock&nbsp;🔒) shows the status:</p>
+        <p>If the board looks empty (no matches, no entries), you are most likely <strong>not connected to the database</strong> right now – the data simply isn't loaded. The little <strong>dot at the top right</strong> (just left of the ⋮ menu) shows the status:</p>
         <p>🟢 <strong>green</strong> (blinking) = connected, everything live from the cloud<br>
         🟡 <strong>yellow</strong> = local mode (no connection)<br>
         🔴 <strong>red</strong> = offline / no connection</p>
@@ -1740,7 +1806,7 @@ function helpPage(){
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">💬 Feedback (test phase)</div>
-        <p>We are currently testing. Use the <strong>💬 button</strong> at the top to send feedback any time – bugs, ideas, questions or praise. It goes straight to the team and helps us improve the board.</p>
+        <p>We are currently testing. Use <strong>⋮ → 💬 Give feedback</strong> any time – bugs, ideas, questions or praise. It goes straight to the team and helps us improve the board.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">📱 Signal without phone number</div>
@@ -1788,11 +1854,7 @@ function ren(){
     _ab.textContent=showArchiv?t('archiv_on'):t('archiv'); _ab.style.borderColor=showArchiv?'var(--red)':''; _ab.style.color=showArchiv?'var(--tx)':''; }
   const _lg=document.getElementById('splogo'); // Logo des aktiven Spiels (Gegner)
   if(_lg){ if(sp&&sp.logo){ _lg.src=sp.logo; _lg.style.display='inline-block'; } else { _lg.removeAttribute('src'); _lg.style.display='none'; } }
-  const _mb=document.getElementById('mebar'); // Identitaets-Leiste "Das bin ich" (Identitaet = Signal-Kontakt)
-  if(_mb){ const _lbl = me.nm ? `<b>${esc(me.nm)}</b> <span style="color:var(--mu)">(${esc(me.si)})</span>` : `<b>${esc(me.si)}</b>`;
-    _mb.innerHTML = me.si
-      ? `👤 ${t('me_you')} ${_lbl} · <span class="mebar-edit">✏️ ${t('me_change')}</span>`
-      : `👤 <span class="mebar-edit">${t('me_setup')}</span>`; }
+  renderMenu(); // Identitaet ("Du bist …") lebt jetzt im ⋮-Menue
   // Counts
   ['su','bi','ta'].forEach(typ=>{
     document.getElementById('c-'+typ).textContent = typ==='ta' ? taForActive().length : gei(typ).length;
@@ -1992,14 +2054,14 @@ function go(tab){
   document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+tab).style.display='block';
-  const tabs=['ov','su','bi','ta','he'];
+  // Reiter-Markierung ueber die Position der Haupt-Reiter (Hilfe/Setup liegen im ⋮-Menue)
+  const tabs=['ov','su','bi','ta'];
   const btn=document.querySelectorAll('.nb')[tabs.indexOf(tab)];
-  if(btn)btn.classList.add('active');
+  if(tabs.includes(tab)&&btn)btn.classList.add('active');
   const showExtra=['ov','su','bi','ta'].includes(tab);
   document.getElementById('mbnr').style.display=showExtra?'block':'none';
   const _hideChrome=['sp','se','he','fb'].includes(tab);
   document.getElementById('spbar').style.display=_hideChrome?'none':'flex';
-  const _mb2=document.getElementById('mebar'); if(_mb2) _mb2.style.display=_hideChrome?'none':'block';
   const _fab=document.getElementById('fab'); if(_fab) _fab.style.display=_hideChrome?'none':'flex';
 }
 
