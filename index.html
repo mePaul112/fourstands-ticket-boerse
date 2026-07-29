@@ -1095,6 +1095,8 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'sucht',mb_offers:'bietet',mb_swap:'TAUSCH-MATCH',
   f_open:'Formular schließen',f_su_add:'Ich suche ein Ticket eintragen',f_bi_add:'Ich habe ein Ticket abzugeben',f_ta_add:'Ich möchte tauschen',
   m_lang:'Sprache',m_help:'Anleitung & Hilfe',m_fb:'Feedback geben',m_share:'Börse teilen',m_setup:'Setup',m_admin_on:'Admin anmelden',m_admin_off:'Admin abmelden',
+  m_install:'App installieren',m_installed:'App ist installiert',
+  t_inst_ok:'✓ App wird installiert',t_inst_no:'Hier nicht möglich – Anleitung wird geöffnet',
   m_ident:'Signal-Kontakt setzen',m_th_light:'Helles Design',m_th_dark:'Dunkles Design',
   fh_su:'🔍 Ticket suchen',fh_bi:'🎟️ Ticket anbieten',fh_ta:'🔄 Tauschangebot',
   l_name:'Name *',l_signal:'Signal-Kontakt *',l_area:'Bereich *',l_qty:'Anzahl',l_note:'Notiz',l_stand:'Stand',l_seat:'Platzart',opt_any:'egal / beliebig',opt_choose:'— bitte wählen —',any_short:'Beliebig',t_pickstand:'Bitte Stand wählen',t_signal:'Bitte Signal-Kontakt angeben (Nummer oder @Nickname)',l_have:'Ich habe *',l_want:'Ich möchte *',l_wantgame:'Tausche gegen Spiel *',l_wantstand:'Gegen Stand',sw_have:'Ich habe',sw_want:'Tausche gegen',sw_search:'Ich suche',sw_offer:'Ich biete',l_game:'Spiel *',t_taself:'Habe und Tausch-Wunsch sind identisch',
@@ -1116,6 +1118,8 @@ const I18N={
   mb_match:'MATCH',mb_seeks:'seeks',mb_offers:'offers',mb_swap:'SWAP MATCH',
   f_open:'Close form',f_su_add:'Add: I am looking for a ticket',f_bi_add:'Add: I have a ticket to give',f_ta_add:'Add: I want to swap',
   m_lang:'Language',m_help:'Guide & help',m_fb:'Give feedback',m_share:'Share the board',m_setup:'Setup',m_admin_on:'Admin sign in',m_admin_off:'Admin sign out',
+  m_install:'Install app',m_installed:'App is installed',
+  t_inst_ok:'✓ Installing the app',t_inst_no:'Not available here – opening the guide',
   m_ident:'Set Signal contact',m_th_light:'Light theme',m_th_dark:'Dark theme',
   fh_su:'🔍 Search ticket',fh_bi:'🎟️ Offer ticket',fh_ta:'🔄 Swap offer',
   l_name:'Name *',l_signal:'Signal contact *',l_area:'Area *',l_qty:'Quantity',l_note:'Note',l_stand:'Stand',l_seat:'Seat type',opt_any:'any / no preference',opt_choose:'— please choose —',any_short:'Any stand',t_pickstand:'Please choose a stand',t_signal:'Please enter a Signal contact (number or @nickname)',l_have:'I have *',l_want:'I want *',l_wantgame:'Swap for match *',l_wantstand:'For stand',sw_have:'I have',sw_want:'I want',sw_search:'I am looking for',sw_offer:'I am offering',l_game:'Match *',t_taself:'Have and wanted are identical',
@@ -1475,6 +1479,11 @@ function renderMenu(){
       <span class="menu-ico">💬</span>${t('m_fb')}</button>
     <button class="menu-item" role="menuitem" onclick="closeMenu();shareApp()">
       <span class="menu-ico">↗</span>${t('m_share')}</button>
+    ${isInstalled()
+      ? `<button class="menu-item" role="menuitem" disabled style="opacity:.55">
+      <span class="menu-ico">✓</span>${t('m_installed')}</button>`
+      : `<button class="menu-item" role="menuitem" onclick="closeMenu();installApp()">
+      <span class="menu-ico">📲</span>${t('m_install')}</button>`}
     <div class="menu-sep"></div>
     <button class="menu-item" role="menuitem" onclick="closeMenu();go('se')">
       <span class="menu-ico">⚙</span>${t('m_setup')}</button>
@@ -1736,15 +1745,23 @@ function helpPage(){
         <p>Du musst keine Handynummer angeben. Richte in Signal einen <strong>Benutzernamen</strong> ein: Signal öffnen → Profil/Einstellungen → <strong>Benutzername</strong> erstellen (z. B. <code style="background:var(--sf2);padding:0 4px">AnnaPauli.42</code>). Optional unter Datenschutz → Telefonnummer „Wer kann mich finden" auf <strong>Niemand</strong> stellen.</p>
         <p>Diesen Benutzernamen trägst du ins Feld <strong>Signal-Kontakt</strong> ein. In der Liste tippst du auf den Benutzernamen, um ihn zu <strong>kopieren</strong>, und suchst ihn in Signal; echte Telefonnummern öffnen Signal direkt per Klick.</p>
       </div>
-      <div class="setup-block">
+      <div class="setup-block" id="inst-help">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">App aufs Handy (Homescreen)</div>
+        <p><strong>Am einfachsten:</strong> im <strong>⋮ Menü</strong> der Börse auf <strong>📲 App installieren</strong> tippen. Wenn dein Browser das unterstützt, erledigt der Knopf alles – sonst steht dort <em>„… nicht möglich"</em> und du gehst nach der passenden Anleitung unten vor.</p>
+        <div class="info-box" style="margin:10px 0">
+          <p style="font-size:13px"><strong>⚠️ Zwei verschiedene ⋮ nicht verwechseln:</strong> Das <strong>⋮ der Börse</strong> steht in der schwarzen Leiste <em>neben ÜBERSICHT / SUCHE / BIETE / TAUSCH</em>. Zum Installieren brauchst du das <strong>⋮ des Browsers</strong> – ganz oben bzw. unten am Bildschirmrand, in derselben Zeile wie die Adressleiste.</p>
+        </div>
         <p><strong>iPhone (Safari):</strong> unten auf das <strong>Teilen-Symbol</strong> (Viereck mit Pfeil) → <strong>„Zum Home-Bildschirm"</strong> → Hinzufügen. App danach über das neue Icon öffnen.</p>
         <p><strong>Android (Chrome) – Schritt für Schritt:</strong><br>
         1. Die Börse über den Link im <strong>Chrome-Browser</strong> öffnen.<br>
-        2. Oben rechts auf das <strong>Drei-Punkte-Menü ⋮</strong> tippen.<br>
-        3. <strong>„App installieren"</strong> wählen (bei manchen Handys heißt es <em>„Zum Startbildschirm hinzufügen"</em>) und bestätigen.<br>
-        4. Ein <strong>Icon</strong> erscheint auf dem Startbildschirm.<br>
+        2. Auf das <strong>⋮ des Browsers</strong> tippen (siehe Kasten oben).<br>
+        3. Den Eintrag zum Installieren wählen. Er heißt je nach Handy und Chrome-Version <strong>„App installieren"</strong>, <strong>„Installieren und verknüpfen…"</strong> oder <strong>„Zum Startbildschirm hinzufügen"</strong> – alle drei führen zum selben Ziel. Danach bestätigen.<br>
+        4. Ein <strong>Icon</strong> wird angelegt.<br>
         5. <strong>Wichtig:</strong> Die App ab jetzt immer über <strong>dieses Icon</strong> öffnen – nur dann läuft sie im <strong>Vollbild</strong> ohne Adressleiste. (Im normalen Chrome-Tab bleibt die Adressleiste sichtbar.)</p>
+        <p><strong>Android (Firefox):</strong> Börse in Firefox öffnen → <strong>⋮ des Browsers</strong> → <strong>„Installieren"</strong> bzw. <strong>„Zum Startbildschirm hinzufügen"</strong> → bestätigen. In neueren Firefox-Versionen erscheint stattdessen direkt ein <strong>kleines Plus-/Installieren-Symbol in der Adressleiste</strong>.</p>
+        <div class="info-box" style="margin:10px 0">
+          <p style="font-size:13px"><strong>🔍 Icon nicht auf dem Startbildschirm?</strong> Das ist normal – viele Handys legen neue Apps nur in der <strong>App-Übersicht</strong> ab. Auf dem Startbildschirm <strong>von unten nach oben wischen</strong>, <code style="background:var(--sf2);padding:0 4px">FourStands</code> ins Suchfeld tippen – da ist sie. Zum Anheften das Icon <strong>lange gedrückt halten</strong> und auf den Startbildschirm ziehen.</p>
+        </div>
       </div>
       <div class="setup-section-title" style="margin-top:18px">🔒 Datenschutz</div>
       <div class="info-box" style="border-left-color:var(--red)">
@@ -1813,15 +1830,23 @@ function helpPage(){
         <p>You do not need to enter a phone number. Set up a <strong>username</strong> in Signal: open Signal → Profile/Settings → create a <strong>Username</strong> (e.g. <code style="background:var(--sf2);padding:0 4px">AnnaPauli.42</code>). Optionally set Privacy → Phone number → who can find me to <strong>Nobody</strong>.</p>
         <p>Enter that username in the <strong>Signal contact</strong> field. In the list, tap the username to <strong>copy</strong> it, then search in Signal; real phone numbers open Signal directly on click.</p>
       </div>
-      <div class="setup-block">
+      <div class="setup-block" id="inst-help">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Install on your phone</div>
+        <p><strong>Easiest way:</strong> tap <strong>📲 Install app</strong> in the board's <strong>⋮ menu</strong>. If your browser supports it, that button does everything – otherwise it says <em>“… not available”</em> and you follow the matching guide below.</p>
+        <div class="info-box" style="margin:10px 0">
+          <p style="font-size:13px"><strong>⚠️ Don't mix up the two ⋮ menus:</strong> the <strong>board's ⋮</strong> sits in the black bar <em>next to OVERVIEW / SEARCH / OFFER / SWAP</em>. To install you need the <strong>browser's ⋮</strong> – at the very top or bottom edge of the screen, on the same line as the address bar.</p>
+        </div>
         <p><strong>iPhone (Safari):</strong> tap the <strong>Share</strong> icon → <strong>Add to Home Screen</strong> → Add. Then open the app via the new icon.</p>
         <p><strong>Android (Chrome) – step by step:</strong><br>
         1. Open the board via the link in <strong>Chrome</strong>.<br>
-        2. Tap the <strong>three-dot menu ⋮</strong> (top right).<br>
-        3. Choose <strong>“Install app”</strong> (on some phones <em>“Add to Home screen”</em>) and confirm.<br>
-        4. An <strong>icon</strong> appears on your home screen.<br>
+        2. Tap the <strong>browser's ⋮</strong> (see the box above).<br>
+        3. Pick the install entry. Depending on phone and Chrome version it is called <strong>“Install app”</strong>, <strong>“Install and add shortcut…”</strong> or <strong>“Add to Home screen”</strong> – all three do the same. Then confirm.<br>
+        4. An <strong>icon</strong> is created.<br>
         5. <strong>Important:</strong> from now on always open the app via <strong>that icon</strong> – only then it runs <strong>fullscreen</strong> without the address bar. (In a normal Chrome tab the address bar stays.)</p>
+        <p><strong>Android (Firefox):</strong> open the board in Firefox → <strong>browser's ⋮</strong> → <strong>“Install”</strong> or <strong>“Add to Home screen”</strong> → confirm. Newer Firefox versions instead show a small <strong>plus/install icon right in the address bar</strong>.</p>
+        <div class="info-box" style="margin:10px 0">
+          <p style="font-size:13px"><strong>🔍 No icon on the home screen?</strong> That's normal – many phones only put new apps into the <strong>app drawer</strong>. On the home screen <strong>swipe up</strong>, type <code style="background:var(--sf2);padding:0 4px">FourStands</code> into the search box – there it is. To pin it, <strong>long-press</strong> the icon and drag it onto the home screen.</p>
+        </div>
       </div>
       <div class="setup-section-title" style="margin-top:18px">🔒 Privacy</div>
       <div class="info-box" style="border-left-color:var(--red)">
@@ -2445,6 +2470,30 @@ function ctrlBar(){
 function toggleDone(){ showDone=!showDone; ren(); go(cur); }
 function toggleMine(){ onlyMine=!onlyMine; ren(); go(cur); }
 function toggleArchiv(){ showArchiv=!showArchiv; ren(); go(cur); }
+// --- PWA-Installation -------------------------------------------------
+// Chrome/Edge feuern 'beforeinstallprompt', bevor sie den Menue-Eintrag anbieten.
+// Wir fangen das Event ab und bieten die Installation direkt im ⋮-Menue an –
+// viele Nutzer finden den Eintrag im Browser-Menue nicht (heisst je nach Geraet
+// "App installieren" / "Installieren und verknuepfen" / "Zum Startbildschirm").
+let deferredPrompt=null;
+// renderMenu() laeuft ohnehin bei jedem Oeffnen des Menues – hier nur den Zustand merken.
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; });
+window.addEventListener('appinstalled',()=>{ deferredPrompt=null; });
+function isInstalled(){
+  return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+}
+async function installApp(){
+  if(deferredPrompt){
+    const p=deferredPrompt; deferredPrompt=null;
+    p.prompt();
+    try{ await p.userChoice; }catch(e){}
+    toast(t('t_inst_ok')); return;
+  }
+  // Safari/Firefox liefern kein Prompt-Event -> Anleitung zeigen
+  toast(t('t_inst_no'));
+  go('he');
+  setTimeout(()=>{ const el=document.getElementById('inst-help'); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },120);
+}
 async function shareApp(){
   const data={title:'FourStands Ticket-Börse', text:'FC St. Pauli Fanclub FourStands – Ticket-Börse', url:location.href};
   try{
