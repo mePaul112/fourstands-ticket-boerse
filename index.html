@@ -1337,7 +1337,9 @@ const compShort=c=> c==='2. Bundesliga'?'2. BL' : c==='DFB-Pokal'?'Pokal' : c===
 // App-interne Kurz-Codes <-> DB-Langformen (DB-CHECK: typ IN suche/biete/tausch, status IN offen/erledigt)
 const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
-const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,tsp:r.tausch_spiel||null,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null});
+// pid/cvia/cend: Abschluss-Protokoll (wer mit wem, auf welchem Weg, wann) — nur von den
+// Schliess-Pfaden geschrieben, bewusst NICHT in todb(), damit Bearbeiten sie nicht ueberschreibt.
+const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,tsp:r.tausch_spiel||null,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null,pid:r.partner_id||null,cvia:r.closed_via||null,cend:r.closed_at||null});
 const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,tausch_spiel:e.tsp||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen'),consent_at:e.cat||null,defer:e.defer||0});
 
 // ── SUPABASE ──────────────────────────────────────────────────
@@ -1451,17 +1453,25 @@ async function dbAE(e){
     if(error)throw error; const m=mapei(data); st.ei.push(m); if(m.typ==='ta')taball.push(m);
   }else{ e.ts=new Date().toISOString(); st.ei.push(e); svbck(); }
 }
-async function dbDN(id){
-  if(sb){const{error}=await sb.from('eintraege').update({status:'erledigt'}).eq('id',id);if(error)throw error;}
-  copiesE(id).forEach(e=>e.s='erledigt'); if(!sb)svbck();
+// Einzelnen Eintrag schliessen. via='solo' = "Erledigt"-Knopf ohne Match (kein Boersen-Deal).
+// Paarweises Schliessen laeuft ueber dealDone()/RPC, nicht hierueber.
+async function dbDN(id,via='solo',partner=null){
+  const now=new Date().toISOString();
+  if(sb){const{error}=await sb.from('eintraege').update({status:'erledigt',closed_via:via,partner_id:partner,closed_at:now}).eq('id',id);if(error)throw error;}
+  copiesE(id).forEach(e=>{e.s='erledigt';e.cvia=via;e.pid=partner;e.cend=now;}); if(!sb)svbck();
 }
-async function dbReopen(id){ // erledigt -> wieder offen
-  if(sb){const{error}=await sb.from('eintraege').update({status:'offen'}).eq('id',id);if(error)throw error;}
-  copiesE(id).forEach(e=>e.s='o'); if(!sb)svbck();
+async function dbReopen(id){ // erledigt -> wieder offen (einseitig, siehe Hilfe)
+  const prev=findE(id), pid=prev?prev.pid:null;
+  if(sb){const{error}=await sb.rpc('reopen_entry',{e_id:id});if(error)throw error;}
+  copiesE(id).forEach(e=>{e.s='o';e.cvia=null;e.pid=null;e.cend=null;});
+  // Rueckverweis der Gegenseite mit aufloesen — sonst zeigt ein erledigter Eintrag auf einen offenen
+  if(pid) copiesE(pid).forEach(e=>e.pid=null);
+  if(!sb)svbck();
 }
-async function dbRm(id){ // Soft-Delete: als 'entfernt' markieren (kein hartes Loeschen)
-  if(sb){const{error}=await sb.from('eintraege').update({status:'entfernt'}).eq('id',id);if(error)throw error;}
-  copiesE(id).forEach(e=>e.s='entfernt'); if(!sb)svbck();
+async function dbRm(id,via='admin'){ // Soft-Delete: als 'entfernt' markieren (kein hartes Loeschen)
+  const now=new Date().toISOString();
+  if(sb){const{error}=await sb.from('eintraege').update({status:'entfernt',closed_via:via,closed_at:now}).eq('id',id);if(error)throw error;}
+  copiesE(id).forEach(e=>{e.s='entfernt';e.cvia=via;e.cend=now;}); if(!sb)svbck();
 }
 async function dbDE(id){
   if(sb){const{error}=await sb.from('eintraege').delete().eq('id',id);if(error)throw error;}
@@ -1478,13 +1488,23 @@ async function passOnce(id){
   catch(er){ toast(t('t_err')+(er.message||er),true); }
   finally{ sld(false); }
 }
-// Deal durchgefuehrt: beide Partner des Matches automatisch auf erledigt
+// Deal durchgefuehrt: beide Partner des Matches auf erledigt — atomar per RPC, damit nie eine
+// Seite geschlossen zurueckbleibt (frueher zwei Einzel-Updates mit Netzrunde dazwischen).
+// Die Funktion haelt zugleich fest, WER mit WEM: partner_id auf beiden Zeilen, closed_via='deal'.
 async function dealDone(id){
   const m=mats().find(x=> x.t==='sb' ? (x.s.id===id||x.b.id===id) : (x.t1.id===id||x.t2.id===id));
   if(!m){ ren(); go(cur); return; }
   if(!confirm(t('confirm_deal'))) return; // Sicherheitsabfrage
-  const ids = m.t==='sb' ? [m.s.id,m.b.id] : [m.t1.id,m.t2.id];
-  try{ sld(true); for(const i of ids){ await dbDN(i); } ren(); go(cur); toast(t('t_dealdone')); }
+  const [a,b] = m.t==='sb' ? [m.s.id,m.b.id] : [m.t1.id,m.t2.id];
+  try{ sld(true);
+    if(sb){
+      const{error}=await sb.rpc('deal_done',{a,b}); if(error)throw error;
+      const now=new Date().toISOString();
+      copiesE(a).forEach(e=>{e.s='erledigt';e.cvia='deal';e.pid=b;e.cend=now;});
+      copiesE(b).forEach(e=>{e.s='erledigt';e.cvia='deal';e.pid=a;e.cend=now;});
+    }else{ await dbDN(a,'deal',b); await dbDN(b,'deal',a); } // lokaler Modus: kein Server, kein Teilausfall
+    ren(); go(cur); toast(t('t_dealdone'));
+  }
   catch(er){ toast(t('t_err')+(er.message||er),true); }
   finally{ sld(false); }
 }
@@ -1779,7 +1799,8 @@ function helpPage(){
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du einen Platz zurück – die/der Nächste kommt dran, du behältst die zweite Chance.<br>
         <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar).<br>
         <strong>✏️ Bearbeiten / Erledigt:</strong> Eigene Einträge kannst du jederzeit ändern oder zurückziehen.<br>
-        <strong>↩ Wieder öffnen:</strong> Versehentlich auf „Deal" oder „Erledigt" getippt? Schalte oben <strong>„Erledigte zeigen"</strong> ein – bei deinem erledigten Eintrag erscheint dann ein <strong>„Wieder öffnen"</strong>-Knopf, der ihn zurück auf offen setzt. (Hinweis: Das öffnet nur deinen eigenen Eintrag; beim Tausch müssen ggf. beide Seiten wieder öffnen.)</p>
+        <strong>↩ Wieder öffnen:</strong> Versehentlich auf „Deal" oder „Erledigt" getippt? Schalte oben <strong>„Erledigte zeigen"</strong> ein – bei deinem erledigten Eintrag erscheint dann ein <strong>„Wieder öffnen"</strong>-Knopf, der ihn zurück auf offen setzt. (Hinweis: Das öffnet nur deinen eigenen Eintrag; beim Tausch müssen ggf. beide Seiten wieder öffnen.)<br>
+        <strong>🧹 Nach dem Spiel:</strong> Ist ein Spiel zwei Tage vorbei, räumt die Börse alle Einträge dazu von selbst weg – offene wie erledigte. Du musst also nichts nachpflegen; „Wieder öffnen" geht danach nicht mehr.</p>
         <p><strong>Eine Suche je Spiel:</strong> Mit demselben Signal-Kontakt kann man sich pro Spiel nur einmal aktiv als Suchende:r eintragen (erledigte/alte Einträge zählen nicht).</p>
         <p><strong>📋 Fairness-Regeln für Gesuche:</strong> Gesuche sind erst möglich, wenn das Spiel <strong>zeitgenau terminiert</strong> ist (die Anstoßzeit steht fest) – langfristige Vorrats-Gesuche bringen also keinen Vorteil in der Warteschlange. Zusätzlich gilt pro Person (Signal-Kontakt) eine Obergrenze an gleichzeitig aktiven Gesuchen. Beide Regeln stellt der Admin im Setup ein.</p>
         <p><strong>🔔 Match-Hinweis:</strong> Entsteht ein neues Match für dich, zeigt die App sofort einen Hinweis, während sie geöffnet ist. Über <strong>⋮ → 🔔 Match-Benachrichtigung</strong> kannst du zusätzlich Browser-Benachrichtigungen einschalten – die erscheinen auch, wenn die Börse nur in einem Hintergrund-Tab offen ist. Eine automatische Signal-Nachricht oder echtes Push bei komplett geschlossener App gibt es (noch) nicht – dafür bräuchte die Börse einen eigenen Server. Also: trotzdem ab und zu reinschauen.</p>
@@ -1833,7 +1854,7 @@ function helpPage(){
         <strong>Zweck:</strong> Vermittlung von Tickets unter den Mitgliedern des Fanclubs.<br><br>
         <strong>⚠️ Sichtbarkeit:</strong> Deine Einträge sind für <u>alle Nutzer der Börse sichtbar</u> (jede Person, die den Link kennt). Gib daher nur Daten ein, deren Veröffentlichung du zustimmst – insbesondere beim Signal-Kontakt.<br><br>
         <strong>Rechtsgrundlage:</strong> deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du beim Eintragen durch Setzen des Häkchens erteilst.<br><br>
-        <strong>Speicherung:</strong> Die Daten liegen bei Supabase (Cloud-Datenbank) und bleiben gespeichert, bis sie als erledigt/entfernt markiert oder vom Admin gelöscht werden.<br><br>
+        <strong>Speicherung:</strong> Die Daten liegen bei Supabase (Cloud-Datenbank) und bleiben gespeichert, bis sie als erledigt/entfernt markiert oder vom Admin gelöscht werden. Einträge zu bereits gespielten Spielen werden zwei Tage danach automatisch auf „entfernt" gesetzt und damit ausgeblendet.<br><br>
         <strong>Deine Rechte:</strong> Auskunft, Berichtigung, Löschung, Einschränkung sowie Widerruf der Einwilligung mit Wirkung für die Zukunft. Zum Löschen: Eintrag als erledigt markieren oder den Admin kontaktieren (fourstands-ticketboerse@use.startmail.com).<br><br>
         <strong>Kein Tracking:</strong> keine Analyse-Cookies o. Ä.; lokal auf deinem Gerät gespeichert werden nur technische Einstellungen (Sprache, Theme, zuletzt genutzter Name).
         </p>
@@ -1865,7 +1886,8 @@ function helpPage(){
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop one place – the next person gets a turn and you keep a second chance.<br>
         <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over (remaining time shows on your match card; configurable in Setup).<br>
         <strong>✏️ Edit / Done:</strong> you can change or withdraw your own entries anytime.<br>
-        <strong>↩ Reopen:</strong> tapped “Deal” or “Done” by mistake? Turn on <strong>“Show done”</strong> at the top – your done entry then shows a <strong>“Reopen”</strong> button that sets it back to open. (Note: this only reopens your own entry; for a swap both sides may need to reopen.)</p>
+        <strong>↩ Reopen:</strong> tapped “Deal” or “Done” by mistake? Turn on <strong>“Show done”</strong> at the top – your done entry then shows a <strong>“Reopen”</strong> button that sets it back to open. (Note: this only reopens your own entry; for a swap both sides may need to reopen.)<br>
+        <strong>🧹 After the match:</strong> two days after a match has been played, the board clears out all its entries by itself – open ones as well as done ones. Nothing for you to tidy up; “Reopen” is no longer available afterwards.</p>
         <p><strong>One search per match:</strong> with the same Signal contact you can only have one active search per match (done/old entries do not count).</p>
         <p><strong>📋 Fairness rules for searches:</strong> searches only open up once the match is <strong>officially scheduled</strong> (kickoff time fixed) – stockpiling searches far in advance gains no queue advantage. In addition there is a cap on active searches per person (Signal contact). The admin configures both rules in Setup.</p>
         <p><strong>🔔 Match alert:</strong> when a new match for you appears, the app shows a notice right away while it is open. Via <strong>⋮ → 🔔 Match notifications</strong> you can additionally enable browser notifications – they also show while the board sits in a background tab. An automatic Signal message or real push with the app fully closed is not possible (yet) – that would require a server. So: still check in every now and then.</p>
@@ -1919,7 +1941,7 @@ function helpPage(){
         <strong>Purpose:</strong> arranging tickets among club members.<br><br>
         <strong>⚠️ Visibility:</strong> your entries are visible to <u>all users of the board</u> (anyone with the link). Only enter data you agree to publish – especially the Signal contact.<br><br>
         <strong>Legal basis:</strong> your consent (Art. 6(1)(a) GDPR), given via the checkbox when posting.<br><br>
-        <strong>Storage:</strong> data is held at Supabase and kept until marked done/removed or deleted by the admin.<br><br>
+        <strong>Storage:</strong> data is held at Supabase and kept until marked done/removed or deleted by the admin. Entries for matches that have been played are set to “removed” automatically two days afterwards and thus hidden.<br><br>
         <strong>Your rights:</strong> access, rectification, erasure, restriction and withdrawal of consent for the future. To delete: mark your entry as done or contact the admin (fourstands-ticketboerse@use.startmail.com).<br><br>
         <strong>No tracking:</strong> no analytics cookies; only technical settings (language, theme, last used name) are stored locally on your device.
         </p>
@@ -2040,6 +2062,9 @@ CREATE TABLE public.eintraege (
   consent_at timestamptz,
   defer int NOT NULL DEFAULT 0,
   match_since timestamptz,
+  partner_id uuid REFERENCES public.eintraege(id) ON DELETE SET NULL,
+  closed_via text CHECK (closed_via IN ('deal','solo','admin','auto')),
+  closed_at timestamptz,
   created_at timestamptz DEFAULT now()
 );
 -- 2. Zugriff ohne Login erlauben
@@ -2073,7 +2098,39 @@ CREATE TABLE IF NOT EXISTS public.feedback (
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "fs_fb_insert" ON public.feedback FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "fs_fb_select" ON public.feedback FOR SELECT TO anon USING (true);
-CREATE POLICY "fs_fb_update" ON public.feedback FOR UPDATE TO anon USING (true) WITH CHECK (true);`;
+CREATE POLICY "fs_fb_update" ON public.feedback FOR UPDATE TO anon USING (true) WITH CHECK (true);
+-- 7. Abschluss-Protokoll: wer mit wem, auf welchem Weg (Bestandsprojekte: ALTER genuegt)
+ALTER TABLE public.eintraege
+  ADD COLUMN IF NOT EXISTS partner_id uuid REFERENCES public.eintraege(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS closed_via text,
+  ADD COLUMN IF NOT EXISTS closed_at  timestamptz;
+DO $do$ BEGIN
+  ALTER TABLE public.eintraege ADD CONSTRAINT eintraege_closed_via_chk
+    CHECK (closed_via IN ('deal','solo','admin','auto'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $do$;
+-- Deal atomar: ein UPDATE trifft beide Zeilen -> nie eine Seite allein geschlossen
+CREATE OR REPLACE FUNCTION public.deal_done(a uuid, b uuid)
+RETURNS void LANGUAGE sql SECURITY INVOKER AS $fn$
+  UPDATE public.eintraege
+     SET status='erledigt', closed_via='deal', closed_at=now(),
+         partner_id = CASE WHEN id = a THEN b ELSE a END
+   WHERE id IN (a, b);
+$fn$;
+-- Wieder oeffnen: einseitig (nur der eigene Eintrag), loest aber den Rueckverweis der Gegenseite
+CREATE OR REPLACE FUNCTION public.reopen_entry(e_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY INVOKER AS $fn$
+DECLARE p uuid;
+BEGIN
+  SELECT partner_id INTO p FROM public.eintraege WHERE id = e_id;
+  UPDATE public.eintraege
+     SET status='offen', closed_via=NULL, closed_at=NULL, partner_id=NULL
+   WHERE id = e_id;
+  IF p IS NOT NULL THEN
+    UPDATE public.eintraege SET partner_id=NULL WHERE id = p;
+  END IF;
+END $fn$;
+GRANT EXECUTE ON FUNCTION public.deal_done(uuid,uuid)  TO anon;
+GRANT EXECUTE ON FUNCTION public.reopen_entry(uuid)    TO anon;`;
 
   const cc=cm==='live'?'ok':cm==='local'?'lc':'er';
   const ct=cm==='live'?'✓ Verbunden mit Supabase – Real-time aktiv'

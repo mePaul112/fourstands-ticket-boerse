@@ -38,6 +38,13 @@ Lebende Liste offener Punkte. Stand: 2026-06-18.
 - [ ] Echtes Web-Push bei Match (bewusst zurückgestellt — bräuchte Server/Edge Function + VAPID; iOS nur als installierte PWA).
 - [ ] pg_cron als Sicherheitsnetz für die Match-Ablauffrist (rückt sonst nur vor, wenn jemand die App offen hat).
 - [ ] DB-Partial-Unique-Index gegen doppelte aktive Suchen (aktuell clientseitig).
-- [ ] `dealDone` atomar per Supabase-RPC (aktuell zwei Einzel-Updates).
+- [x] `dealDone` atomar per Supabase-RPC (vorher zwei Einzel-Updates). Umgesetzt 2026-08-29 im Zuge
+  des **Abschluss-Protokolls** (`migration-2026-08-29-abschluss-protokoll.sql`): neue Spalten
+  `partner_id` / `closed_via` / `closed_at` auf `eintraege` halten fest, **wer mit wem** und auf
+  welchem Weg geschlossen wurde (`deal` = über die Börse vermittelt, `solo` = selbst abgehakt,
+  `admin`, `auto` = Nachtlauf). Damit ist erstmals messbar, ob die Börse tatsächlich vermittelt —
+  vorher waren „Deal"-Knopf und „✓ Erledigt"-Knopf im Datenbestand nicht unterscheidbar.
+  ⚠️ **Deploy-Reihenfolge:** erst das SQL im Supabase-Editor, dann die neue `index.html` pushen.
+  Kein Backfill für Alt-Einträge möglich (kein `updated_at`), die bleiben `closed_via = NULL`.
 - [ ] CSV-Export, Countdown „in X Tagen".
 - [x] **„Wieder öffnen"-Knopf** für eigene erledigte Einträge (versehentlichen „Deal"/„Erledigt" rückgängig machen). Umgesetzt 2026-06-19 (Commit folgt): bei erledigten Einträgen mit `mineB||adm` → `reopenE`/`dbReopen` setzt Status zurück auf `offen`. Hinweis: einseitig (reopent nur den eigenen Eintrag, nicht automatisch den Match-Partner). Sichtbar nur bei aktivem „Erledigte zeigen".
