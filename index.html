@@ -2185,7 +2185,7 @@ GRANT EXECUTE ON FUNCTION public.reopen_entry(uuid)    TO anon;`;
           <div class="fg"><label>Max. aktive Gesuche pro Person (0 = unbegrenzt)</label><input id="ru-max" type="number" min="0" value="${maxSu}"></div>
         </div>
         <button class="btn-primary" onclick="saveRules()">Regeln speichern</button>
-        <p style="font-size:11px;color:var(--mu);margin-top:8px">„Terminiert" heißt: Datum <strong>und</strong> Anstoßzeit stehen fest. Die Anstoßzeit kommt automatisch über „🔄 Termine aktualisieren"; bei manuell angelegten Spielen (z.&nbsp;B. Testspielen) das Anstoß-Feld im Spiel-Formular nutzen. Das Gesuch-Limit zählt nur offene Gesuche für anstehende Spiele (Identität = Signal-Kontakt).</p>
+        <p style="font-size:11px;color:var(--mu);margin-top:8px">„Terminiert" heißt: Datum <strong>und</strong> Anstoßzeit stehen fest. „🔄 Termine aktualisieren" erkennt das automatisch: Solange die DFL/der DFB einen Spieltag noch nicht zeitgenau angesetzt hat, liegen bei OpenLigaDB <em>alle</em> Spiele des Spieltags auf einem einzigen Platzhalter-Termin – diese Platzhalterzeit wird nicht übernommen (bereits gespeicherte wird beim nächsten Update entfernt). Erst wenn die Anstoßzeiten streuen, gilt der Spieltag als terminiert. Bei manuell angelegten Spielen (z.&nbsp;B. Testspielen) das Anstoß-Feld im Spiel-Formular nutzen. Das Gesuch-Limit zählt nur offene Gesuche für anstehende Spiele (Identität = Signal-Kontakt).</p>
       </div>
     </div>
 
@@ -2294,10 +2294,24 @@ async function oldbLeague(league){
   const data=await res.json();
   if(!Array.isArray(data)) return [];
   const comp = league==='bl2'?'2. Bundesliga' : league==='dfb'?'DFB-Pokal' : '';
+  // Zeitgenau terminiert? Ein NICHT terminierter Spieltag steht bei OpenLigaDB komplett auf
+  // EINEM Platzhalter-Termin (alle Spiele dieselbe Datum+Uhrzeit); erst nach der DFL/DFB-
+  // Ansetzung streuen die Anstosszeiten (Fr/Sa/So). Deshalb je Spieltag/Runde pruefen,
+  // ob es mehr als einen unterschiedlichen Termin gibt.
+  const grp={};
+  data.forEach(m=>{ const gid=(m.group&&m.group.groupOrderID)||0;
+    const gi=(grp[gid]=grp[gid]||{n:0,t:new Set()}); gi.n++; if(m.matchDateTime)gi.t.add(m.matchDateTime); });
+  const termOf=m=>{
+    const gi=grp[(m.group&&m.group.groupOrderID)||0], dt=m.matchDateTime||'';
+    if(!gi||!dt) return false;
+    if(gi.n===1) return dt.slice(11,16)!=='00:00'; // Einzelspiel-Runde (z.B. Pokalfinale)
+    return gi.t.size>1;
+  };
   return data.filter(m=>isStP(m.team1)||isStP(m.team2)).map(m=>{
     const heim=isStP(m.team1), opp=heim?m.team2:m.team1, dt=m.matchDateTime||'';
     return { ext:'oldb-'+m.matchID, gegner:(opp&&opp.teamName)||'Unbekannt',
              anstoss:dt||null, datum:dt?dt.slice(0,10):null, typ:heim?'heim':'auswaerts',
+             term:termOf(m),
              logo:(opp&&opp.teamIconUrl)||null, comp,
              spieltag:(league==='bl2'&&m.group&&m.group.groupOrderID)||null,
              runde:(league==='dfb'&&m.group&&m.group.groupOrderID)||null };
@@ -2336,10 +2350,13 @@ async function updTermine(){
     const byExt={}; (cur||[]).forEach(r=>{ if(r.ext_id) byExt[r.ext_id]=r; });
     let nUpd=0; const toInsert=[];
     for(const g of games){
-      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:g.anstoss,ext_id:g.ext,logo:g.logo,wettbewerb:g.comp};
       const ex=byExt[g.ext];
+      // Nicht terminierte Spieltage: die Liga-Platzhalterzeit NICHT uebernehmen (Uhrzeit leer =
+      // Spiel gilt als unterminiert). Eine vom Admin manuell gesetzte, ABWEICHENDE Zeit bleibt stehen.
+      const an = g.term ? g.anstoss : ((ex&&ex.anstoss&&ex.anstoss!==g.anstoss)?ex.anstoss:null);
+      const row={gegner:g.gegner,datum:g.datum,typ:g.typ,anstoss:an,ext_id:g.ext,logo:g.logo,wettbewerb:g.comp};
       if(ex){
-        if(ex.datum!==g.datum||ex.anstoss!==g.anstoss||ex.gegner!==g.gegner||ex.typ!==g.typ||(ex.logo||null)!==(g.logo||null)||(ex.wettbewerb||null)!==(g.comp||null)){
+        if(ex.datum!==g.datum||(ex.anstoss||null)!==(an||null)||ex.gegner!==g.gegner||ex.typ!==g.typ||(ex.logo||null)!==(g.logo||null)||(ex.wettbewerb||null)!==(g.comp||null)){
           const{error:e2}=await sb.from('spiele').update(row).eq('id',ex.id); if(e2)throw e2; nUpd++;
         }
         continue;
