@@ -939,6 +939,7 @@ pre {
     <div class="form-grid">
       <div class="fg"><label>Gegner *</label><input id="sm-g"></div>
       <div class="fg"><label>Datum *</label><input type="date" id="sm-d"></div>
+      <div class="fg"><label>Anstoß (Uhrzeit, optional)</label><input type="time" id="sm-an"></div>
       <div class="fg"><label>Spieltyp</label><select id="sm-t"><option value="heim">🏟️ Heimspiel</option><option value="auswaerts">✈️ Auswärtsspiel</option></select></div>
       <div class="fg"><label>Wettbewerb</label><select id="sm-comp"><option value="Testspiel">Testspiel</option><option value="2. Bundesliga">2. Bundesliga</option><option value="DFB-Pokal">DFB-Pokal</option><option value="Sonstiges">Sonstiges</option></select></div>
       <div class="fg" style="grid-column:1/-1"><label>Logo-URL (optional)</label>
@@ -1054,6 +1055,8 @@ let dtgt=null, adm=false, ptgt=null, pbuf='';
 let showDone=false, onlyMine=false, showArchiv=false, theme='dark', lang='de';
 let me={nm:'',si:''};
 let expiryH=48, evaluating=false;
+let maxSu=5, suTerminiert=true; // Gesuch-Regeln (config: max_su, su_terminiert)
+let notif=false;                // Browser-Benachrichtigung bei eigenen Matches (opt-in)
 let adminPinHash=null; // globaler Admin-PIN (SHA-256-Hash, aus config-Tabelle) — geräteübergreifend
 const sha256hex=async s=>{ const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); };
 let newMatchN=0, seen=new Set();
@@ -1064,7 +1067,7 @@ const svcfg=()=>{ try{localStorage.setItem(KC,JSON.stringify(cfg));}catch(e){} }
 const ldcfg=()=>{ try{const r=localStorage.getItem(KC);if(r)cfg={...cfg,...JSON.parse(r)};}catch(e){} };
 const svbck=()=>{ try{localStorage.setItem(KB,JSON.stringify(st));}catch(e){} };
 const ldbck=()=>{ try{const r=localStorage.getItem(KB);if(r)st=JSON.parse(r);}catch(e){} };
-const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang', KS='fs-seen', KCO='fs-consent';
+const KM='fs-me', KH='fs-help', KT='fs-theme', KL='fs-lang', KS='fs-seen', KCO='fs-consent', KN='fs-notif';
 const consentGiven=()=>{ try{return !!localStorage.getItem(KCO);}catch(e){return false;} };
 // Einwilligung: erstes Mal Pflicht-Haekchen, danach (einmal erteilt) nur noch Hinweis
 function consentBlock(p){
@@ -1104,7 +1107,9 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag (noch keine Push-Benachrichtigung).',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',t_err:'Fehler: ' },
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag. Tipp: Über ⋮ → 🔔 bekommst du Browser-Hinweise bei neuen Matches.',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',
+  m_notif:'Match-Benachrichtigung',st_on:'An',st_off:'Aus',t_notif_on:'✓ Benachrichtigung bei neuen Matches aktiv (solange die Börse in einem Tab geöffnet ist)',t_notif_off:'Match-Benachrichtigung aus',t_notif_denied:'Vom Browser blockiert – bitte Benachrichtigungen für diese Seite in den Browser-Einstellungen erlauben',t_notif_unsup:'Dieser Browser unterstützt keine Benachrichtigungen',nt_title:'⚡ Neues Match für dich!',nt_hint:'jetzt per Signal melden',
+  t_su_locked:'Gesuche sind für dieses Spiel noch nicht möglich – es ist noch nicht zeitgenau terminiert.',su_locked_info:'⏳ <strong>Noch keine Gesuche möglich.</strong> Dieses Spiel ist noch nicht zeitgenau terminiert (die Anstoßzeit fehlt). Gesuche werden freigeschaltet, sobald der Spieltag terminiert ist – so verhindern wir Vorrats-Gesuche für eine bessere Platzierung in der Warteschlange.',su_rule_max:'Fairness-Regel: maximal % aktive Gesuche gleichzeitig (für anstehende Spiele).',t_su_max:'Maximal % aktive Gesuche gleichzeitig – bitte zuerst ein altes Gesuch erledigen oder entfernen.',t_err:'Fehler: ' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',consent_once:'By posting, your name + Signal contact are stored and shown to everyone – you already consented to this (details: Help → Privacy).',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1127,7 +1132,9 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry (no push notification yet).',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',t_err:'Error: ' }
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry. Tip: enable browser alerts for new matches via ⋮ → 🔔.',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',
+  m_notif:'Match notifications',st_on:'On',st_off:'Off',t_notif_on:'✓ Notifications for new matches enabled (while the board is open in a tab)',t_notif_off:'Match notifications off',t_notif_denied:'Blocked by the browser – please allow notifications for this site in the browser settings',t_notif_unsup:'This browser does not support notifications',nt_title:'⚡ New match for you!',nt_hint:'get in touch via Signal now',
+  t_su_locked:'Searches are not possible for this match yet – its kickoff is not scheduled yet.',su_locked_info:'⏳ <strong>No searches yet.</strong> This match has no fixed kickoff time yet. Searches open up once the match is officially scheduled – this prevents stockpiling searches for a better queue position.',su_rule_max:'Fairness rule: at most % active searches at a time (for upcoming matches).',t_su_max:'At most % active searches at a time – please close or remove an old search first.',t_err:'Error: ' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1153,6 +1160,8 @@ function fmt(iso){
 }
 const brei=sp=>sp ? (sp.typ==='heim'?HEIM:AUSW) : [...HEIM,...AUSW];
 const anHM=s=>{ if(!s||!s.an||s.an.length<16) return ''; const t=s.an.slice(11,16); return t==='00:00'?'':t; };
+// Spiel gilt als "terminiert", wenn eine echte Anstosszeit feststeht (00:00 = Platzhalter der Liga)
+const isTerminiert=sp=>!!anHM(sp);
 function fristTxt(e){
   if(!e||!e.msince) return '';
   const rem=new Date(e.msince).getTime()+(expiryH||48)*3600000-Date.now();
@@ -1263,9 +1272,50 @@ function gotoEntry(id){
 // Stabile Schlüssel je Match (sortiertes ID-Paar) für "neue seit letztem Besuch"
 const matchKeys=()=>mats().map(m=>m.t==='sb'?'sb~'+[m.s.id,m.b.id].sort().join('~'):'tt~'+[m.t1.id,m.t2.id].sort().join('~'));
 // Einmaliger Schnappschuss beim App-Start: wie viele Matches sind neu ggü. gesehenen?
-function snapshotNew(){ const k=matchKeys(); newMatchN=k.filter(x=>!seen.has(x)).length; k.forEach(x=>seen.add(x)); svseen(); }
+function snapshotNew(){ const k=matchKeys(); newMatchN=k.filter(x=>!seen.has(x)).length; k.forEach(x=>seen.add(x)); allMatchPairs().forEach(p=>seen.add(p.k)); svseen(); }
 // Hinweis wegklicken
 function dismissNew(){ newMatchN=0; ren(); }
+// ── MATCH-BENACHRICHTIGUNG (App-Info + Browser-Notification, opt-in) ──
+// Echte Signal-Nachrichten braeuchten einen eigenen Server/Bot – die statische App
+// meldet Matches stattdessen live in der App und (optional) per Browser-Benachrichtigung,
+// solange die Boerse in einem Tab geoeffnet ist (auch im Hintergrund).
+const svnotif=()=>{ try{localStorage.setItem(KN,notif?'1':'0');}catch(e){} };
+const ldnotif=()=>{ try{notif=localStorage.getItem(KN)==='1';}catch(e){} };
+async function toggleNotif(){
+  if(!notif){
+    if(!('Notification' in window)){ toast(t('t_notif_unsup'),true); return; }
+    let p=Notification.permission;
+    if(p==='default'){ try{p=await Notification.requestPermission();}catch(e){} }
+    if(p!=='granted'){ toast(t('t_notif_denied'),true); return; }
+    notif=true; toast(t('t_notif_on'));
+  }else{ notif=false; toast(t('t_notif_off')); }
+  svnotif(); renderMenu();
+}
+async function pushNote(title,body,tag){
+  if(!notif||!('Notification' in window)||Notification.permission!=='granted') return;
+  const o={body,icon:'icon-192.png?v=2',badge:'icon-192.png?v=2',tag:tag||'fs-match'};
+  try{ const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+       if(reg&&reg.showNotification){ reg.showNotification(title,o); return; } }catch(e){}
+  try{ new Notification(title,o); }catch(e){}
+}
+// Alle Match-Paare ueber alle geladenen Spiele (nicht nur das aktive) + globaler Tausch-Pool
+function allMatchPairs(){
+  const gids=[...new Set(st.ei.filter(e=>e.s==='o').map(e=>e.sid))];
+  const pairs=[];
+  gids.forEach(g=>sbMatchesForGame(g).forEach(m=>pairs.push({k:'sb~'+[m.s.id,m.b.id].sort().join('~'),a:m.s,b:m.b})));
+  tauschMatches().forEach(m=>pairs.push({k:'tt~'+[m.t1.id,m.t2.id].sort().join('~'),a:m.t1,b:m.t2}));
+  return pairs;
+}
+// Nach Live-Updates: NEUE Matches erkennen; eigene sofort melden (App-Info + Notification)
+function notifyNewMatches(){
+  const fresh=allMatchPairs().filter(p=>!seen.has(p.k));
+  if(!fresh.length) return;
+  fresh.forEach(p=>seen.add(p.k)); svseen();
+  const mine=fresh.filter(p=>isMine(p.a)||isMine(p.b));
+  if(!mine.length) return;
+  toast(t('nt_title'));
+  mine.forEach(p=>pushNote(t('nt_title'),`${p.a.nm} ↔ ${p.b.nm} · ${t('nt_hint')}`,p.k));
+}
 // Match-Popup
 function openMM(){
   const ms=mats();
@@ -1344,7 +1394,7 @@ function subRT(){
   if(ch)sb.removeChannel(ch);
   ch=sb.channel('fs5')
     .on('postgres_changes',{event:'*',schema:'public',table:'spiele'},async()=>{await ldall();ren();})
-    .on('postgres_changes',{event:'*',schema:'public',table:'eintraege'},async()=>{await ldei();await ldTausch();await evalQueue();ren();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'eintraege'},async()=>{await ldei();await ldTausch();await evalQueue();ren();notifyNewMatches();})
     .subscribe();
 }
 async function loadConfig(){
@@ -1352,6 +1402,8 @@ async function loadConfig(){
   try{ const{data,error}=await sb.from('config').select('key,value');
     if(!error&&Array.isArray(data)){ const m={}; data.forEach(r=>m[r.key]=r.value);
       const n=parseInt(m.expiry_h); if(n>0)expiryH=n;
+      const ms=parseInt(m.max_su); if(!isNaN(ms)&&ms>=0)maxSu=ms;
+      if(m.su_terminiert!=null)suTerminiert=m.su_terminiert==='1';
       adminPinHash=m.admin_pin||null; } }catch(e){}
 }
 // Clientseitige Auswertung der Ablauffristen: Match-Start setzen, abgelaufene zurueckrutschen lassen
@@ -1379,13 +1431,13 @@ async function evalQueue(){
 }
 
 // ── DB ACTIONS ────────────────────────────────────────────────
-async function dbASP(g,d,t,logo,comp){
+async function dbASP(g,d,t,logo,comp,an){
   if(sb){
-    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t,logo:logo||null,wettbewerb:comp||null}).select().single();
+    const{data,error}=await sb.from('spiele').insert({gegner:g,datum:d,typ:t,logo:logo||null,wettbewerb:comp||null,anstoss:an||null}).select().single();
     if(error)throw error;
     const s=mapsp(data); st.sp.push(s); st.aktiv=s.id; await ldei(); return s;
   }
-  const s={id:uid(),ge:g,da:d,typ:t,logo:logo||null,comp:comp||null,ts:new Date().toISOString()};
+  const s={id:uid(),ge:g,da:d,typ:t,logo:logo||null,comp:comp||null,an:an||null,ts:new Date().toISOString()};
   st.sp.push(s); st.aktiv=s.id; svbck(); return s;
 }
 async function dbDSP(id){
@@ -1497,6 +1549,8 @@ function renderMenu(){
       <span class="menu-ico">❓</span>${t('m_help')}</button>
     <button class="menu-item" role="menuitem" onclick="closeMenu();goFB()">
       <span class="menu-ico">💬</span>${t('m_fb')}</button>
+    <button class="menu-item" role="menuitem" onclick="toggleNotif()">
+      <span class="menu-ico">🔔</span>${t('m_notif')}<span class="menu-sub">${notif?t('st_on'):t('st_off')}</span></button>
     <button class="menu-item" role="menuitem" onclick="closeMenu();shareApp()">
       <span class="menu-ico">↗</span>${t('m_share')}</button>
     ${isInstalled()
@@ -1627,7 +1681,13 @@ function cgrp(typs){
 
 // ── RENDER: FORMS ─────────────────────────────────────────────
 // Kein Aufklapp-Knopf mehr: Formulare oeffnet ausschliesslich der ➕-Knopf (war doppelt).
-function fSu(sp){ return`
+function fSu(sp){
+  // Fairness-Regel: Gesuche erst, wenn das Spiel zeitgenau terminiert ist (Anstosszeit bekannt)
+  if(sf.su&&suTerminiert&&!isTerminiert(sp)) return`<div class="form-panel su">
+  <div class="form-heading su">${t('fh_su')}<button class="form-x" onclick="tf('su')" title="${t('f_open')}" aria-label="${t('f_open')}">×</button></div>
+  <div class="info-box" style="margin-bottom:0;border-left-color:var(--su)">${t('su_locked_info')}</div>
+</div>`;
+  return`
 ${sf.su?`<div class="form-panel su">
   <div class="form-heading su">${t('fh_su')}<button class="form-x" onclick="tf('su')" title="${t('f_open')}" aria-label="${t('f_open')}">×</button></div>
   <div class="form-grid">
@@ -1646,6 +1706,7 @@ ${sf.su?`<div class="form-panel su">
   <div class="form-grid">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
+  ${maxSu>0?`<div style="margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu)">📋 ${t('su_rule_max').replace('%',maxSu)}</div>`:''}
   ${consentBlock('su')}
   <button class="btn-primary su" onclick="addE('su')">${t('btn_su')}</button>
 </div>`:''}`;
@@ -1741,7 +1802,8 @@ function helpPage(){
         <strong>↩ Wieder öffnen:</strong> Versehentlich auf „Deal" oder „Erledigt" getippt? Schalte oben <strong>„Erledigte zeigen"</strong> ein – bei deinem erledigten Eintrag erscheint dann ein <strong>„Wieder öffnen"</strong>-Knopf, der ihn zurück auf offen setzt. (Hinweis: Das öffnet nur deinen eigenen Eintrag; beim Tausch müssen ggf. beide Seiten wieder öffnen.)<br>
         <strong>🧹 Nach dem Spiel:</strong> Ist ein Spiel zwei Tage vorbei, räumt die Börse alle Einträge dazu von selbst weg – offene wie erledigte. Du musst also nichts nachpflegen; „Wieder öffnen" geht danach nicht mehr.</p>
         <p><strong>Eine Suche je Spiel:</strong> Mit demselben Signal-Kontakt kann man sich pro Spiel nur einmal aktiv als Suchende:r eintragen (erledigte/alte Einträge zählen nicht).</p>
-        <p style="color:var(--ma)">⚠️ Derzeit gibt es <strong>keine Push-Benachrichtigung</strong> bei einem Match – bitte regelmäßig selbst in die Börse schauen.</p>
+        <p><strong>📋 Fairness-Regeln für Gesuche:</strong> Gesuche sind erst möglich, wenn das Spiel <strong>zeitgenau terminiert</strong> ist (die Anstoßzeit steht fest) – langfristige Vorrats-Gesuche bringen also keinen Vorteil in der Warteschlange. Zusätzlich gilt pro Person (Signal-Kontakt) eine Obergrenze an gleichzeitig aktiven Gesuchen. Beide Regeln stellt der Admin im Setup ein.</p>
+        <p><strong>🔔 Match-Hinweis:</strong> Entsteht ein neues Match für dich, zeigt die App sofort einen Hinweis, während sie geöffnet ist. Über <strong>⋮ → 🔔 Match-Benachrichtigung</strong> kannst du zusätzlich Browser-Benachrichtigungen einschalten – die erscheinen auch, wenn die Börse nur in einem Hintergrund-Tab offen ist. Eine automatische Signal-Nachricht oder echtes Push bei komplett geschlossener App gibt es (noch) nicht – dafür bräuchte die Börse einen eigenen Server. Also: trotzdem ab und zu reinschauen.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / Platzart</div>
@@ -1827,7 +1889,8 @@ function helpPage(){
         <strong>↩ Reopen:</strong> tapped “Deal” or “Done” by mistake? Turn on <strong>“Show done”</strong> at the top – your done entry then shows a <strong>“Reopen”</strong> button that sets it back to open. (Note: this only reopens your own entry; for a swap both sides may need to reopen.)<br>
         <strong>🧹 After the match:</strong> two days after a match has been played, the board clears out all its entries by itself – open ones as well as done ones. Nothing for you to tidy up; “Reopen” is no longer available afterwards.</p>
         <p><strong>One search per match:</strong> with the same Signal contact you can only have one active search per match (done/old entries do not count).</p>
-        <p style="color:var(--ma)">⚠️ There is currently <strong>no push notification</strong> for a match – please check the board regularly yourself.</p>
+        <p><strong>📋 Fairness rules for searches:</strong> searches only open up once the match is <strong>officially scheduled</strong> (kickoff time fixed) – stockpiling searches far in advance gains no queue advantage. In addition there is a cap on active searches per person (Signal contact). The admin configures both rules in Setup.</p>
+        <p><strong>🔔 Match alert:</strong> when a new match for you appears, the app shows a notice right away while it is open. Via <strong>⋮ → 🔔 Match notifications</strong> you can additionally enable browser notifications – they also show while the board sits in a background tab. An automatic Signal message or real push with the app fully closed is not possible (yet) – that would require a server. So: still check in every now and then.</p>
       </div>
       <div class="setup-block">
         <div class="setup-section-title" style="border:none;margin-bottom:6px">Stand / seat type</div>
@@ -1956,6 +2019,7 @@ function ren(){
       <div class="form-grid">
         <div class="fg"><label>Gegner *</label><input id="sp-g" placeholder="z.B. Hamburger SV"></div>
         <div class="fg"><label>Datum *</label><input type="date" id="sp-d"></div>
+        <div class="fg"><label>Anstoß (Uhrzeit, optional)</label><input type="time" id="sp-an"></div>
         <div class="fg"><label>Spieltyp</label><select id="sp-t"><option value="heim">🏟️ Heimspiel</option><option value="auswaerts">✈️ Auswärtsspiel</option></select></div>
         <div class="fg"><label>Wettbewerb</label><select id="sp-comp"><option value="Testspiel">Testspiel</option><option value="2. Bundesliga">2. Bundesliga</option><option value="DFB-Pokal">DFB-Pokal</option><option value="Sonstiges">Sonstiges</option></select></div>
         <div class="fg" style="grid-column:1/-1"><label>Logo-URL (optional)</label>
@@ -2022,6 +2086,8 @@ CREATE TABLE IF NOT EXISTS public.config (key text PRIMARY KEY, value text);
 ALTER TABLE public.config ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "FourStands" ON public.config FOR ALL TO anon USING (true) WITH CHECK (true);
 INSERT INTO public.config(key,value) VALUES ('expiry_h','48') ON CONFLICT (key) DO NOTHING;
+INSERT INTO public.config(key,value) VALUES ('max_su','5') ON CONFLICT (key) DO NOTHING;
+INSERT INTO public.config(key,value) VALUES ('su_terminiert','1') ON CONFLICT (key) DO NOTHING;
 -- 6. Feedback (Testphase)
 CREATE TABLE IF NOT EXISTS public.feedback (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -2110,6 +2176,20 @@ GRANT EXECUTE ON FUNCTION public.reopen_entry(uuid)    TO anon;`;
     </div>
 
     <div class="setup-section">
+      <div class="setup-section-title">📋 Gesuch-Regeln (Fairness)</div>
+      <div class="setup-block">
+        <p>Bremst langfristige Vorrats-Gesuche aus, die nur eine bessere Platzierung in der Warteschlange sichern sollen.</p>
+        <div class="form-grid" style="max-width:460px">
+          <div class="fg"><label>Gesuche erst wenn Spiel terminiert</label>
+            <select id="ru-term"><option value="1"${suTerminiert?' selected':''}>An – Anstoßzeit muss feststehen</option><option value="0"${suTerminiert?'':' selected'}>Aus – jederzeit möglich</option></select></div>
+          <div class="fg"><label>Max. aktive Gesuche pro Person (0 = unbegrenzt)</label><input id="ru-max" type="number" min="0" value="${maxSu}"></div>
+        </div>
+        <button class="btn-primary" onclick="saveRules()">Regeln speichern</button>
+        <p style="font-size:11px;color:var(--mu);margin-top:8px">„Terminiert" heißt: Datum <strong>und</strong> Anstoßzeit stehen fest. Die Anstoßzeit kommt automatisch über „🔄 Termine aktualisieren"; bei manuell angelegten Spielen (z.&nbsp;B. Testspielen) das Anstoß-Feld im Spiel-Formular nutzen. Das Gesuch-Limit zählt nur offene Gesuche für anstehende Spiele (Identität = Signal-Kontakt).</p>
+      </div>
+    </div>
+
+    <div class="setup-section">
       <div class="setup-section-title">☁️ Supabase Verbindung</div>
       <div class="setup-block">
         <p>Tragt hier eure Supabase-Daten ein. Alle Mitglieder mit denselben Daten teilen dieselbe Börse in Echtzeit.</p>
@@ -2150,7 +2230,7 @@ function go(tab){
 // ── ACTIONS ───────────────────────────────────────────────────
 function spChg(){
   st.aktiv=document.getElementById('spsel').value||null;
-  if(sb&&st.aktiv)ldei().then(ren); else ren();
+  if(sb&&st.aktiv)ldei().then(()=>{ren();notifyNewMatches();}); else ren();
 }
 function tf(typ){ sf[typ]=!sf[typ]; ren(); go(typ); }
 
@@ -2160,8 +2240,9 @@ async function dASP(){
   const t=document.getElementById('sp-t').value;
   const logo=(document.getElementById('sp-logo').value||'').trim();
   const comp=document.getElementById('sp-comp').value;
+  const an0=document.getElementById('sp-an').value;
   if(!g||!d){ toast('Bitte Gegner und Datum angeben',true); return; }
-  try{ sld(true); await dbASP(g,d,t,logo,comp); ren(); go('ov'); toast('✓ Spiel angelegt'); }
+  try{ sld(true); await dbASP(g,d,t,logo,comp,an0?d+'T'+an0:null); ren(); go('ov'); toast('✓ Spiel angelegt'); }
   catch(e){ toast('Fehler: '+e.message,true); }
   finally{ sld(false); }
 }
@@ -2175,6 +2256,7 @@ function editSP(id){
   const s=st.sp.find(x=>x.id===id); if(!s)return; smtgt=id;
   document.getElementById('sm-g').value=s.ge||'';
   document.getElementById('sm-d').value=s.da||'';
+  document.getElementById('sm-an').value=anHM(s)||'';
   document.getElementById('sm-t').value=s.typ||'heim';
   document.getElementById('sm-comp').value=s.comp||'Testspiel';
   document.getElementById('sm-logo').value=s.logo||'';
@@ -2186,9 +2268,11 @@ async function saveSM(){
   const g=document.getElementById('sm-g').value.trim();
   const d=document.getElementById('sm-d').value;
   if(!g||!d){ toast('Bitte Gegner und Datum angeben',true); return; }
+  const an0=document.getElementById('sm-an').value;
   const f={ gegner:g, datum:d, typ:document.getElementById('sm-t').value,
             wettbewerb:document.getElementById('sm-comp').value,
-            logo:(document.getElementById('sm-logo').value||'').trim()||null };
+            logo:(document.getElementById('sm-logo').value||'').trim()||null,
+            anstoss:an0?d+'T'+an0:null };
   try{ sld(true); await dbUSP(id,f); closeSM(); ren(); go('se'); toast('✓ Spiel gespeichert'); }
   catch(e){ toast('Fehler: '+(e.message||e),true); }
   finally{ sld(false); }
@@ -2196,7 +2280,7 @@ async function saveSM(){
 async function dbUSP(id,f){ // Spiel aktualisieren (ohne Loeschen)
   if(sb){ const{error}=await sb.from('spiele').update(f).eq('id',id); if(error)throw error; }
   const s=st.sp.find(x=>x.id===id);
-  if(s){ s.ge=f.gegner; s.da=f.datum; s.typ=f.typ; s.comp=f.wettbewerb; s.logo=f.logo; }
+  if(s){ s.ge=f.gegner; s.da=f.datum; s.typ=f.typ; s.comp=f.wettbewerb; s.logo=f.logo; s.an=f.anstoss; }
   if(!sb)svbck();
 }
 
@@ -2289,6 +2373,18 @@ async function searchLogo(gId,logoId){
   finally{ sld(false); }
 }
 
+// Aktive Gesuche einer Person (Signal-Kontakt) fuer ANSTEHENDE Spiele zaehlen – Basis fuer das Limit
+async function activeSuCount(si){
+  const nsi=(si||'').trim().toLowerCase(); if(!nsi)return 0;
+  const h0=new Date(); h0.setHours(0,0,0,0);
+  const upcoming=id=>{ const s=spById(id); return !s||!s.da||new Date(s.da)>=h0; };
+  let rows=null;
+  if(sb){ try{ const{data,error}=await sb.from('eintraege').select('signal_kontakt,spiel_id').eq('typ','suche').eq('status','offen');
+    if(!error)rows=data||[]; }catch(e){} }
+  if(!rows) rows=st.ei.filter(e=>e.typ==='su'&&e.s==='o').map(e=>({signal_kontakt:e.si,spiel_id:e.sid}));
+  return rows.filter(r=>(r.signal_kontakt||'').trim().toLowerCase()===nsi&&upcoming(r.spiel_id)).length;
+}
+
 async function addE(typ){
   const p=typ;
   const nm=document.getElementById(`${p}-n`).value.trim();
@@ -2308,10 +2404,12 @@ async function addE(typ){
     if(tsp===st.aktiv && (tg||'')===(br||'')){ toast(t('t_taself'),true); return; } // Habe == Will
   }
   if(!consent){ toast(t('t_consent'),true); return; }
-  if(typ==='su'){ // keine doppelte AKTIVE Suche pro Spiel (Identität = Signal-Kontakt)
+  if(typ==='su'){ // Gesuch-Regeln (Fairness): terminiert + Limit + keine doppelte AKTIVE Suche pro Spiel
+    if(suTerminiert&&!isTerminiert(gsp())){ toast(t('t_su_locked'),true); return; }
     const nsi=si.trim().toLowerCase();
     const dup=st.ei.some(x=>x.sid===st.aktiv&&x.typ==='su'&&x.s==='o'&&(x.si||'').trim().toLowerCase()===nsi);
     if(dup){ toast(t('t_dupsu'),true); return; }
+    if(maxSu>0){ const n=await activeSuCount(si); if(n>=maxSu){ toast(t('t_su_max').replace('%',maxSu),true); return; } }
   }
   const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,tsp,no,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
   try{ sld(true); await dbAE(e); if(!consentGiven()){ try{localStorage.setItem(KCO,new Date().toISOString());}catch(_){} } me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
@@ -2468,6 +2566,16 @@ async function saveExpiry(){
   }catch(e){ toast(t('t_err')+(e.message||e),true); }
   finally{ sld(false); }
 }
+async function saveRules(){
+  const term=document.getElementById('ru-term').value==='1';
+  const mx=parseInt(document.getElementById('ru-max').value);
+  if(!(mx>=0)){ toast(t('t_err')+'Anzahl ≥ 0',true); return; }
+  try{ sld(true);
+    if(sb){ const{error}=await sb.from('config').upsert([{key:'su_terminiert',value:term?'1':'0'},{key:'max_su',value:String(mx)}],{onConflict:'key'}); if(error)throw error; }
+    suTerminiert=term; maxSu=mx; ren(); go('se'); toast(t('t_saved'));
+  }catch(e){ toast(t('t_err')+(e.message||e),true); }
+  finally{ sld(false); }
+}
 async function svCfgR(){
   let rawUrl=(document.getElementById('cf-u').value||'').trim();
   // Auto-clean: remove /rest/v1/, /auth/v1/, trailing slashes
@@ -2561,7 +2669,7 @@ async function shareApp(){
 
 // ── INIT ──────────────────────────────────────────────────────
 (async()=>{
-  ldcfg(); ldbck(); ldme(); ldtheme(); ldlang(); ldseen(); applyTheme();
+  ldcfg(); ldbck(); ldme(); ldtheme(); ldlang(); ldseen(); ldnotif(); applyTheme();
   if(st.sp.length) st.aktiv=nextGameId();
   upadm(); applyLang(); ren(); go('ov');
   await initSB();

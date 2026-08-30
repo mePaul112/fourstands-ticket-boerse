@@ -36,6 +36,8 @@ setup.sh        ← Einmaliges Setup-Script
 - 🎟️ **Biete** – Ticket-Angebote mit Bereich + Anzahl
 - 🔄 **Tausch** – Tauschwünsche mit automatischem Matching
 - ⚡ **Match-Detection** – zeigt wenn Suche + Angebot zusammenpassen
+- 🔔 **Match-Benachrichtigung** – Live-Hinweis in der App + optionale Browser-Notification bei neuen eigenen Matches (opt-in über ⋮-Menü; kein echtes Push bei geschlossener App)
+- 📋 **Gesuch-Regeln** – Gesuche erst wenn Spiel zeitgenau terminiert (Anstoßzeit bekannt) und max. N aktive Gesuche pro Person (config-Keys: `su_terminiert`, `max_su`; Setup-Tab)
 - 📱 **Signal-Links** – direkte Verlinkung zum Signal-Kontakt
 - 🔒 **Admin-PIN** – schützt Spiele-Anlage und Setup (Standard: `0000`)
 - ☁️ **Supabase Realtime** – alle Mitglieder sehen Änderungen sofort
