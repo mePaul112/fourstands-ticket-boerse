@@ -27,14 +27,39 @@ jobs:
 
           # Body nach resp.json, Statuscode auf stdout. Kein --fail: sonst geht der
           # Fehlertext von PostgREST verloren, der die Ursache benennt.
-          if ! HTTP=$(curl -sS --max-time 30 -o resp.json -w '%{http_code}' \
-                        -H "apikey: ${SUPABASE_KEY}" \
-                        -H "Authorization: Bearer ${SUPABASE_KEY}" "$URL"); then
-            echo "::error::Supabase nicht erreichbar - Verbindung kam nicht zustande (curl-Transportfehler). Kein Rueckschluss auf neues Feedback moeglich."
+          # Retry nur bei voruebergehenden Stoerungen (Transportfehler, 429, 5xx - z. B. der
+          # 504 Gateway Timeout vom 14.09.2026). 4xx sind dauerhaft und brechen sofort ab.
+          MAX_TRIES=3
+          for TRY in $(seq 1 "$MAX_TRIES"); do
+            if HTTP=$(curl -sS --max-time 30 -o resp.json -w '%{http_code}' \
+                          -H "apikey: ${SUPABASE_KEY}" \
+                          -H "Authorization: Bearer ${SUPABASE_KEY}" "$URL"); then
+              case "$HTTP" in
+                429|5??) REASON="HTTP ${HTTP}" ;;
+                *) break ;;
+              esac
+            else
+              HTTP="000"
+              REASON="Transportfehler"
+            fi
+            if [ "$TRY" -lt "$MAX_TRIES" ]; then
+              WAIT=$((TRY * 20))
+              echo "::warning::Versuch ${TRY}/${MAX_TRIES} gescheitert (${REASON}) - neuer Versuch in ${WAIT} s."
+              sleep "$WAIT"
+            fi
+          done
+
+          if [ "$HTTP" = "000" ]; then
+            echo "::error::Supabase nicht erreichbar - Verbindung kam nach ${MAX_TRIES} Versuchen nicht zustande (curl-Transportfehler). Kein Rueckschluss auf neues Feedback moeglich."
             exit 1
           fi
           if [ "$HTTP" != "200" ]; then
-            echo "::error::Supabase antwortete mit HTTP ${HTTP} statt 200 (haeufig - abgelaufener Anon-Key oder RLS). Kein Rueckschluss auf neues Feedback moeglich."
+            case "$HTTP" in
+              401|403) HINT="Anon-Key abgelaufen/ungueltig oder RLS verweigert Lesezugriff" ;;
+              429|5??) HINT="voruebergehende Supabase-Stoerung, auch nach ${MAX_TRIES} Versuchen - naechster Lauf holt die Pruefung nach" ;;
+              *)       HINT="unerwartete Antwort, siehe Fehlertext unten" ;;
+            esac
+            echo "::error::Supabase antwortete mit HTTP ${HTTP} statt 200 (${HINT}). Kein Rueckschluss auf neues Feedback moeglich."
             head -c 500 resp.json || true
             exit 1
           fi
