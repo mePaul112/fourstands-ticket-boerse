@@ -2,7 +2,7 @@
 
 Lebende Liste offener Punkte. Stand: 2026-09-26.
 
-## 🚦 „Gesuch für wen" (2026-09-26) — Migration erledigt, Deploy offen
+## ✅ „Gesuch für wen" (2026-09-26) — migriert und deployt
 
 - [x] **Mitglieder-Feedback (unisono):** a) bei der Suche angeben, ob das Ticket für einen selbst
   oder für jemand anderes ist; b) Gesuche für andere automatisch hinter dem letzten Gesuch eines
@@ -15,7 +15,7 @@ Lebende Liste offener Punkte. Stand: 2026-09-26.
   - Hilfe DE/EN, Setup-SQL (Abschnitt 8), `aktivitaet.ps1` (Nachtbericht) nachgezogen.
   - [x] Migration `migration-2026-09-26-gesuch-fuer-wen.sql` im Supabase-SQL-Editor ausgeführt
     (26.09.2026; API-Check danach: Spalte `fuer` vorhanden, alle 40 Alt-Suchen = NULL → zählen als „selbst").
-- [ ] **Deploy:** Branch `feat/gesuch-fuer-wen` nach `main` mergen + pushen — erst NACH der Migration.
+- [x] **Deploy:** Branch `feat/gesuch-fuer-wen` nach `main` gemergt + gepusht (26.09.2026, NACH der Migration).
   Merksatz für künftige Schema-Änderungen: immer erst das SQL, dann der Push — andersherum scheitert
   jede Eintragung (todb sendet die neue Spalte mit).
 - [ ] **Feedback-Eintrag beantworten** (💬-Reiter, als Admin; erst die Antwort macht ihn für alle sichtbar).
