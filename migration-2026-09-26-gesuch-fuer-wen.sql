@@ -2,10 +2,14 @@
 -- Stand: 2026-09-26
 --
 -- Zweck (Mitglieder-Feedback, unisono aus der Testphase):
---   a) Bei jeder Suche wird angegeben, ob das Ticket für das Mitglied SELBST oder für
---      jemand ANDERES (Begleitung, Freund:in …) gesucht wird — Pflichtfeld im Formular.
---   b) Gesuche für andere stehen in der Warteschlange automatisch hinter dem letzten
---      Gesuch eines Mitglieds für sich selbst (auch hinter später eingetragenen).
+--   a) Bei jeder Suche wird angegeben, ob das Mitglied SELBST mitgeht (auch mit Begleitung,
+--      Anzahl frei) oder das Ticket NUR FÜR ANDERE sucht (geht selbst nicht mit) — Pflichtfeld.
+--   b) Gesuche nur für andere stehen in der Warteschlange automatisch hinter dem letzten
+--      Gesuch, bei dem ein Mitglied selbst mitgeht (auch hinter später eingetragenen).
+--
+-- Korrigiert 26.09.2026 (Stephan): Begleitung zählt zu 'selbst', 'andere' nur, wenn das
+-- Mitglied selbst nicht mitgeht. Der Spaltenkommentar wurde in der DB noch mit der ersten
+-- Fassung gesetzt ("genau 1 Ticket") — erneutes Ausführen dieses Skripts korrigiert ihn.
 --
 -- Die Reihenfolge rechnet der Client (index.html, suCmp): defer → fuer → created_at.
 -- Die DB speichert nur die Angabe. Alt-Einträge behalten fuer = NULL und zählen als 'selbst'
@@ -26,7 +30,7 @@ DO $do$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $do$;
 
 COMMENT ON COLUMN public.eintraege.fuer IS
-  'Nur bei typ=suche: selbst = Ticket fuer das Mitglied (genau 1), andere = fuer Begleitung. NULL = Alt-Eintrag (zaehlt als selbst).';
+  'Nur bei typ=suche: selbst = Mitglied geht mit (ggf. + Begleitung, Anzahl frei), andere = nur fuer andere (Mitglied geht nicht mit). NULL = Alt-Eintrag (zaehlt als selbst).';
 
 -- PostgREST-Schema-Cache neu laden, damit die Spalte sofort per API sichtbar ist
 NOTIFY pgrst, 'reload schema';

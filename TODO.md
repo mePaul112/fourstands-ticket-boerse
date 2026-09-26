@@ -7,18 +7,29 @@ Lebende Liste offener Punkte. Stand: 2026-09-26.
 - [x] **Mitglieder-Feedback (unisono):** a) bei der Suche angeben, ob das Ticket für einen selbst
   oder für jemand anderes ist; b) Gesuche für andere automatisch hinter dem letzten Gesuch eines
   Mitglieds für sich selbst. Umgesetzt in Commit `37363ae`:
-  - Pflichtfeld „Für wen?" im Suche-Formular + Bearbeiten; Schild „👥 für andere" auf der Karte.
+  - Pflichtfeld „Für wen?" im Suche-Formular + Bearbeiten; Schild „👥 nur für andere" auf der Karte.
   - Warteschlange `suCmp`: `defer` → `fuer` → Zeitstempel (Verzicht/Frist stuft weiterhin zurück —
     dann kann auch ein Gesuch für andere drankommen). #-Nummer = echte Position.
-  - „Für mich selbst" = genau 1 Ticket; Begleitkarten als zweites Gesuch „für andere"
-    (Dublettenregel jetzt je Spiel + Kontakt + Art). Alt-Einträge ohne Angabe zählen als „selbst".
+  - **Korrektur (Stephan, 26.09.2026):** „Für mich selbst" gilt auch **mit Begleitung** (Anzahl frei);
+    „für andere" nur, wenn das Mitglied selbst **nicht** mitgeht. Die zuerst ausgelieferte Fassung
+    (selbst = genau 1 Ticket, Begleitung als zweites Gesuch, ein Gesuch je Art) ist zurückgenommen —
+    wieder ein aktives Gesuch je Spiel + Kontakt. Alt-Einträge ohne Angabe zählen als „selbst".
   - Hilfe DE/EN, Setup-SQL (Abschnitt 8), `aktivitaet.ps1` (Nachtbericht) nachgezogen.
   - [x] Migration `migration-2026-09-26-gesuch-fuer-wen.sql` im Supabase-SQL-Editor ausgeführt
     (26.09.2026; API-Check danach: Spalte `fuer` vorhanden, alle 40 Alt-Suchen = NULL → zählen als „selbst").
 - [x] **Deploy:** Branch `feat/gesuch-fuer-wen` nach `main` gemergt + gepusht (26.09.2026, NACH der Migration).
   Merksatz für künftige Schema-Änderungen: immer erst das SQL, dann der Push — andersherum scheitert
   jede Eintragung (todb sendet die neue Spalte mit).
-- [ ] **Feedback-Eintrag beantworten** (💬-Reiter, als Admin; erst die Antwort macht ihn für alle sichtbar).
+  - **Begleit-Tickets einstellbar (Stephan, 26.09.2026):** Setup → Gesuch-Regeln → „Max. Begleit-Tickets
+    je Gesuch ‚für mich selbst'" (config `max_begleit`, 0–9, Default 3 = bisherige Obergrenze 4 Karten).
+    Gesuche „nur für andere" bleiben bei 1–4 Karten. Bestehende Gesuche über einer gesenkten Grenze
+    bleiben unverändert (Bestandsschutz beim Bearbeiten).
+  - Nebenbei behoben: Bearbeiten einer Suche mit Stand „egal" setzte beim Speichern still den ersten
+    Stand (Nordkurve) — der Bearbeiten-Dialog bietet für Suchen jetzt „egal / beliebig" an.
+- [x] **Korrektur „Begleitung = selbst" + Begleit-Grenze ausgeliefert** (26.09.2026, reiner Code-Push,
+  keine Migration nötig — `max_begleit` legt die App beim ersten Speichern im Setup selbst an).
+- [x] **Feedback-Eintrag beantwortet** (26.09.2026, 💬-Board). Der Antworttext wird mit dem Deploy der
+  Korrektur angepasst (die erste Fassung nannte noch „genau 1 Ticket").
 
 ## 🔜 Vor Go-Live entscheiden / ggf. einbauen
 
