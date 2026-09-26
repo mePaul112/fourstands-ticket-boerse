@@ -3,7 +3,8 @@
 --
 -- Zweck (Mitglieder-Feedback, unisono aus der Testphase):
 --   a) Bei jeder Suche wird angegeben, ob das Mitglied SELBST mitgeht (auch mit Begleitung,
---      Anzahl frei) oder das Ticket NUR FÜR ANDERE sucht (geht selbst nicht mit) — Pflichtfeld.
+--      bis zu config max_begleit Begleit-Tickets, Setup, Default 3) oder das Ticket NUR FÜR
+--      ANDERE sucht (geht selbst nicht mit) — Pflichtfeld.
 --   b) Gesuche nur für andere stehen in der Warteschlange automatisch hinter dem letzten
 --      Gesuch, bei dem ein Mitglied selbst mitgeht (auch hinter später eingetragenen).
 --
@@ -30,7 +31,7 @@ DO $do$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $do$;
 
 COMMENT ON COLUMN public.eintraege.fuer IS
-  'Nur bei typ=suche: selbst = Mitglied geht mit (ggf. + Begleitung, Anzahl frei), andere = nur fuer andere (Mitglied geht nicht mit). NULL = Alt-Eintrag (zaehlt als selbst).';
+  'Nur bei typ=suche: selbst = Mitglied geht mit (ggf. + Begleitung, max. config max_begleit), andere = nur fuer andere (Mitglied geht nicht mit). NULL = Alt-Eintrag (zaehlt als selbst).';
 
 -- PostgREST-Schema-Cache neu laden, damit die Spalte sofort per API sichtbar ist
 NOTIFY pgrst, 'reload schema';
