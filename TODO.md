@@ -1,6 +1,21 @@
 # TODO — FourStands Ticket-Tausch-Börse
 
-Lebende Liste offener Punkte. Stand: 2026-06-18.
+Lebende Liste offener Punkte. Stand: 2026-09-26.
+
+## 🚦 Offen: Deploy „Gesuch für wen" (2026-09-26)
+
+- [ ] **Mitglieder-Feedback (unisono):** a) bei der Suche angeben, ob das Ticket für einen selbst
+  oder für jemand anderes ist; b) Gesuche für andere automatisch hinter dem letzten Gesuch eines
+  Mitglieds für sich selbst. Umgesetzt im Branch `feat/gesuch-fuer-wen`:
+  - Pflichtfeld „Für wen?" im Suche-Formular + Bearbeiten; Schild „👥 für andere" auf der Karte.
+  - Warteschlange `suCmp`: `defer` → `fuer` → Zeitstempel (Verzicht/Frist stuft weiterhin zurück —
+    dann kann auch ein Gesuch für andere drankommen). #-Nummer = echte Position.
+  - „Für mich selbst" = genau 1 Ticket; Begleitkarten als zweites Gesuch „für andere"
+    (Dublettenregel jetzt je Spiel + Kontakt + Art). Alt-Einträge ohne Angabe zählen als „selbst".
+  - Hilfe DE/EN, Setup-SQL (Abschnitt 8), `aktivitaet.ps1` (Nachtbericht) nachgezogen.
+  - ⚠️ **Deploy-Reihenfolge:** erst `migration-2026-09-26-gesuch-fuer-wen.sql` im Supabase-SQL-Editor,
+    dann Branch nach `main` mergen + pushen. Andersherum scheitert JEDE Eintragung (todb sendet `fuer`).
+  - Danach: Feedback-Eintrag im 💬-Reiter als Admin beantworten (Antwort macht ihn öffentlich).
 
 ## 🔜 Vor Go-Live entscheiden / ggf. einbauen
 

@@ -889,6 +889,7 @@ pre {
       <div class="fg" id="em-bwrap"><label id="em-blbl">Stand</label><select id="em-b"></select></div>
       <div class="fg" id="em-gwrap" style="display:none"><label data-i18n="l_want">Ich möchte *</label><select id="em-g"></select></div>
       <div class="fg" id="em-awrap"><label data-i18n="l_qty">Anzahl</label><select id="em-a"><option>1</option><option>2</option><option>3</option><option>4</option></select></div>
+      <div class="fg" id="em-fwrap" style="grid-column:1/-1;display:none"><label data-i18n="l_fuer">Für wen? *</label><select id="em-f" onchange="fuerChg('em')"></select></div>
       <div class="fg" style="grid-column:1/-1"><label data-i18n="l_note">Notiz</label><input id="em-no"></div>
     </div>
     <div class="modal-actions">
@@ -1107,9 +1108,10 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du bereits in der Suchliste (gleicher Signal-Kontakt).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag. Tipp: Über ⋮ → 🔔 bekommst du Browser-Hinweise bei neuen Matches.',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel stehst du mit dieser Art Gesuch bereits in der Suchliste (gleicher Signal-Kontakt; je Spiel ein Gesuch für dich selbst und eins für andere).',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag. Tipp: Über ⋮ → 🔔 bekommst du Browser-Hinweise bei neuen Matches.',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',
   m_notif:'Match-Benachrichtigung',st_on:'An',st_off:'Aus',t_notif_on:'✓ Benachrichtigung bei neuen Matches aktiv (solange die Börse in einem Tab geöffnet ist)',t_notif_off:'Match-Benachrichtigung aus',t_notif_denied:'Vom Browser blockiert – bitte Benachrichtigungen für diese Seite in den Browser-Einstellungen erlauben',t_notif_unsup:'Dieser Browser unterstützt keine Benachrichtigungen',nt_title:'⚡ Neues Match für dich!',nt_hint:'jetzt per Signal melden',
-  t_su_locked:'Gesuche sind für dieses Spiel noch nicht möglich – es ist noch nicht zeitgenau terminiert.',su_locked_info:'⏳ <strong>Noch keine Gesuche möglich.</strong> Dieses Spiel ist noch nicht zeitgenau terminiert (die Anstoßzeit fehlt). Gesuche werden freigeschaltet, sobald der Spieltag terminiert ist – so verhindern wir Vorrats-Gesuche für eine bessere Platzierung in der Warteschlange.',su_rule_max:'Fairness-Regel: maximal % aktive Gesuche gleichzeitig (für anstehende Spiele).',t_su_max:'Maximal % aktive Gesuche gleichzeitig – bitte zuerst ein altes Gesuch erledigen oder entfernen.',t_err:'Fehler: ' },
+  t_su_locked:'Gesuche sind für dieses Spiel noch nicht möglich – es ist noch nicht zeitgenau terminiert.',su_locked_info:'⏳ <strong>Noch keine Gesuche möglich.</strong> Dieses Spiel ist noch nicht zeitgenau terminiert (die Anstoßzeit fehlt). Gesuche werden freigeschaltet, sobald der Spieltag terminiert ist – so verhindern wir Vorrats-Gesuche für eine bessere Platzierung in der Warteschlange.',su_rule_max:'Fairness-Regel: maximal % aktive Gesuche gleichzeitig (für anstehende Spiele).',t_su_max:'Maximal % aktive Gesuche gleichzeitig – bitte zuerst ein altes Gesuch erledigen oder entfernen.',t_err:'Fehler: ',
+  l_fuer:'Für wen? *',fuer_selbst:'🙋 Für mich selbst (Fanclub-Mitglied)',fuer_andere:'👥 Für jemand anderes (Begleitung, Freund:in …)',t_fuer:'Bitte angeben, für wen du das Ticket suchst',tag_andere:'👥 für andere',tag_andere_t:'Gesuch für jemand anderes – steht in der Warteschlange hinter allen Gesuchen für Mitglieder selbst',su_rule_fuer:'Vorrang: Gesuche für Mitglieder selbst stehen vor Gesuchen für andere. Für dich selbst gilt genau 1 Ticket – weitere Karten bitte als zusätzliches Gesuch „für jemand anderes“.',fuer_selbst1:'Für dich selbst genau 1 Ticket – weitere Karten als Gesuch „für jemand anderes“' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',consent_once:'By posting, your name + Signal contact are stored and shown to everyone – you already consented to this (details: Help → Privacy).',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1132,9 +1134,10 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You are already on the search list for this match (same Signal contact).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry. Tip: enable browser alerts for new matches via ⋮ → 🔔.',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You already have this kind of search for this match (same Signal contact; per match one search for yourself and one for others).',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry. Tip: enable browser alerts for new matches via ⋮ → 🔔.',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',
   m_notif:'Match notifications',st_on:'On',st_off:'Off',t_notif_on:'✓ Notifications for new matches enabled (while the board is open in a tab)',t_notif_off:'Match notifications off',t_notif_denied:'Blocked by the browser – please allow notifications for this site in the browser settings',t_notif_unsup:'This browser does not support notifications',nt_title:'⚡ New match for you!',nt_hint:'get in touch via Signal now',
-  t_su_locked:'Searches are not possible for this match yet – its kickoff is not scheduled yet.',su_locked_info:'⏳ <strong>No searches yet.</strong> This match has no fixed kickoff time yet. Searches open up once the match is officially scheduled – this prevents stockpiling searches for a better queue position.',su_rule_max:'Fairness rule: at most % active searches at a time (for upcoming matches).',t_su_max:'At most % active searches at a time – please close or remove an old search first.',t_err:'Error: ' }
+  t_su_locked:'Searches are not possible for this match yet – its kickoff is not scheduled yet.',su_locked_info:'⏳ <strong>No searches yet.</strong> This match has no fixed kickoff time yet. Searches open up once the match is officially scheduled – this prevents stockpiling searches for a better queue position.',su_rule_max:'Fairness rule: at most % active searches at a time (for upcoming matches).',t_su_max:'At most % active searches at a time – please close or remove an old search first.',t_err:'Error: ',
+  l_fuer:'For whom? *',fuer_selbst:'🙋 For myself (club member)',fuer_andere:'👥 For someone else (companion, friend …)',t_fuer:'Please state who the ticket is for',tag_andere:'👥 for others',tag_andere_t:'Search for someone else – queued behind all searches for members themselves',su_rule_fuer:'Priority: searches for members themselves come before searches for others. A search for yourself is for exactly 1 ticket – add further tickets as a separate search “for someone else”.',fuer_selbst1:'Exactly 1 ticket for yourself – further tickets as a search “for someone else”' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1210,8 +1213,15 @@ async function nextGameSmart(){
   }catch(e){}
   return nextGameId();
 }
+// Warteschlangen-Reihenfolge der Suchen (Mitglieder-Feedback 09/2026):
+//   1. defer (Verzicht/abgelaufene Frist stuft zurueck)
+//   2. fuer: Gesuche fuer Mitglieder selbst vor Gesuchen fuer andere ('andere' rutscht
+//      automatisch hinter das jeweils letzte Selbst-Gesuch, auch hinter spaeter eingetragene)
+//   3. Zeitstempel. Alt-Eintraege ohne Angabe (fuer = NULL) zaehlen als 'selbst'.
+const suRank=e=>e.fu==='andere'?1:0;
+const suCmp=(a,b)=>((a.defer||0)-(b.defer||0))||(suRank(a)-suRank(b))||(new Date(a.ts)-new Date(b.ts));
 const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
-             .sort((a,b)=>((a.defer||0)-(b.defer||0))||(new Date(a.ts)-new Date(b.ts)));
+             .sort(typ==='su'?suCmp:(a,b)=>new Date(a.ts)-new Date(b.ts));
 const spById=id=>st.sp.find(s=>s.id===id)||null;
 const gicon=s=>s?(s.typ==='heim'?'🏟️':'✈️'):'';
 // Globaler Tausch-Pool (spielübergreifend, nur offene). Live: eigene Query (taball); offline: aus st.ei.
@@ -1226,7 +1236,7 @@ const copiesE=id=>[st.ei.find(e=>e.id===id),taball.find(e=>e.id===id)].filter(Bo
 // Prioritaets-Matching (Suche<->Biete, 1:1) fuer ein Spiel — gemeinsame Logik
 function sbMatchesForGame(gid){
   const open=st.ei.filter(e=>e.sid===gid&&e.s==='o');
-  const su=open.filter(e=>e.typ==='su').sort((a,b)=>((a.defer||0)-(b.defer||0))||(new Date(a.ts)-new Date(b.ts)));
+  const su=open.filter(e=>e.typ==='su').sort(suCmp);
   const bi=open.filter(e=>e.typ==='bi').sort((a,b)=>new Date(a.ts)-new Date(b.ts));
   const taken=new Set(), res=[];
   bi.forEach(b=>{ const s=su.find(x=>!taken.has(x.id)&&(x.br===b.br||!x.br)); if(s){ taken.add(s.id); res.push({s,b}); } });
@@ -1339,8 +1349,9 @@ const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
 // pid/cvia/cend: Abschluss-Protokoll (wer mit wem, auf welchem Weg, wann) — nur von den
 // Schliess-Pfaden geschrieben, bewusst NICHT in todb(), damit Bearbeiten sie nicht ueberschreibt.
-const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,tsp:r.tausch_spiel||null,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null,pid:r.partner_id||null,cvia:r.closed_via||null,cend:r.closed_at||null});
-const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,tausch_spiel:e.tsp||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen'),consent_at:e.cat||null,defer:e.defer||0});
+// fu: fuer wen gesucht wird ('selbst'|'andere', nur bei Suche; NULL = Alt-Eintrag, zaehlt als selbst)
+const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,tsp:r.tausch_spiel||null,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,fu:r.fuer||null,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null,pid:r.partner_id||null,cvia:r.closed_via||null,cend:r.closed_at||null});
+const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,tausch_spiel:e.tsp||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,fuer:e.typ==='su'?(e.fu||null):null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen'),consent_at:e.cat||null,defer:e.defer||0});
 
 // ── SUPABASE ──────────────────────────────────────────────────
 async function initSB(){
@@ -1630,6 +1641,7 @@ function cardH(e,nr,mi){
   const _mn=isMine(e);
   const mine=_mn?`<span class="tag" style="color:var(--ma);border-color:var(--ma);background:#fbbf2410;margin-left:6px">${t('badge_mine')}</span>`:'';
   const mineB=_mn;
+  const fuB=e.typ==='su'&&e.fu==='andere'?`<span class="tag" style="color:var(--mu);border-color:var(--mu);background:transparent;margin-left:6px" title="${t('tag_andere_t')}">${t('tag_andere')}</span>`:'';
   let acts='';
   if(e.s==='erledigt'){
     acts=`<span style="font-family:'Barlow Condensed';font-size:10px;font-weight:800;letter-spacing:1.5px;color:#86efac;text-transform:uppercase">${t('done_lbl')}</span>`;
@@ -1643,7 +1655,7 @@ function cardH(e,nr,mi){
   return`<div class="card ${isM?'is-match':''} ${e.s==='erledigt'?'done':''}" data-id="${e.id}">
     <div class="card-nr">${nr}</div>
     <div>
-      <div><span class="tag tag-${e.typ}">${lb}</span>${mB}${mine}</div>
+      <div><span class="tag tag-${e.typ}">${lb}</span>${mB}${mine}${fuB}</div>
       <div class="card-heading">${headTxt}</div>
       ${tg}
       <div class="card-meta">
@@ -1671,6 +1683,10 @@ function cgrp(typs){
   if(!showDone) all=all.filter(e=>e.s==='o');
   if(onlyMine&&(me.nm||me.si)) all=all.filter(isMine);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
+  // Offene Suchen in echter Warteschlangen-Reihenfolge (suCmp) auf ihre Plaetze zurueckverteilen:
+  // Nummer #n = tatsaechliche Position; Biete/Tausch in der Uebersicht bleiben chronologisch dazwischen.
+  const suSlots=[]; all.forEach((e,i)=>{ if(e.typ==='su'&&e.s==='o')suSlots.push(i); });
+  const suSorted=suSlots.map(i=>all[i]).sort(suCmp); suSlots.forEach((i,k)=>all[i]=suSorted[k]);
   if(!all.length){
     if(cm!=='live') return`<div class="empty"><span class="empty-ico">⚠️</span>${t('empty_offline')}</div>`;
     return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?t('empty_mine'):showDone?t('empty_all'):t('empty_first')}</div>`;
@@ -1680,6 +1696,12 @@ function cgrp(typs){
 }
 
 // ── RENDER: FORMS ─────────────────────────────────────────────
+// "Fuer mich selbst" = genau 1 Ticket (das eigene); weitere Karten als eigenes Gesuch "fuer andere"
+function fuerChg(p){
+  const f=document.getElementById(p+'-f'), a=document.getElementById(p+'-a'); if(!f||!a)return;
+  if(f.value==='selbst'){ a.value='1'; a.disabled=true; a.title=t('fuer_selbst1'); } else { a.disabled=false; a.title=''; }
+}
+const fuerOpts=(sl='')=>['selbst','andere'].map(v=>`<option value="${v}"${v===sl?' selected':''}>${t('fuer_'+v)}</option>`).join('');
 // Kein Aufklapp-Knopf mehr: Formulare oeffnet ausschliesslich der ➕-Knopf (war doppelt).
 function fSu(sp){
   // Fairness-Regel: Gesuche erst, wenn das Spiel zeitgenau terminiert ist (Anstosszeit bekannt)
@@ -1704,9 +1726,10 @@ ${sf.su?`<div class="form-panel su">
     </div>
   </div>
   <div class="form-grid">
+    <div class="fg" style="grid-column:1/-1"><label>${t('l_fuer')}</label><select id="su-f" onchange="fuerChg('su')"><option value="" disabled selected hidden>${t('opt_choose')}</option>${fuerOpts()}</select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
-  ${maxSu>0?`<div style="margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu)">📋 ${t('su_rule_max').replace('%',maxSu)}</div>`:''}
+  <div style="margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu)">📋 ${t('su_rule_fuer')}${maxSu>0?'<br>📋 '+t('su_rule_max').replace('%',maxSu):''}</div>
   ${consentBlock('su')}
   <button class="btn-primary su" onclick="addE('su')">${t('btn_su')}</button>
 </div>`:''}`;
@@ -1795,13 +1818,14 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
         <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Gibt es Matches, zeigt eine goldene <strong>⚡-Pille</strong> im Spielbalken die Anzahl; ein Tipp darauf öffnet die Match-Liste. Zusätzlich sind passende Einträge in der Liste mit ⚡ markiert. <strong>Direkt zum Partner:</strong> Tippe im Popup auf einen Namen – oder bei einem markierten Eintrag auf „Partner-Eintrag öffnen" – und du springst direkt zum passenden Eintrag (dort ist der Signal-Kontakt).</p>
         <p><strong>Vergabe nach Reihenfolge:</strong> Suchen sind nach Eingang nummeriert (#1, #2 …). Pro Angebot erhält nur die <strong>früheste passende</strong> Suche das Match – die anderen warten.</p>
+        <p><strong>🙋 Für mich / 👥 für andere:</strong> Bei jeder Suche gibst du an, ob das Ticket <strong>für dich selbst</strong> (Fanclub-Mitglied) oder <strong>für jemand anderes</strong> (Begleitung, Freund:in …) ist. Gesuche für andere stehen in der Warteschlange <strong>automatisch hinter dem letzten Gesuch eines Mitglieds für sich selbst</strong> – auch hinter Mitglieder-Gesuchen, die erst später dazukommen. Die Nummer #n auf der Karte zeigt immer den aktuellen Platz; Gesuche für andere tragen das Schild „👥 für andere“. Ein Gesuch für dich selbst gilt für <strong>genau 1 Ticket</strong>; brauchst du zusätzlich Karten für Begleitung, trag ein zweites Gesuch „für jemand anderes“ ein (je Spiel ist ein Gesuch jeder Art möglich). Einzige Ausnahme vom Vorrang: Wer bei einem Match verzichtet oder die Frist verstreichen lässt, rutscht zurück – dann kann auch ein Gesuch für andere drankommen. Alte Gesuche von vor dieser Regel zählen als „für mich selbst“.</p>
         <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du einen Platz zurück – die/der Nächste kommt dran, du behältst die zweite Chance.<br>
         <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar).<br>
         <strong>✏️ Bearbeiten / Erledigt:</strong> Eigene Einträge kannst du jederzeit ändern oder zurückziehen.<br>
         <strong>↩ Wieder öffnen:</strong> Versehentlich auf „Deal" oder „Erledigt" getippt? Schalte oben <strong>„Erledigte zeigen"</strong> ein – bei deinem erledigten Eintrag erscheint dann ein <strong>„Wieder öffnen"</strong>-Knopf, der ihn zurück auf offen setzt. (Hinweis: Das öffnet nur deinen eigenen Eintrag; beim Tausch müssen ggf. beide Seiten wieder öffnen.)<br>
         <strong>🧹 Nach dem Spiel:</strong> Ist ein Spiel zwei Tage vorbei, räumt die Börse alle Einträge dazu von selbst weg – offene wie erledigte. Du musst also nichts nachpflegen; „Wieder öffnen" geht danach nicht mehr.</p>
-        <p><strong>Eine Suche je Spiel:</strong> Mit demselben Signal-Kontakt kann man sich pro Spiel nur einmal aktiv als Suchende:r eintragen (erledigte/alte Einträge zählen nicht).</p>
+        <p><strong>Eine Suche je Spiel (und Art):</strong> Mit demselben Signal-Kontakt kann man pro Spiel ein aktives Gesuch <strong>für sich selbst</strong> und eins <strong>für andere</strong> haben (erledigte/alte Einträge zählen nicht).</p>
         <p><strong>📋 Fairness-Regeln für Gesuche:</strong> Gesuche sind erst möglich, wenn das Spiel <strong>zeitgenau terminiert</strong> ist, also DFL bzw. DFB Datum <em>und</em> Anstoßzeit offiziell angesetzt haben – langfristige Vorrats-Gesuche bringen also keinen Vorteil in der Warteschlange. Woran du das erkennst: Solange ein Spieltag nur vorläufig im Kalender steht, zeigt die Börse das Spiel <strong>ohne Uhrzeit</strong> an und das Suche-Formular erklärt die Sperre. Sobald die Anstoßzeit feststeht (steht hinter dem Spiel in der Auswahl), sind Gesuche frei. Zusätzlich gilt pro Person (Signal-Kontakt) eine Obergrenze an gleichzeitig <strong>aktiven Gesuchen</strong> (nur offene Gesuche für anstehende Spiele zählen; die aktuelle Grenze steht im Suche-Formular) – erledigte oder entfernte Gesuche zählen nicht, bei Bedarf also erst ein altes Gesuch schließen. Beide Regeln stellt der Admin im Setup ein.</p>
         <p><strong>🔔 Match-Hinweis:</strong> Entsteht ein neues Match für dich, zeigt die App sofort einen Hinweis, während sie geöffnet ist. Über <strong>⋮ → 🔔 Match-Benachrichtigung</strong> kannst du zusätzlich Browser-Benachrichtigungen einschalten – die erscheinen auch, wenn die Börse nur in einem Hintergrund-Tab offen ist. Eine automatische Signal-Nachricht oder echtes Push bei komplett geschlossener App gibt es (noch) nicht – dafür bräuchte die Börse einen eigenen Server. Also: trotzdem ab und zu reinschauen.</p>
       </div>
@@ -1882,13 +1906,14 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
         <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. When there are matches, a gold <strong>⚡ pill</strong> in the match bar shows the count; tapping it opens the match list. Matching entries are also marked with ⚡ in the list. <strong>Jump to the partner:</strong> tap a name in the popup – or “open the partner entry” on a marked entry – to jump straight to the matching entry (where the Signal contact is).</p>
         <p><strong>Allocation by order:</strong> searches are numbered by arrival (#1, #2 …). Each offer goes to the <strong>earliest matching</strong> search only – the others wait.</p>
+        <p><strong>🙋 For me / 👥 for others:</strong> with every search you state whether the ticket is <strong>for yourself</strong> (club member) or <strong>for someone else</strong> (companion, friend …). Searches for others are automatically queued <strong>behind the last search of a member for themselves</strong> – including member searches added later. The #n on the card always shows the current position; searches for others carry the label “👥 for others”. A search for yourself is for <strong>exactly 1 ticket</strong>; if you also need tickets for companions, add a second search “for someone else” (one search of each kind per match). The only exception to this priority: whoever passes on a match or lets the deadline expire moves back – then a search for others can get its turn. Older searches from before this rule count as “for myself”.</p>
         <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop one place – the next person gets a turn and you keep a second chance.<br>
         <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over (remaining time shows on your match card; configurable in Setup).<br>
         <strong>✏️ Edit / Done:</strong> you can change or withdraw your own entries anytime.<br>
         <strong>↩ Reopen:</strong> tapped “Deal” or “Done” by mistake? Turn on <strong>“Show done”</strong> at the top – your done entry then shows a <strong>“Reopen”</strong> button that sets it back to open. (Note: this only reopens your own entry; for a swap both sides may need to reopen.)<br>
         <strong>🧹 After the match:</strong> two days after a match has been played, the board clears out all its entries by itself – open ones as well as done ones. Nothing for you to tidy up; “Reopen” is no longer available afterwards.</p>
-        <p><strong>One search per match:</strong> with the same Signal contact you can only have one active search per match (done/old entries do not count).</p>
+        <p><strong>One search per match (and kind):</strong> with the same Signal contact you can have one active search <strong>for yourself</strong> and one <strong>for others</strong> per match (done/old entries do not count).</p>
         <p><strong>📋 Fairness rules for searches:</strong> searches only open up once the match is <strong>officially scheduled</strong>, i.e. the DFL/DFB has fixed date <em>and</em> kickoff time – stockpiling searches far in advance gains no queue advantage. How to tell: while a matchday is only provisional, the board shows the match <strong>without a kickoff time</strong> and the search form explains the lock. Once the kickoff time is fixed (shown next to the match in the selector), searches are open. In addition there is a cap on simultaneously <strong>active searches</strong> per person (Signal contact; only open searches for upcoming matches count – the current limit is shown in the search form). Done or removed searches do not count, so close an old search first if needed. The admin configures both rules in Setup.</p>
         <p><strong>🔔 Match alert:</strong> when a new match for you appears, the app shows a notice right away while it is open. Via <strong>⋮ → 🔔 Match notifications</strong> you can additionally enable browser notifications – they also show while the board sits in a background tab. An automatic Signal message or real push with the app fully closed is not possible (yet) – that would require a server. So: still check in every now and then.</p>
       </div>
@@ -2130,7 +2155,13 @@ BEGIN
   END IF;
 END $fn$;
 GRANT EXECUTE ON FUNCTION public.deal_done(uuid,uuid)  TO anon;
-GRANT EXECUTE ON FUNCTION public.reopen_entry(uuid)    TO anon;`;
+GRANT EXECUTE ON FUNCTION public.reopen_entry(uuid)    TO anon;
+-- 8. Gesuch fuer wen: 'selbst' (Mitglied) | 'andere' — 'andere' steht in der Warteschlange hinten
+ALTER TABLE public.eintraege ADD COLUMN IF NOT EXISTS fuer text;
+DO $do$ BEGIN
+  ALTER TABLE public.eintraege ADD CONSTRAINT eintraege_fuer_chk
+    CHECK (fuer IN ('selbst','andere'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $do$;`;
 
   const cc=cm==='live'?'ok':cm==='local'?'lc':'er';
   const ct=cm==='live'?'✓ Verbunden mit Supabase – Real-time aktiv'
@@ -2408,14 +2439,17 @@ async function addE(typ){
   const si=normSi(document.getElementById(`${p}-si`).value);
   const br=document.getElementById(`${p}-b`).value;
   const no=document.getElementById(`${p}-no`).value.trim();
-  const az=parseInt(document.getElementById(`${p}-a`).value)||1;
+  const azIn=parseInt(document.getElementById(`${p}-a`).value)||1;
   const tg=typ==='ta'?document.getElementById('ta-g').value:null;
   const tsp=typ==='ta'?document.getElementById('ta-wg').value:null;
+  const fu=typ==='su'?document.getElementById('su-f').value:null;
   const cbox=document.getElementById(`${p}-c`); const consent = consentGiven() || (cbox&&cbox.checked);
   if(!nm){ toast(t('t_name'),true); return; }
   if(!si){ toast(t('t_signal'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
   if((typ==='bi'||typ==='ta') && !br){ toast(t('t_pickstand'),true); return; }
+  if(typ==='su' && !fu){ toast(t('t_fuer'),true); return; } // Pflichtangabe: fuer mich / fuer andere
+  const az=(fu==='selbst')?1:azIn;                                 // selbst = genau 1 Ticket
   if(typ==='ta'){
     if(!tsp){ toast(t('t_nogame'),true); return; }
     if(tsp===st.aktiv && (tg||'')===(br||'')){ toast(t('t_taself'),true); return; } // Habe == Will
@@ -2424,11 +2458,12 @@ async function addE(typ){
   if(typ==='su'){ // Gesuch-Regeln (Fairness): terminiert + Limit + keine doppelte AKTIVE Suche pro Spiel
     if(suTerminiert&&!isTerminiert(gsp())){ toast(t('t_su_locked'),true); return; }
     const nsi=si.trim().toLowerCase();
-    const dup=st.ei.some(x=>x.sid===st.aktiv&&x.typ==='su'&&x.s==='o'&&(x.si||'').trim().toLowerCase()===nsi);
+    // je Spiel + Signal-Kontakt EIN aktives Gesuch je Art (selbst / andere)
+    const dup=st.ei.some(x=>x.sid===st.aktiv&&x.typ==='su'&&x.s==='o'&&(x.si||'').trim().toLowerCase()===nsi&&(x.fu==='andere')===(fu==='andere'));
     if(dup){ toast(t('t_dupsu'),true); return; }
     if(maxSu>0){ const n=await activeSuCount(si); if(n>=maxSu){ toast(t('t_su_max').replace('%',maxSu),true); return; } }
   }
-  const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,tsp,no,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
+  const e={id:uid(),sid:st.aktiv,typ,br,nm,si,az,tg,tsp,no,fu,s:'o',ts:new Date().toISOString(),cat:new Date().toISOString()};
   try{ sld(true); await dbAE(e); if(!consentGiven()){ try{localStorage.setItem(KCO,new Date().toISOString());}catch(_){} } me.nm=nm; me.si=si; svme(); sf[typ]=false; ren(); go(typ); toast(t('t_added')); }
   catch(er){ toast(t('t_err')+er.message,true); }
   finally{ sld(false); }
@@ -2463,6 +2498,10 @@ function editE(id){
   document.getElementById('em-awrap').style.display=isTa?'none':'flex';
   if(isTa) document.getElementById('em-g').innerHTML=`<option value="">${t('opt_any')}</option>`+bopt(wg,e.tg);
   else document.getElementById('em-a').value=e.az||1;
+  const isSu=e.typ==='su';
+  document.getElementById('em-fwrap').style.display=isSu?'flex':'none';
+  if(isSu){ document.getElementById('em-f').innerHTML=(e.fu?'':`<option value="" disabled selected hidden>${t('opt_choose')}</option>`)+fuerOpts(e.fu||''); fuerChg('em'); }
+  else { const a=document.getElementById('em-a'); a.disabled=false; a.title=''; }
   document.getElementById('em-no').value=e.no||'';
   document.getElementById('em').style.display='flex';
 }
@@ -2561,9 +2600,15 @@ async function saveEM(){
   const e=findE(etgt); if(!e)return;
   const nm=document.getElementById('em-n').value.trim(); if(!nm){ toast(t('t_name'),true); return; }
   const si=normSi(document.getElementById('em-si').value); if(!si){ toast(t('t_signal'),true); return; }
+  let fuNew=e.fu;
+  if(e.typ==='su'){ fuNew=document.getElementById('em-f').value; if(!fuNew){ toast(t('t_fuer'),true); return; }
+    const nsi=si.trim().toLowerCase(); // Umstellen darf keine zweite gleichartige aktive Suche erzeugen
+    const dup=st.ei.some(x=>x.id!==e.id&&x.sid===e.sid&&x.typ==='su'&&x.s==='o'&&(x.si||'').trim().toLowerCase()===nsi&&(x.fu==='andere')===(fuNew==='andere'));
+    if(dup){ toast(t('t_dupsu'),true); return; } }
+  e.fu=fuNew;
   e.nm=nm; e.si=si;
   e.br=document.getElementById('em-b').value;
-  if(e.typ==='ta') e.tg=document.getElementById('em-g').value; else e.az=parseInt(document.getElementById('em-a').value)||1;
+  if(e.typ==='ta') e.tg=document.getElementById('em-g').value; else e.az=(e.typ==='su'&&e.fu==='selbst')?1:(parseInt(document.getElementById('em-a').value)||1);
   e.no=document.getElementById('em-no').value.trim();
   copiesE(e.id).forEach(o=>{ if(o!==e){ o.nm=e.nm;o.si=e.si;o.br=e.br;o.tg=e.tg;o.az=e.az;o.no=e.no; } }); // andere Kopie (Tausch-Pool) mitziehen
   try{ sld(true);

@@ -38,6 +38,7 @@ setup.sh        ← Einmaliges Setup-Script
 - ⚡ **Match-Detection** – zeigt wenn Suche + Angebot zusammenpassen
 - 🔔 **Match-Benachrichtigung** – Live-Hinweis in der App + optionale Browser-Notification bei neuen eigenen Matches (opt-in über ⋮-Menü; kein echtes Push bei geschlossener App)
 - 📋 **Gesuch-Regeln** – Gesuche erst wenn Spiel zeitgenau terminiert (Anstoßzeit bekannt) und max. N aktive Gesuche pro Person (config-Keys: `su_terminiert`, `max_su`; Setup-Tab)
+- 🙋 **Für wen?** (seit 09/2026, Mitglieder-Feedback) – jede Suche trägt Pflichtangabe `fuer` = `selbst` (Mitglied, genau 1 Ticket) oder `andere` (Begleitung). Warteschlange = `suCmp`: `defer` → `fuer` (selbst vor andere) → `created_at`; `andere` rutscht also auch hinter später eingetragene Mitglieder-Gesuche. `fuer = NULL` (Alt-Einträge) zählt als `selbst`. Je Spiel + Signal-Kontakt ein aktives Gesuch **je Art**. Die #-Nummer in der Liste zeigt die echte Warteschlangen-Position. Die Nachtroutine (`aktivitaet.ps1` im Scheduled Task) bildet `suCmp` nach — bei Änderungen dort mitziehen. Migration: `migration-2026-09-26-gesuch-fuer-wen.sql`
 - 📱 **Signal-Links** – direkte Verlinkung zum Signal-Kontakt
 - 🔒 **Admin-PIN** – schützt Spiele-Anlage und Setup (Standard: `0000`)
 - ☁️ **Supabase Realtime** – alle Mitglieder sehen Änderungen sofort
