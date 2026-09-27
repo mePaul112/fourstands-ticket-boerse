@@ -64,7 +64,10 @@ Lebende Liste offener Punkte. Stand: 2026-09-26.
 
 ## 🗄️ Später / Backlog (kein Go-Live-Blocker)
 
-- [ ] Echtes Web-Push bei Match (bewusst zurückgestellt — bräuchte Server/Edge Function + VAPID; iOS nur als installierte PWA).
+- ~~Echtes Web-Push bei Match~~ — **verworfen (Stephan, 27.09.2026):** bräuchte einen eigenen
+  Server/Edge Function + VAPID und verursacht laufende Kosten; bewusst nicht vorgesehen. Beim
+  Fanclub-Treffen 22.09.2026 nachgefragt, Antwort per Mail. Ersatz bleibt die opt-in
+  Browser-Benachrichtigung (⋮ → 🔔 Match-Benachrichtigung, nur bei geöffnetem Tab).
 - [ ] pg_cron als Sicherheitsnetz für die Match-Ablauffrist (rückt sonst nur vor, wenn jemand die App offen hat).
 - [ ] DB-Partial-Unique-Index gegen doppelte aktive Suchen (aktuell clientseitig).
 - [x] `dealDone` atomar per Supabase-RPC (vorher zwei Einzel-Updates). Umgesetzt 2026-08-29 im Zuge
