@@ -2,6 +2,8 @@
 
 FC St. Pauli Fanclub **FourStands** – self-hosted ticket exchange app.
 
+> Einordnung: eigenständiger Hauptpfad **03 FourStands** (Leitfaden: `C:\Users\steph\OneDrive - prodAIx\xx_Lebensraum\LEITFADEN-Projektstruktur.md`, globale Regeln: `C:\Users\steph\.claude\CLAUDE.md`). Tägliche Routine: `C:\Users\steph\.claude\scheduled-tasks\fourstands-feedback-check\`. Chat-Titel `[FourStands] …`.
+
 ## Was ist das?
 
 Eine Single-File Web-App (`index.html`) für den Fanclub FourStands (FC St. Pauli), die Ticket-Suche, -Angebote und -Tausch verwaltet. Kein Backend-Server – die App läuft statisch auf GitHub Pages und nutzt **Supabase** als Echtzeit-Datenbank.
