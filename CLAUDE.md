@@ -78,6 +78,10 @@ cfg.pin    // Admin-PIN (4 Ziffern, default: '0000')
 
 **Supabase-Schema erweitern**: SQL im Setup-Tab der App anpassen UND `mapei()` / `todb()` Funktionen im JS aktualisieren.
 
+## Regeln
+
+- **Hilfe mitpflegen (Stephan, 19.06.2026):** Jede Funktions- oder Bedienänderung zieht die In-App-Hilfe (?-Reiter, `helpPage()`) im selben Commit nach, zweisprachig DE und EN. Die Hilfe ist die einzige Anlaufstelle der Mitglieder; veraltete Hilfe erzeugt direkt Rückfragen.
+
 ## Deployment
 
 Push auf `main` → GitHub Actions deployt automatisch auf GitHub Pages → App live unter `https://[username].github.io/fourstands-ticket-boerse/`
