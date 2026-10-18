@@ -2,7 +2,7 @@
 
 FC St. Pauli Fanclub **FourStands** – self-hosted ticket exchange app.
 
-> Einordnung: eigenständiger Hauptpfad **03 FourStands** (Leitfaden: `C:\Users\steph\OneDrive - prodAIx\xx_Lebensraum\LEITFADEN-Projektstruktur.md`, globale Regeln: `C:\Users\steph\.claude\CLAUDE.md`). Tägliche Routine: `C:\Users\steph\.claude\scheduled-tasks\fourstands-feedback-check\`. Chat-Titel `[FourStands] …`.
+> Einordnung: eigenständiger Hauptpfad **03 FourStands** (Leitfaden: `C:\Users\steph\OneDrive - prodAIx\Arbeit\07_Claude\LEITFADEN-Projektstruktur.md`, globale Regeln: `C:\Users\steph\.claude\CLAUDE.md`). Tägliche Routine: `C:\Users\steph\.claude\scheduled-tasks\fourstands-feedback-check\`. Chat-Titel `[FourStands] …`.
 
 ## Was ist das?
 
