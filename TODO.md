@@ -12,7 +12,8 @@ Lebende Liste offener Punkte. Stand: 2026-09-26.
     dann kann auch ein Gesuch für andere drankommen). #-Nummer = echte Position.
   - **Geändert 21.11.2026 (Stephan, Anlass Bochum-Heimspiel):** `suCmp` ersetzt durch `suOrder`: `fuer` zuerst
     (Mitglied immer vor „für andere“), Zurückstufung nur noch **ein Platz** nach hinten. Hilfe DE/EN und
-    `aktivitaet.ps1` (`Sort-Su`) nachgezogen. Noch nicht committet/deployt.
+    `aktivitaet.ps1` (`Sort-Su`) nachgezogen. Commit `f81a634`, live seit 21.11.2026; Hilfe-Abschnitt
+    „Matches & Warteschlange“ (Vergabe, Verzicht, Frist) im Folge-Commit ergänzt.
   - **Korrektur (Stephan, 26.09.2026):** „Für mich selbst" gilt auch **mit Begleitung** (Anzahl frei);
     „für andere" nur, wenn das Mitglied selbst **nicht** mitgeht. Die zuerst ausgelieferte Fassung
     (selbst = genau 1 Ticket, Begleitung als zweites Gesuch, ein Gesuch je Art) ist zurückgenommen —
