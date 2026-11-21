@@ -1214,15 +1214,29 @@ async function nextGameSmart(){
   return nextGameId();
 }
 // Warteschlangen-Reihenfolge der Suchen (Mitglieder-Feedback 09/2026):
-//   1. defer (Verzicht/abgelaufene Frist stuft zurueck)
-//   2. fuer: Gesuche, bei denen das Mitglied selbst mitgeht (auch mit Begleitung), vor Gesuchen
-//      nur fuer andere ('andere' rutscht automatisch hinter das jeweils letzte Selbst-Gesuch,
-//      auch hinter spaeter eingetragene)
-//   3. Zeitstempel. Alt-Eintraege ohne Angabe (fuer = NULL) zaehlen als 'selbst'.
+// "Mitglieder first" ohne Ausnahme seit 11/2026 (Anlass: Bochum-Heimspiel, Zurueckgestufte standen hinter 'andere'):
+//   1. fuer: Gesuche, bei denen das Mitglied selbst mitgeht (auch mit Begleitung), IMMER vor Gesuchen
+//      nur fuer andere ('andere' steht hinter dem letzten Selbst-Gesuch, auch hinter spaeter eingetragenen
+//      und auch hinter zurueckgestuften). Alt-Eintraege ohne Angabe (fuer = NULL) zaehlen als 'selbst'.
+//   2. Innerhalb der Gruppe zeitlich. Jede Zurueckstufung (defer: Verzicht/abgelaufene Frist) schiebt
+//      nur um EINEN Platz nach hinten: Schluessel = Platz nach Zeit + defer. Bei Gleichstand steht vorn,
+//      wer weniger Zurueckstufungen hat (sonst haette die erste Zurueckstufung keine Wirkung, und zwei
+//      Nicht-Reagierende koennten sich ein Angebot endlos hin- und herreichen), dann der fruehere Eintrag.
+// Erwartet ALLE offenen Suchen eines Spiels (der Platz haengt von der ganzen Schlange ab) - nie eine
+// gefilterte Teilmenge sortieren. Die Nachtroutine (aktivitaet.ps1, Sort-Su) bildet das nach.
 const suRank=e=>e.fu==='andere'?1:0;
-const suCmp=(a,b)=>((a.defer||0)-(b.defer||0))||(suRank(a)-suRank(b))||(new Date(a.ts)-new Date(b.ts));
-const gei=typ=>st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o')
-             .sort(typ==='su'?suCmp:(a,b)=>new Date(a.ts)-new Date(b.ts));
+function suOrder(list){
+  const out=[];
+  [0,1].forEach(r=>{
+    list.filter(e=>suRank(e)===r).sort((a,b)=>new Date(a.ts)-new Date(b.ts))
+        .map((e,i)=>({e,i,d:e.defer||0}))
+        .sort((a,b)=>((a.i+a.d)-(b.i+b.d))||(a.d-b.d)||(a.i-b.i))
+        .forEach(x=>out.push(x.e));
+  });
+  return out;
+}
+const gei=typ=>{ const l=st.ei.filter(e=>e.sid===st.aktiv&&e.typ===typ&&e.s==='o');
+                 return typ==='su'?suOrder(l):l.sort((a,b)=>new Date(a.ts)-new Date(b.ts)); };
 const spById=id=>st.sp.find(s=>s.id===id)||null;
 const gicon=s=>s?(s.typ==='heim'?'🏟️':'✈️'):'';
 // Globaler Tausch-Pool (spielübergreifend, nur offene). Live: eigene Query (taball); offline: aus st.ei.
@@ -1237,7 +1251,7 @@ const copiesE=id=>[st.ei.find(e=>e.id===id),taball.find(e=>e.id===id)].filter(Bo
 // Prioritaets-Matching (Suche<->Biete, 1:1) fuer ein Spiel — gemeinsame Logik
 function sbMatchesForGame(gid){
   const open=st.ei.filter(e=>e.sid===gid&&e.s==='o');
-  const su=open.filter(e=>e.typ==='su').sort(suCmp);
+  const su=suOrder(open.filter(e=>e.typ==='su'));
   const bi=open.filter(e=>e.typ==='bi').sort((a,b)=>new Date(a.ts)-new Date(b.ts));
   const taken=new Set(), res=[];
   bi.forEach(b=>{ const s=su.find(x=>!taken.has(x.id)&&(x.br===b.br||!x.br)); if(s){ taken.add(s.id); res.push({s,b}); } });
@@ -1686,10 +1700,11 @@ function cgrp(typs){
   if(!showDone) all=all.filter(e=>e.s==='o');
   if(onlyMine&&(me.nm||me.si)) all=all.filter(isMine);
   all.sort((a,b)=>{ const sd=(a.s==='o'?0:1)-(b.s==='o'?0:1); return sd!==0?sd:new Date(a.ts)-new Date(b.ts); });
-  // Offene Suchen in echter Warteschlangen-Reihenfolge (suCmp) auf ihre Plaetze zurueckverteilen:
+  // Offene Suchen in echter Warteschlangen-Reihenfolge (suOrder ueber die GANZE Schlange, auch bei "Nur meine") auf ihre Plaetze zurueckverteilen:
   // Nummer #n = tatsaechliche Position; Biete/Tausch in der Uebersicht bleiben chronologisch dazwischen.
   const suSlots=[]; all.forEach((e,i)=>{ if(e.typ==='su'&&e.s==='o')suSlots.push(i); });
-  const suSorted=suSlots.map(i=>all[i]).sort(suCmp); suSlots.forEach((i,k)=>all[i]=suSorted[k]);
+  const suPos=new Map(gei('su').map((e,i)=>[e.id,i]));
+  const suSorted=suSlots.map(i=>all[i]).sort((a,b)=>suPos.get(a.id)-suPos.get(b.id)); suSlots.forEach((i,k)=>all[i]=suSorted[k]);
   if(!all.length){
     if(cm!=='live') return`<div class="empty"><span class="empty-ico">⚠️</span>${t('empty_offline')}</div>`;
     return`<div class="empty"><span class="empty-ico">📭</span>${onlyMine?t('empty_mine'):showDone?t('empty_all'):t('empty_first')}</div>`;
@@ -1825,7 +1840,7 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; Warteschlange</div>
         <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Gibt es Matches, zeigt eine goldene <strong>⚡-Pille</strong> im Spielbalken die Anzahl; ein Tipp darauf öffnet die Match-Liste. Zusätzlich sind passende Einträge in der Liste mit ⚡ markiert. <strong>Direkt zum Partner:</strong> Tippe im Popup auf einen Namen – oder bei einem markierten Eintrag auf „Partner-Eintrag öffnen" – und du springst direkt zum passenden Eintrag (dort ist der Signal-Kontakt).</p>
         <p><strong>Vergabe nach Reihenfolge:</strong> Suchen sind nach Eingang nummeriert (#1, #2 …). Pro Angebot erhält nur die <strong>früheste passende</strong> Suche das Match – die anderen warten.</p>
-        <p><strong>🙋 Für mich / 👥 nur für andere:</strong> Bei jeder Suche gibst du an, ob du <strong>selbst mitgehst</strong> – allein oder mit Begleitung (dann einfach die Anzahl erhöhen; wie viele Begleit-Tickets zusätzlich möglich sind, legt der Admin fest, die aktuelle Grenze steht im Suche-Formular) – oder ob du das Ticket <strong>nur für jemand anderes</strong> suchst und selbst nicht mitgehst. Gesuche nur für andere stehen in der Warteschlange <strong>automatisch hinter dem letzten Gesuch, bei dem ein Mitglied selbst mitgeht</strong> – auch hinter solchen, die erst später dazukommen. Die Nummer #n auf der Karte zeigt immer den aktuellen Platz; Gesuche nur für andere tragen das Schild „👥 nur für andere“. Einzige Ausnahme vom Vorrang: Wer bei einem Match verzichtet oder die Frist verstreichen lässt, rutscht zurück – dann kann auch ein Gesuch für andere drankommen. Alte Gesuche von vor dieser Regel zählen als „für mich selbst“.</p>
+        <p><strong>🙋 Für mich / 👥 nur für andere:</strong> Bei jeder Suche gibst du an, ob du <strong>selbst mitgehst</strong> – allein oder mit Begleitung (dann einfach die Anzahl erhöhen; wie viele Begleit-Tickets zusätzlich möglich sind, legt der Admin fest, die aktuelle Grenze steht im Suche-Formular) – oder ob du das Ticket <strong>nur für jemand anderes</strong> suchst und selbst nicht mitgehst. Gesuche nur für andere stehen in der Warteschlange <strong>automatisch hinter dem letzten Gesuch, bei dem ein Mitglied selbst mitgeht</strong> – auch hinter solchen, die erst später dazukommen. Die Nummer #n auf der Karte zeigt immer den aktuellen Platz; Gesuche nur für andere tragen das Schild „👥 nur für andere“. Wer bei einem Match verzichtet oder die Frist verstreichen lässt, rückt <strong>einen Platz nach hinten</strong>, bleibt aber immer vor den Gesuchen nur für andere. Alte Gesuche von vor dieser Regel zählen als „für mich selbst“.</p>
         <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du einen Platz zurück – die/der Nächste kommt dran, du behältst die zweite Chance.<br>
         <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar).<br>
@@ -1913,7 +1928,7 @@ function helpPage(){
         <div class="setup-section-title" style="border:none;margin-bottom:6px">⚡ Matches &amp; queue</div>
         <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. When there are matches, a gold <strong>⚡ pill</strong> in the match bar shows the count; tapping it opens the match list. Matching entries are also marked with ⚡ in the list. <strong>Jump to the partner:</strong> tap a name in the popup – or “open the partner entry” on a marked entry – to jump straight to the matching entry (where the Signal contact is).</p>
         <p><strong>Allocation by order:</strong> searches are numbered by arrival (#1, #2 …). Each offer goes to the <strong>earliest matching</strong> search only – the others wait.</p>
-        <p><strong>🙋 For me / 👥 only for others:</strong> with every search you state whether you <strong>are going yourself</strong> – alone or with companions (just raise the quantity; the admin sets how many companion tickets are allowed, the current limit is shown in the search form) – or whether the ticket is <strong>only for someone else</strong> and you are not going. Searches only for others are automatically queued <strong>behind the last search where a member is going themselves</strong> – including such searches added later. The #n on the card always shows the current position; searches only for others carry the label “👥 only for others”. The only exception to this priority: whoever passes on a match or lets the deadline expire moves back – then a search for others can get its turn. Older searches from before this rule count as “for myself”.</p>
+        <p><strong>🙋 For me / 👥 only for others:</strong> with every search you state whether you <strong>are going yourself</strong> – alone or with companions (just raise the quantity; the admin sets how many companion tickets are allowed, the current limit is shown in the search form) – or whether the ticket is <strong>only for someone else</strong> and you are not going. Searches only for others are automatically queued <strong>behind the last search where a member is going themselves</strong> – including such searches added later. The #n on the card always shows the current position; searches only for others carry the label “👥 only for others”. Whoever passes on a match or lets the deadline expire moves <strong>one place back</strong>, but always stays ahead of searches only for others. Older searches from before this rule count as “for myself”.</p>
         <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop one place – the next person gets a turn and you keep a second chance.<br>
         <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over (remaining time shows on your match card; configurable in Setup).<br>
