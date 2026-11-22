@@ -1087,6 +1087,8 @@ let dtgt=null, adm=false, ptgt=null, pbuf='';
 let showDone=false, onlyMine=false, showArchiv=false, theme='dark', lang='de';
 let me={nm:'',si:''};
 let expiryH=48, evaluating=false;
+let ruheVon='22:00', ruheBis='08:00';   // Ruhezeit der Match-Frist (config: ruhe_von, ruhe_bis; leer = aus)
+const RUHE_VOR_H=24;                    // so viele Stunden vor Anstoss gilt die Ruhezeit nicht mehr
 let maxSu=5, suTerminiert=true, maxBegleit=3; // Gesuch-Regeln (config: max_su, su_terminiert, max_begleit)
 let notif=false;                // Browser-Benachrichtigung bei eigenen Matches (opt-in)
 let adminPinHash=null; // globaler Admin-PIN (SHA-256-Hash, aus config-Tabelle) — geräteübergreifend
@@ -1139,7 +1141,7 @@ const I18N={
   btn_su:'🔍 In Warteschlange eintragen',btn_bi:'🎟️ Ticket eintragen',btn_ta:'🔄 Tausch eintragen',
   dm_title:'Eintrag entfernen?',dm_body:'Der Eintrag wird ausgeblendet (nicht endgültig gelöscht). Admin kann ihn im Supabase-Dashboard wiederherstellen.',dm_cancel:'Abbrechen',dm_delete:'Entfernen',t_removed:'✓ Entfernt',rm_title:'Eintrag entfernen (Admin)',
   time_now:'gerade eben',time_min:'vor % Min.',time_hr:'vor % Std.',
-  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel hast du schon ein offenes Gesuch dieser Art (gleicher Signal-Kontakt). Je Spiel geht eins für dich und eins nur für andere.',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag. Tipp: Über ⋮ → 🔔 bekommst du Browser-Hinweise bei neuen Matches.',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',
+  t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_pause:'pausiert bis % Uhr',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel hast du schon ein offenes Gesuch dieser Art (gleicher Signal-Kontakt). Je Spiel geht eins für dich und eins nur für andere.',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag. Tipp: Über ⋮ → 🔔 bekommst du Browser-Hinweise bei neuen Matches.',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',
   m_notif:'Match-Benachrichtigung',st_on:'An',st_off:'Aus',t_notif_on:'✓ Benachrichtigung bei neuen Matches aktiv (solange die Börse in einem Tab geöffnet ist)',t_notif_off:'Match-Benachrichtigung aus',t_notif_denied:'Vom Browser blockiert – bitte Benachrichtigungen für diese Seite in den Browser-Einstellungen erlauben',t_notif_unsup:'Dieser Browser unterstützt keine Benachrichtigungen',nt_title:'⚡ Neues Match für dich!',nt_hint:'jetzt per Signal melden',
   t_su_locked:'Gesuche sind für dieses Spiel noch nicht möglich – es ist noch nicht zeitgenau terminiert.',su_locked_info:'⏳ <strong>Noch keine Gesuche möglich.</strong> Dieses Spiel ist noch nicht zeitgenau terminiert (die Anstoßzeit fehlt). Gesuche werden freigeschaltet, sobald der Spieltag terminiert ist – so verhindern wir Vorrats-Gesuche für eine bessere Platzierung in der Warteschlange.',su_rule_max:'Fairness-Regel: maximal % aktive Gesuche gleichzeitig (für anstehende Spiele).',t_su_max:'Maximal % aktive Gesuche gleichzeitig – bitte zuerst ein altes Gesuch erledigen oder entfernen.',t_err:'Fehler: ',
   wq_sum:'▶ Beispiel ansehen: So läuft die Warteschlange',wq_step:'Schritt % von #',wq_prev:'Zurück',wq_next:'Weiter',wq_again:'Von vorn',wq_play:'Abspielen',wq_pause:'Pause',wq_nx:'🎟 dran',wq_df:'× zurück',wq_self:'für mich',wq_oth:'für andere',wq_note:'Die Namen sind erfunden. Ein Angebot geht immer an das vorderste Gesuch, zu dem der Stand passt.',
@@ -1172,7 +1174,7 @@ const I18N={
   btn_su:'🔍 Join the queue',btn_bi:'🎟️ Add ticket',btn_ta:'🔄 Add swap',
   dm_title:'Remove entry?',dm_body:'The entry will be hidden (not permanently deleted). An admin can restore it in the Supabase dashboard.',dm_cancel:'Cancel',dm_delete:'Remove',t_removed:'✓ Removed',rm_title:'Remove entry (admin)',
   time_now:'just now',time_min:'% min ago',time_hr:'% h ago',
-  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You already have an open search of this kind for this match (same Signal contact). Per match you can have one for yourself and one only for others.',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry. Tip: enable browser alerts for new matches via ⋮ → 🔔.',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',
+  t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_pause:'paused until %',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You already have an open search of this kind for this match (same Signal contact). Per match you can have one for yourself and one only for others.',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry. Tip: enable browser alerts for new matches via ⋮ → 🔔.',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',
   m_notif:'Match notifications',st_on:'On',st_off:'Off',t_notif_on:'✓ Notifications for new matches enabled (while the board is open in a tab)',t_notif_off:'Match notifications off',t_notif_denied:'Blocked by the browser – please allow notifications for this site in the browser settings',t_notif_unsup:'This browser does not support notifications',nt_title:'⚡ New match for you!',nt_hint:'get in touch via Signal now',
   t_su_locked:'Searches are not possible for this match yet – its kickoff is not scheduled yet.',su_locked_info:'⏳ <strong>No searches yet.</strong> This match has no fixed kickoff time yet. Searches open up once the match is officially scheduled – this prevents stockpiling searches for a better queue position.',su_rule_max:'Fairness rule: at most % active searches at a time (for upcoming matches).',t_su_max:'At most % active searches at a time – please close or remove an old search first.',t_err:'Error: ',
   wq_sum:'▶ Show example: how the queue works',wq_step:'Step % of #',wq_prev:'Back',wq_next:'Next',wq_again:'Start over',wq_play:'Play',wq_pause:'Pause',wq_nx:'🎟 next',wq_df:'× back',wq_self:'for me',wq_oth:'for others',wq_note:'The names are made up. An offer always goes to the first search in the queue that matches its stand.',
@@ -1210,13 +1212,46 @@ const brei=sp=>sp ? (sp.typ==='heim'?HEIM:AUSW) : [...HEIM,...AUSW];
 const anHM=s=>{ if(!s||!s.an||s.an.length<16) return ''; const t=s.an.slice(11,16); return t==='00:00'?'':t; };
 // Spiel gilt als "terminiert", wenn eine echte Anstosszeit feststeht (00:00 = Platzhalter der Liga)
 const isTerminiert=sp=>!!anHM(sp);
+// ── Ruhezeit der Match-Frist (seit 11/2026) ───────────────────────────────────
+// In der Ruhezeit (config ruhe_von/ruhe_bis, 'HH:MM' in deutscher Zeit, z. B. 22:00–08:00) zaehlt die
+// Frist nicht herunter — sonst wird zurueckgestuft, wer nachts ein Match bekommt und schlaeft.
+// Ausnahme: in den letzten RUHE_VOR_H Stunden vor dem Anstoss laeuft die Frist durch, damit eine
+// Karte vom Vorabend vor dem Spiel noch weitergereicht werden kann. Beide Felder leer/gleich = aus.
+const hm2min=s=>{ const m=/^(\d{1,2}):(\d{2})$/.exec(s||''); return m&&+m[1]<24&&+m[2]<60?(+m[1])*60+(+m[2]):null; };
+const ruheAn=()=>{ const a=hm2min(ruheVon), b=hm2min(ruheBis); return a!=null&&b!=null&&a!==b; };
+const inRuhe=mod=>{ const a=hm2min(ruheVon), b=hm2min(ruheBis); return a<b?(mod>=a&&mod<b):(mod>=a||mod<b); };
+// Minute des Tages in deutscher Zeit — unabhaengig von der Zeitzone des Geraets, damit alle dieselbe Frist sehen
+const berlinMin=ms=>{ try{ const p=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(ms));
+    return (+p.find(x=>x.type==='hour').value)*60+(+p.find(x=>x.type==='minute').value); }
+  catch(e){ const d=new Date(ms); return d.getHours()*60+d.getMinutes(); } };
+// Anstoss eines Spiels als Zeitpunkt (ms). spiele.anstoss ist deutsche Ortszeit ohne Zone; ohne Uhrzeit 12:00.
+function kickMs(gid){
+  const s=spById(gid); if(!s||!s.da) return null;
+  const [y,mo,d]=String(s.da).split('-').map(Number), [h,mi]=(anHM(s)||'12:00').split(':').map(Number);
+  if(!y||!mo||!d) return null;
+  const guess=Date.UTC(y,mo-1,d,h,mi); let off=berlinMin(guess)-(h*60+mi); if(off>720)off-=1440; if(off<-720)off+=1440;
+  return guess-off*60000;
+}
+// Ab wann die Ruhezeit fuer ein Spiel nicht mehr gilt (ms); ohne Anstoss nie
+const ruheEnde=kick=>kick!=null?kick-RUHE_VOR_H*3600000:Infinity;
+// Verbrauchte Fristzeit zwischen since und now (ms), Ruhezeit ausgenommen. Minutengenau; die Minute des
+// Tages wird einmal bestimmt und dann hochgezaehlt (eine Zeitumstellung mitten in der Frist ist vernachlaessigbar).
+function fristUsed(since,now,kick){
+  if(!ruheAn()) return Math.max(0,now-since);
+  const frei=ruheEnde(kick), cap=since+40*86400000; let used=0, t=since, m=berlinMin(since);
+  while(t<now&&t<cap){ if(t>=frei||!inRuhe(m)) used+=Math.min(60000,now-t); t+=60000; m=(m+1)%1440; }
+  return used;
+}
+const fristPaused=(now,kick)=>ruheAn()&&now<ruheEnde(kick)&&inRuhe(berlinMin(now));
 function fristTxt(e){
   if(!e||!e.msince) return '';
-  const rem=new Date(e.msince).getTime()+(expiryH||48)*3600000-Date.now();
+  const now=Date.now(), kick=kickMs(e.sid);
+  const rem=(expiryH||48)*3600000-fristUsed(new Date(e.msince).getTime(),now,kick);
   if(rem<=0) return t('frist_over');
   const h=rem/3600000, d=Math.floor(h/24);
   const v = d>=1 ? (d+' '+t('unit_d')) : (Math.max(1,Math.floor(h))+' '+t('unit_h'));
-  return t('frist_left').replace('%',v);
+  const txt=t('frist_left').replace('%',v);
+  return fristPaused(now,kick) ? txt+' · '+t('frist_pause').replace('%',ruheBis) : txt;
 }
 // Signal-Kontakt: Telefonnummer -> klickbarer Link; Benutzername -> kopierbar (Suche in Signal)
 const isPhone=si=>/^[+0-9][0-9 /()\-]*$/.test((si||'').trim());
@@ -1474,6 +1509,7 @@ async function loadConfig(){
   try{ const{data,error}=await sb.from('config').select('key,value');
     if(!error&&Array.isArray(data)){ const m={}; data.forEach(r=>m[r.key]=r.value);
       const n=parseInt(m.expiry_h); if(n>0)expiryH=n;
+      if(m.ruhe_von!=null)ruheVon=m.ruhe_von; if(m.ruhe_bis!=null)ruheBis=m.ruhe_bis;
       const ms=parseInt(m.max_su); if(!isNaN(ms)&&ms>=0)maxSu=ms;
       if(m.su_terminiert!=null)suTerminiert=m.su_terminiert==='1';
       const mb=parseInt(m.max_begleit); if(!isNaN(mb)&&mb>=0)maxBegleit=mb;
@@ -1493,7 +1529,7 @@ async function evalQueue(){
       st.ei.filter(e=>e.sid===gid&&e.typ==='su'&&e.s==='o').forEach(s=>{
         if(matched.has(s.id)){
           if(!s.msince){ const iso=new Date(now).toISOString(); ops.push({id:s.id,f:{match_since:iso},loc:()=>s.msince=iso}); }
-          else if(now-new Date(s.msince).getTime()>durMs){ const nd=(s.defer||0)+1; ops.push({id:s.id,f:{defer:nd,match_since:null},loc:()=>{s.defer=nd;s.msince=null;}}); }
+          else if(fristUsed(new Date(s.msince).getTime(),now,kickMs(gid))>durMs){ /* Ruhezeit zaehlt nicht mit */ const nd=(s.defer||0)+1; ops.push({id:s.id,f:{defer:nd,match_since:null},loc:()=>{s.defer=nd;s.msince=null;}}); }
         }else if(s.msince){ ops.push({id:s.id,f:{match_since:null},loc:()=>s.msince=null}); }
       });
     });
@@ -1953,7 +1989,7 @@ function helpPage(){
         ${wqBox()}
         <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du <strong>einen Platz</strong> zurück – die/der Nächste kommt dran, du behältst die zweite Chance. Hinter ein Gesuch nur für andere fällst du dabei nie.<br>
-        <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach und du rutschst wie beim Verzicht <strong>einen Platz</strong> zurück (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar). Achtung: Die Frist läuft auch nachts. Haben mehrere nacheinander verzichtet oder die Frist verpasst, kommt zuerst dran, wer das seltener getan hat.<br>
+        <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach und du rutschst wie beim Verzicht <strong>einen Platz</strong> zurück (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar). <strong>Nachts pausiert die Frist:</strong> In der Ruhezeit${ruheAn()?' (derzeit '+ruheVon+'–'+ruheBis+' Uhr)':''} zählt sie nicht herunter, auf der Match-Karte steht dann „pausiert bis …“. Ausnahme: In den letzten ${RUHE_VOR_H} Stunden vor dem Anstoß läuft die Frist durch, damit eine Karte vor dem Spiel noch weitergereicht werden kann. Haben mehrere nacheinander verzichtet oder die Frist verpasst, kommt zuerst dran, wer das seltener getan hat.<br>
         <strong>✏️ Bearbeiten / Erledigt:</strong> Eigene Einträge kannst du jederzeit ändern oder zurückziehen.<br>
         <strong>↩ Wieder öffnen:</strong> Versehentlich auf „Deal" oder „Erledigt" getippt? Schalte oben <strong>„Erledigte zeigen"</strong> ein – bei deinem erledigten Eintrag erscheint dann ein <strong>„Wieder öffnen"</strong>-Knopf, der ihn zurück auf offen setzt. (Hinweis: Das öffnet nur deinen eigenen Eintrag; beim Tausch müssen ggf. beide Seiten wieder öffnen.)<br>
         <strong>🧹 Nach dem Spiel:</strong> Ist ein Spiel zwei Tage vorbei, räumt die Börse alle Einträge dazu von selbst weg – offene wie erledigte. Du musst also nichts nachpflegen; „Wieder öffnen" geht danach nicht mehr.</p>
@@ -2042,7 +2078,7 @@ function helpPage(){
         ${wqBox()}
         <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop <strong>one place</strong> – the next person gets a turn and you keep a second chance. You never fall behind a search only for others.<br>
-        <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over and you drop <strong>one place</strong>, just like a pass (remaining time shows on your match card; configurable in Setup). Note: the deadline also runs at night. If several people have passed or missed the deadline in a row, whoever did so less often goes first.<br>
+        <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over and you drop <strong>one place</strong>, just like a pass (remaining time shows on your match card; configurable in Setup). <strong>The deadline pauses at night:</strong> during quiet hours${ruheAn()?' (currently '+ruheVon+'–'+ruheBis+', German time)':''} it does not count down, and your match card shows “paused until …”. Exception: in the last ${RUHE_VOR_H} hours before kick-off the deadline keeps running, so a ticket can still be passed on before the match. If several people have passed or missed the deadline in a row, whoever did so less often goes first.<br>
         <strong>✏️ Edit / Done:</strong> you can change or withdraw your own entries anytime.<br>
         <strong>↩ Reopen:</strong> tapped “Deal” or “Done” by mistake? Turn on <strong>“Show done”</strong> at the top – your done entry then shows a <strong>“Reopen”</strong> button that sets it back to open. (Note: this only reopens your own entry; for a swap both sides may need to reopen.)<br>
         <strong>🧹 After the match:</strong> two days after a match has been played, the board clears out all its entries by itself – open ones as well as done ones. Nothing for you to tidy up; “Reopen” is no longer available afterwards.</p>
@@ -2244,6 +2280,8 @@ CREATE TABLE IF NOT EXISTS public.config (key text PRIMARY KEY, value text);
 ALTER TABLE public.config ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "FourStands" ON public.config FOR ALL TO anon USING (true) WITH CHECK (true);
 INSERT INTO public.config(key,value) VALUES ('expiry_h','48') ON CONFLICT (key) DO NOTHING;
+INSERT INTO public.config(key,value) VALUES ('ruhe_von','22:00') ON CONFLICT (key) DO NOTHING;
+INSERT INTO public.config(key,value) VALUES ('ruhe_bis','08:00') ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.config(key,value) VALUES ('max_su','5') ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.config(key,value) VALUES ('max_begleit','3') ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.config(key,value) VALUES ('su_terminiert','1') ON CONFLICT (key) DO NOTHING;
@@ -2336,7 +2374,13 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $do$;`;
         <div class="form-grid" style="max-width:240px">
           <div class="fg"><label>Frist (Stunden)</label><input id="exp-h" type="number" min="1" value="${expiryH}"></div>
         </div>
+        <p><strong>Ruhezeit:</strong> In diesem Zeitfenster zählt die Frist nicht herunter (deutsche Zeit). Wer nachts ein Match bekommt, wird so nicht im Schlaf zurückgestuft. Beide Felder leer = keine Ruhezeit.</p>
+        <div class="form-grid" style="max-width:320px">
+          <div class="fg"><label>Ruhezeit von</label><input id="exp-rv" type="time" value="${hm2min(ruheVon)!=null?ruheVon:''}"></div>
+          <div class="fg"><label>Ruhezeit bis</label><input id="exp-rb" type="time" value="${hm2min(ruheBis)!=null?ruheBis:''}"></div>
+        </div>
         <button class="btn-primary" onclick="saveExpiry()">Frist speichern</button>
+        <p style="font-size:11px;color:var(--mu);margin-top:8px">Ausnahme: In den letzten ${RUHE_VOR_H} Stunden vor dem Anstoß gilt die Ruhezeit nicht – sonst könnte eine Karte vom Vorabend vor dem Spiel nicht mehr weitergereicht werden.</p>
         <p style="font-size:11px;color:var(--mu);margin-top:8px">Hinweis: Die Frist rückt vor, sobald jemand die App öffnet/aktualisiert (kein Hintergrund-Timer).</p>
       </div>
     </div>
@@ -2762,9 +2806,11 @@ async function saveEM(){
 async function saveExpiry(){
   const v=parseInt(document.getElementById('exp-h').value);
   if(!(v>0)){ toast(t('t_err')+'Stunden > 0',true); return; }
+  const rv=document.getElementById('exp-rv').value.slice(0,5), rb=document.getElementById('exp-rb').value.slice(0,5);
+  if((rv&&hm2min(rv)==null)||(rb&&hm2min(rb)==null)||(!!rv!==!!rb)){ toast(t('t_err')+'Ruhezeit: beide Uhrzeiten angeben oder beide leer lassen',true); return; }
   try{ sld(true);
-    if(sb){ const{error}=await sb.from('config').upsert({key:'expiry_h',value:String(v)},{onConflict:'key'}); if(error)throw error; }
-    expiryH=v; await evalQueue(); ren(); go('se'); toast(t('t_saved'));
+    if(sb){ const{error}=await sb.from('config').upsert([{key:'expiry_h',value:String(v)},{key:'ruhe_von',value:rv},{key:'ruhe_bis',value:rb}],{onConflict:'key'}); if(error)throw error; }
+    expiryH=v; ruheVon=rv; ruheBis=rb; await evalQueue(); ren(); go('se'); toast(t('t_saved'));
   }catch(e){ toast(t('t_err')+(e.message||e),true); }
   finally{ sld(false); }
 }
