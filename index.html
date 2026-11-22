@@ -718,6 +718,37 @@ body.light .menu-item:hover { background: #00000008; }
   margin-bottom: 8px;
 }
 .setup-block p { font-size: 12px; color: var(--mu); line-height: 1.7; margin-bottom: 8px; }
+/* Hilfe: Beispiel-Warteschlange (wqBox) */
+.wq { margin: 4px 0 12px; border: 1px solid var(--bd); background: var(--sf2); }
+.wq summary { cursor: pointer; padding: 10px 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--tx); list-style: none; }
+.wq summary::-webkit-details-marker { display: none; }
+.wq[open] summary { color: var(--mu); }
+.wq-in { padding: 2px 8px 10px; }
+.wq-dots { display: flex; gap: 4px; margin-bottom: 8px; }
+.wq-dots i { flex: 1; height: 3px; background: var(--bd); }
+.wq-dots i.on { background: var(--red); }
+.setup-block p.wq-cap { min-height: 6.8em; margin-bottom: 6px; }
+.wq-cap strong { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--tx); }
+.wq-stage { position: relative; margin-bottom: 12px; transition: height .5s ease; }
+.wq-c { position: absolute; left: 0; right: 0; height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 10px; overflow: hidden;
+  background: var(--sf); border: 1px solid var(--bd); border-left: 3px solid var(--su); font-family: 'Barlow Condensed', sans-serif;
+  transition: top .6s cubic-bezier(.2,.8,.2,1), opacity .4s, transform .4s; }
+.wq-c.an { border-left-color: var(--mu); }
+.wq-c.first { border-color: var(--ma); }
+.wq-c .n { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--mu); width: 26px; flex: none; }
+.wq-c b { flex: 1 0 auto; white-space: nowrap; font-size: 15px; font-weight: 700; color: var(--tx); }
+.wq-c .ch { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; font-weight: 700; font-size: 10px; letter-spacing: .5px; text-transform: uppercase; padding: 1px 5px; border: 1px solid var(--bd); color: var(--mu); white-space: nowrap; }
+.wq-c .ch.nx, .wq-c.first .n { border-color: var(--ma); color: var(--ma); }
+.wq-c .ch.df { border-color: var(--red); color: var(--red); }
+body.light .wq-c .ch.nx, body.light .wq-c.first .n { color: #b45309; }
+.wq-c.out { opacity: 0; transform: translateX(30px); }
+.wq-c.in { opacity: 0; transform: translateX(-30px); }
+.wq-div { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--mu); transition: top .6s cubic-bezier(.2,.8,.2,1); }
+.wq-ctl { display: flex; gap: 6px; flex-wrap: wrap; }
+.wq-ctl button { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; padding: 7px 14px; background: transparent; color: var(--tx); border: 1px solid var(--bd); cursor: pointer; }
+.wq-ctl button.pri { background: var(--red); border-color: var(--red); color: #fff; }
+.wq-ctl button:disabled { opacity: .4; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .wq-c, .wq-div, .wq-stage { transition: none; } }
 .setup-block a { color: var(--red); }
 .setup-block a:hover { text-decoration: underline; }
 pre {
@@ -1111,6 +1142,13 @@ const I18N={
   t_added:'✓ Eingetragen',t_name:'Bitte Name angeben',t_nogame:'Kein Spiel ausgewählt',t_done:'✓ Erledigt – rückgängig über „Erledigte zeigen"',t_deleted:'✓ Gelöscht',t_linkcopied:'✓ Link kopiert',t_dealdone:'✓ Deal – rückgängig über „Erledigte zeigen"',confirm_deal:'Deal abschließen? Dein Eintrag UND der des Match-Partners werden auf erledigt gesetzt.',empty_offline:'⚠️ Keine Verbindung zur Datenbank – bitte Internet prüfen und neu laden.',empty_first:'Noch keine Einträge für dieses Spiel – sei die/der Erste! 🎟️',t_passed:'⏭ Zurückgestellt – nächste:r ist dran',t_saved:'✓ Gespeichert',deal_btn:'🤝 Deal',deal_t:'Deal durchgeführt – beide Einträge werden erledigt',pass_btn:'⏭ Verzicht',reopen_btn:'↩ Wieder öffnen',reopen_t:'Eintrag wieder auf „offen" setzen',t_reopened:'✓ Wieder geöffnet',edit_t:'Bearbeiten',em_title:'Eintrag bearbeiten',em_save:'Speichern',frist_left:'Frist: noch %',frist_over:'Frist abgelaufen',unit_h:'Std.',unit_d:'Tage',t_dupsu:'Für dieses Spiel hast du schon ein offenes Gesuch dieser Art (gleicher Signal-Kontakt). Je Spiel geht eins für dich und eins nur für andere.',sig_user_t:'Signal-Benutzername – tippen zum Kopieren, dann in Signal suchen',t_sigcopied:'✓ Benutzername kopiert – in Signal suchen',newm:'🆕 % neue Matches seit deinem letzten Besuch',newm1:'🆕 1 neuer Match seit deinem letzten Besuch',newm_ack:'tippen zum Ausblenden',fb_title:'💬 Feedback zur Testphase',fb_intro:'Sag uns kurz, was gut läuft, hakt oder fehlt. Antworten darauf erscheinen für alle sichtbar im 💬-Reiter.',fb_cat:'Art',fb_bug:'🐞 Fehler',fb_idea:'💡 Idee',fb_q:'❓ Verständnisfrage',fb_praise:'👍 Lob',fb_msg:'Nachricht *',fb_send:'Senden',fb_needmsg:'Bitte eine Nachricht eingeben',t_fbsent:'✓ Danke für dein Feedback!',mp_lbl:'Matches',mp_one:'Match',mm_title:'⚡ Matches',mm_intro:'Diese Einträge passen zusammen. Kontakt direkt über den 📱 Signal-Link beim Eintrag. Tipp: Über ⋮ → 🔔 bekommst du Browser-Hinweise bei neuen Matches.',mm_ok:'Verstanden',mm_none:'Aktuell keine Matches für dieses Spiel.',me_title:'Das bin ich',me_intro:'Deine Einträge werden über den Signal-Kontakt erkannt (Pflicht) – nimm auf jedem Gerät denselben. Der Name ist nur ein Anzeigename und jederzeit änderbar.',me_name:'Anzeigename (optional)',me_you:'Du bist',me_change:'ändern',me_setup:'Tippen, um deinen Signal-Kontakt zu setzen (damit deine Einträge erkannt werden)',cho_title:'Neuer Eintrag',cho_su:'Ticket suchen',cho_bi:'Ticket anbieten',cho_ta:'Tauschen',help_steps:'👉 In 3 Schritten: 1) Spiel oben wählen · 2) Suche / Biete / Tausch eintragen · 3) bei ⚡ Match per Signal melden.',
   m_notif:'Match-Benachrichtigung',st_on:'An',st_off:'Aus',t_notif_on:'✓ Benachrichtigung bei neuen Matches aktiv (solange die Börse in einem Tab geöffnet ist)',t_notif_off:'Match-Benachrichtigung aus',t_notif_denied:'Vom Browser blockiert – bitte Benachrichtigungen für diese Seite in den Browser-Einstellungen erlauben',t_notif_unsup:'Dieser Browser unterstützt keine Benachrichtigungen',nt_title:'⚡ Neues Match für dich!',nt_hint:'jetzt per Signal melden',
   t_su_locked:'Gesuche sind für dieses Spiel noch nicht möglich – es ist noch nicht zeitgenau terminiert.',su_locked_info:'⏳ <strong>Noch keine Gesuche möglich.</strong> Dieses Spiel ist noch nicht zeitgenau terminiert (die Anstoßzeit fehlt). Gesuche werden freigeschaltet, sobald der Spieltag terminiert ist – so verhindern wir Vorrats-Gesuche für eine bessere Platzierung in der Warteschlange.',su_rule_max:'Fairness-Regel: maximal % aktive Gesuche gleichzeitig (für anstehende Spiele).',t_su_max:'Maximal % aktive Gesuche gleichzeitig – bitte zuerst ein altes Gesuch erledigen oder entfernen.',t_err:'Fehler: ',
+  wq_sum:'▶ Beispiel ansehen: So läuft die Warteschlange',wq_step:'Schritt % von #',wq_prev:'Zurück',wq_next:'Weiter',wq_again:'Von vorn',wq_play:'Abspielen',wq_pause:'Pause',wq_nx:'🎟 dran',wq_df:'× zurück',wq_self:'für mich',wq_oth:'für andere',wq_note:'Die Namen sind erfunden. Ein Angebot geht immer an das vorderste Gesuch, zu dem der Stand passt.',
+  wq_t1:'Ausgangslage',wq_c1:'Anna, Ben und Cem gehen selbst mit und stehen in der Reihenfolge ihres Eintrags. Dana und Emil suchen nur für andere und stehen dahinter. Das nächste passende Angebot geht an Anna.',
+  wq_t2:'Ein Mitglied kommt später dazu',wq_c2:'Fee trägt sich als Letzte ein, geht aber selbst mit. Sie landet hinter Cem und vor Dana und Emil, obwohl die beiden früher da waren.',
+  wq_t3:'Verzicht oder Frist verpasst',wq_c3:'Anna bekommt ein Angebot und verzichtet, oder sie meldet sich nicht innerhalb der Frist. Sie rutscht genau einen Platz zurück, jetzt ist Ben dran.',
+  wq_t4:'Deal',wq_c4:'Ben macht den Deal und ist raus. Cem rückt nach vorn. Anna bleibt einen Platz hinter ihrem ursprünglichen Platz.',
+  wq_t5:'Mehrfach zurückgestuft',wq_c5:'Anna verpasst noch dreimal die Frist. Sie fällt ans Ende der Mitglieder, aber nie hinter Dana und Emil.',
+  wq_t6:'Erst dann für andere',wq_c6:'Cem, Fee und Anna haben ihre Karten. Erst jetzt, wenn kein passendes Mitglieder-Gesuch mehr offen ist, kommt Dana an die Reihe.',
   l_fuer:'Für wen? *',fuer_selbst:'🙋 Für mich selbst',fuer_selbst_beg:' (auch mit Begleitung)',fuer_andere:'👥 Nur für andere (ich gehe selbst nicht mit)',t_fuer:'Bitte angeben, für wen du das Ticket suchst',tag_andere:'👥 nur für andere',tag_andere_t:'Gesuch nur für andere (das Mitglied geht selbst nicht mit) – steht in der Warteschlange hinter allen Gesuchen, bei denen das Mitglied selbst mitgeht',su_rule_fuer:'Vorrang: Gesuche, bei denen du selbst mitgehst (auch mit Begleitung), stehen vor Gesuchen nur für andere.',su_rule_begleit:'Mit Begleitung: bis zu % Begleit-Tickets zusätzlich zu deinem eigenen (insgesamt max. #).',su_rule_begleit0:'Gesuche für dich selbst: derzeit nur 1 Ticket (keine Begleit-Tickets).',t_begleit_max:'Für dich selbst ist die Anzahl auf % begrenzt (dein eigenes Ticket + Begleitung).' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',consent_once:'By posting, your name + Signal contact are stored and shown to everyone – you already consented to this (details: Help → Privacy).',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
@@ -1137,6 +1175,13 @@ const I18N={
   t_added:'✓ Added',t_name:'Please enter a name',t_nogame:'No match selected',t_done:'✓ Done – undo via "Show done"',t_deleted:'✓ Deleted',t_linkcopied:'✓ Link copied',t_dealdone:'✓ Deal – undo via "Show done"',confirm_deal:'Close the deal? Your entry AND the matched partner will be marked done.',empty_offline:'⚠️ No connection to the database – check your internet and reload.',empty_first:'No entries for this match yet – be the first! 🎟️',t_passed:'⏭ Deferred – next in line',t_saved:'✓ Saved',deal_btn:'🤝 Deal',deal_t:'Deal done – both entries get closed',pass_btn:'⏭ Pass',reopen_btn:'↩ Reopen',reopen_t:'Set entry back to “open”',t_reopened:'✓ Reopened',edit_t:'Edit',em_title:'Edit entry',em_save:'Save',frist_left:'expires in %',frist_over:'expired',unit_h:'h',unit_d:'d',t_dupsu:'You already have an open search of this kind for this match (same Signal contact). Per match you can have one for yourself and one only for others.',sig_user_t:'Signal username – tap to copy, then search in Signal',t_sigcopied:'✓ Username copied – search in Signal',newm:'🆕 % new matches since your last visit',newm1:'🆕 1 new match since your last visit',newm_ack:'tap to dismiss',fb_title:'💬 Feedback on the test phase',fb_intro:'Tell us what works, what is unclear or missing. Replies are shown to everyone in the 💬 tab.',fb_cat:'Type',fb_bug:'🐞 Bug',fb_idea:'💡 Idea',fb_q:'❓ Question',fb_praise:'👍 Praise',fb_msg:'Message *',fb_send:'Send',fb_needmsg:'Please enter a message',t_fbsent:'✓ Thanks for your feedback!',mp_lbl:'matches',mp_one:'match',mm_title:'⚡ Matches',mm_intro:'These entries fit together. Get in touch via the 📱 Signal link on the entry. Tip: enable browser alerts for new matches via ⋮ → 🔔.',mm_ok:'Got it',mm_none:'No matches for this game right now.',me_title:'This is me',me_intro:'Your entries are recognized by your Signal contact (required) – use the same one on every device. The name is just a display label and can be changed anytime.',me_name:'Display name (optional)',me_you:'You are',me_change:'change',me_setup:'Tap to set your Signal contact (so your entries are recognized)',cho_title:'New entry',cho_su:'Search ticket',cho_bi:'Offer ticket',cho_ta:'Swap',help_steps:'👉 In 3 steps: 1) pick the match above · 2) add search / offer / swap · 3) on a ⚡ match get in touch via Signal.',
   m_notif:'Match notifications',st_on:'On',st_off:'Off',t_notif_on:'✓ Notifications for new matches enabled (while the board is open in a tab)',t_notif_off:'Match notifications off',t_notif_denied:'Blocked by the browser – please allow notifications for this site in the browser settings',t_notif_unsup:'This browser does not support notifications',nt_title:'⚡ New match for you!',nt_hint:'get in touch via Signal now',
   t_su_locked:'Searches are not possible for this match yet – its kickoff is not scheduled yet.',su_locked_info:'⏳ <strong>No searches yet.</strong> This match has no fixed kickoff time yet. Searches open up once the match is officially scheduled – this prevents stockpiling searches for a better queue position.',su_rule_max:'Fairness rule: at most % active searches at a time (for upcoming matches).',t_su_max:'At most % active searches at a time – please close or remove an old search first.',t_err:'Error: ',
+  wq_sum:'▶ Show example: how the queue works',wq_step:'Step % of #',wq_prev:'Back',wq_next:'Next',wq_again:'Start over',wq_play:'Play',wq_pause:'Pause',wq_nx:'🎟 next',wq_df:'× back',wq_self:'for me',wq_oth:'for others',wq_note:'The names are made up. An offer always goes to the first search in the queue that matches its stand.',
+  wq_t1:'Starting point',wq_c1:'Anna, Ben and Cem are going themselves and queue in order of arrival. Dana and Emil are searching only for others and queue behind them. The next matching offer goes to Anna.',
+  wq_t2:'A member joins later',wq_c2:'Fee is the last to sign up but is going herself. She lands behind Cem and ahead of Dana and Emil, although those two were there earlier.',
+  wq_t3:'Pass or missed deadline',wq_c3:'Anna gets an offer and passes, or does not react within the deadline. She drops exactly one place, now it is Ben’s turn.',
+  wq_t4:'Deal',wq_c4:'Ben closes the deal and leaves the queue. Cem moves up. Anna stays one place behind her original place.',
+  wq_t5:'Moved back several times',wq_c5:'Anna misses the deadline three more times. She falls to the end of the members, but never behind Dana and Emil.',
+  wq_t6:'Only then for others',wq_c6:'Cem, Fee and Anna have their tickets. Only now, with no matching member search left, is it Dana’s turn.',
   l_fuer:'For whom? *',fuer_selbst:'🙋 For myself',fuer_selbst_beg:' (companions included)',fuer_andere:'👥 Only for others (I am not going myself)',t_fuer:'Please state who the ticket is for',tag_andere:'👥 only for others',tag_andere_t:'Search only for others (the member is not going) – queued behind all searches where the member is going',su_rule_fuer:'Priority: searches where you go yourself (companions included) come before searches only for others.',su_rule_begleit:'With companions: up to % companion tickets on top of your own (max. # in total).',su_rule_begleit0:'Searches for yourself: currently 1 ticket only (no companion tickets).',t_begleit_max:'For yourself the quantity is limited to % (your own ticket + companions).' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
@@ -1817,6 +1862,70 @@ function taWantChg(){
 }
 
 // ── RENDER: HILFE / ANLEITUNG + DATENSCHUTZ ───────────────────
+// ── Hilfe: Beispiel-Warteschlange (animiert) ──────────────────────────────────
+// Erklaert die Vergaberegel an erfundenen Namen. Die Reihenfolge rechnet suOrder selbst aus — das
+// Beispiel kann also nie von der echten Regel abweichen. Zustand (Schritt, aufgeklappt, Abspielen)
+// liegt in Modul-Variablen, weil ren() die Hilfe bei jedem Realtime-Ereignis neu aufbaut.
+let wqStep=0, wqOpen=false, wqTimer=null;
+const WQROW=44;
+const wqP=(n,d,fu,defer)=>({id:n,nm:n,ts:'2026-01-0'+d+'T12:00:00Z',fu,defer:defer||0});
+const WQ=[
+  [wqP('Anna',1,'selbst'),wqP('Ben',2,'selbst'),wqP('Cem',3,'selbst'),wqP('Dana',4,'andere'),wqP('Emil',5,'andere')],
+  [wqP('Anna',1,'selbst'),wqP('Ben',2,'selbst'),wqP('Cem',3,'selbst'),wqP('Dana',4,'andere'),wqP('Emil',5,'andere'),wqP('Fee',6,'selbst')],
+  [wqP('Anna',1,'selbst',1),wqP('Ben',2,'selbst'),wqP('Cem',3,'selbst'),wqP('Dana',4,'andere'),wqP('Emil',5,'andere'),wqP('Fee',6,'selbst')],
+  [wqP('Anna',1,'selbst',1),wqP('Cem',3,'selbst'),wqP('Dana',4,'andere'),wqP('Emil',5,'andere'),wqP('Fee',6,'selbst')],
+  [wqP('Anna',1,'selbst',4),wqP('Cem',3,'selbst'),wqP('Dana',4,'andere'),wqP('Emil',5,'andere'),wqP('Fee',6,'selbst')],
+  [wqP('Dana',4,'andere'),wqP('Emil',5,'andere')]
+];
+function wqLay(i){ // Reihenfolge + Geometrie eines Schritts
+  const ord=suOrder(WQ[i]), nS=ord.filter(e=>e.fu!=='andere').length, gap=(nS&&nS<ord.length)?8:0;
+  return {ord,nS,gap,top:k=>k*WQROW+(k>=nS?gap:0),h:ord.length*WQROW+gap-6};
+}
+const wqInner=(e,k)=>`<span class="n">#${k+1}</span><b>${e.nm}</b>${k===0?`<span class="ch nx">${t('wq_nx')}</span>`:''}${e.defer?`<span class="ch df">${e.defer}${t('wq_df')}</span>`:''}<span class="ch">${t(e.fu==='andere'?'wq_oth':'wq_self')}</span>`;
+const wqCap=i=>`<strong>${t('wq_step').replace('%',i+1).replace('#',WQ.length)} · ${t('wq_t'+(i+1))}</strong>${t('wq_c'+(i+1))}`;
+function wqBox(){ // statischer Aufbau fuer den aktuellen Schritt (ohne Animation)
+  const L=wqLay(wqStep);
+  return `<details class="wq"${wqOpen?' open':''} ontoggle="wqOpen=this.open;if(!this.open)wqPlay(false)">
+    <summary>${t('wq_sum')}</summary>
+    <div class="wq-in">
+      <div class="wq-dots" id="wq-dots">${WQ.map((_,k)=>`<i${k<=wqStep?' class="on"':''}></i>`).join('')}</div>
+      <p class="wq-cap" id="wq-cap">${wqCap(wqStep)}</p>
+      <div class="wq-stage" id="wq-stage" style="height:${L.h}px">
+        ${L.ord.map((e,k)=>`<div class="wq-c${k===0?' first':''}${e.fu==='andere'?' an':''}" data-k="${e.id}" style="top:${L.top(k)}px">${wqInner(e,k)}</div>`).join('')}
+        <div class="wq-div" id="wq-div" style="top:${L.nS*WQROW-2}px;${L.gap?'':'display:none'}"></div>
+      </div>
+      <div class="wq-ctl">
+        <button type="button" id="wq-prev" onclick="wqPlay(false);wqShow(Math.max(0,wqStep-1))"${wqStep?'':' disabled'}>${t('wq_prev')}</button>
+        <button type="button" id="wq-next" class="pri" onclick="wqPlay(false);wqShow((wqStep+1)%WQ.length)">${t(wqStep===WQ.length-1?'wq_again':'wq_next')}</button>
+        <button type="button" id="wq-play" onclick="wqPlay(!wqTimer)">${t(wqTimer?'wq_pause':'wq_play')}</button>
+      </div>
+      <p style="margin:10px 0 0">${t('wq_note')}</p>
+    </div>
+  </details>`;
+}
+function wqShow(i){ // Schritt wechseln: vorhandene Karten an ihre neuen Plaetze schieben
+  wqStep=i;
+  const stage=document.getElementById('wq-stage'); if(!stage) return;
+  const L=wqLay(i), keep=new Set(L.ord.map(e=>e.id));
+  stage.querySelectorAll('.wq-c').forEach(el=>{ if(!keep.has(el.dataset.k)&&!el.classList.contains('out')){ el.classList.add('out'); setTimeout(()=>el.remove(),450); } });
+  L.ord.forEach((e,k)=>{
+    let el=[...stage.querySelectorAll('.wq-c:not(.out)')].find(x=>x.dataset.k===e.id);
+    if(!el){ el=document.createElement('div'); el.className='wq-c in'; el.dataset.k=e.id; el.style.top=L.top(k)+'px'; stage.appendChild(el); void el.offsetWidth; setTimeout(()=>el.classList.remove('in'),30); }
+    el.style.top=L.top(k)+'px';
+    el.classList.toggle('first',k===0); el.classList.toggle('an',e.fu==='andere');
+    el.innerHTML=wqInner(e,k);
+  });
+  const dv=document.getElementById('wq-div'); dv.style.top=(L.nS*WQROW-2)+'px'; dv.style.display=L.gap?'':'none';
+  stage.style.height=L.h+'px';
+  document.getElementById('wq-cap').innerHTML=wqCap(i);
+  [...document.getElementById('wq-dots').children].forEach((d,k)=>d.classList.toggle('on',k<=i));
+  document.getElementById('wq-prev').disabled=i===0;
+  document.getElementById('wq-next').textContent=t(i===WQ.length-1?'wq_again':'wq_next');
+}
+function wqPlay(on){ // laeuft nur auf Wunsch; stoppt beim Zuklappen und beim Verlassen der Hilfe (go)
+  clearInterval(wqTimer); wqTimer=on?setInterval(()=>wqShow((wqStep+1)%WQ.length),4200):null;
+  const b=document.getElementById('wq-play'); if(b) b.textContent=t(wqTimer?'wq_pause':'wq_play');
+}
 function helpPage(){
   if(lang!=='en') return `
     <div class="setup-section">
@@ -1841,6 +1950,7 @@ function helpPage(){
         <p>Ein <strong>Match</strong> erscheint, wenn eine Suche und ein Angebot zum selben Stand passen (oder die Suche „egal" ist) – beim Tausch, wenn zwei Wünsche gegenseitig passen. Gibt es Matches, zeigt eine goldene <strong>⚡-Pille</strong> im Spielbalken die Anzahl; ein Tipp darauf öffnet die Match-Liste. Zusätzlich sind passende Einträge in der Liste mit ⚡ markiert. <strong>Direkt zum Partner:</strong> Tippe im Popup auf einen Namen – oder bei einem markierten Eintrag auf „Partner-Eintrag öffnen" – und du springst direkt zum passenden Eintrag (dort ist der Signal-Kontakt).</p>
         <p><strong>Vergabe nach Reihenfolge:</strong> Suchen stehen in einer Warteschlange und sind nach ihrem Platz nummeriert (#1, #2 …). Erst kommen alle Gesuche, bei denen ein Mitglied selbst mitgeht, dann die Gesuche nur für andere – innerhalb beider Gruppen nach Eingang. Pro Angebot erhält nur die <strong>vorderste passende</strong> Suche das Match – die anderen warten.</p>
         <p><strong>🙋 Für mich / 👥 nur für andere:</strong> Bei jeder Suche gibst du an, ob du <strong>selbst mitgehst</strong> – allein oder mit Begleitung (dann einfach die Anzahl erhöhen; wie viele Begleit-Tickets zusätzlich möglich sind, legt der Admin fest, die aktuelle Grenze steht im Suche-Formular) – oder ob du das Ticket <strong>nur für jemand anderes</strong> suchst und selbst nicht mitgehst. Gesuche nur für andere stehen in der Warteschlange <strong>automatisch hinter dem letzten Gesuch, bei dem ein Mitglied selbst mitgeht</strong> – auch hinter solchen, die erst später dazukommen. Die Nummer #n auf der Karte zeigt immer den aktuellen Platz; Gesuche nur für andere tragen das Schild „👥 nur für andere“. Wer bei einem Match verzichtet oder die Frist verstreichen lässt, rückt <strong>einen Platz nach hinten</strong>, bleibt aber immer vor den Gesuchen nur für andere. Alte Gesuche von vor dieser Regel zählen als „für mich selbst“.</p>
+        ${wqBox()}
         <p><strong>🤝 Deal:</strong> Hat es geklappt, markiert ein Klick auf „Deal" <strong>beide</strong> Einträge (Suche + Angebot) als erledigt.<br>
         <strong>⏭ Verzicht:</strong> Passt es gerade nicht, rutschst du <strong>einen Platz</strong> zurück – die/der Nächste kommt dran, du behältst die zweite Chance. Hinter ein Gesuch nur für andere fällst du dabei nie.<br>
         <strong>⏳ Frist:</strong> Reagierst du nicht innerhalb der eingestellten Frist, rückt automatisch die/der Nächste nach und du rutschst wie beim Verzicht <strong>einen Platz</strong> zurück (Restzeit steht auf deiner Match-Karte; Frist im Setup einstellbar). Achtung: Die Frist läuft auch nachts. Haben mehrere nacheinander verzichtet oder die Frist verpasst, kommt zuerst dran, wer das seltener getan hat.<br>
@@ -1929,6 +2039,7 @@ function helpPage(){
         <p>A <strong>match</strong> appears when a search and an offer fit the same stand (or the search is "any") – for swaps, when two wishes fit each other. When there are matches, a gold <strong>⚡ pill</strong> in the match bar shows the count; tapping it opens the match list. Matching entries are also marked with ⚡ in the list. <strong>Jump to the partner:</strong> tap a name in the popup – or “open the partner entry” on a marked entry – to jump straight to the matching entry (where the Signal contact is).</p>
         <p><strong>Allocation by order:</strong> searches wait in a queue and are numbered by their place (#1, #2 …). Searches where a member is going themselves come first, then searches only for others – each group in order of arrival. Each offer goes to the <strong>first matching</strong> search in the queue only – the others wait.</p>
         <p><strong>🙋 For me / 👥 only for others:</strong> with every search you state whether you <strong>are going yourself</strong> – alone or with companions (just raise the quantity; the admin sets how many companion tickets are allowed, the current limit is shown in the search form) – or whether the ticket is <strong>only for someone else</strong> and you are not going. Searches only for others are automatically queued <strong>behind the last search where a member is going themselves</strong> – including such searches added later. The #n on the card always shows the current position; searches only for others carry the label “👥 only for others”. Whoever passes on a match or lets the deadline expire moves <strong>one place back</strong>, but always stays ahead of searches only for others. Older searches from before this rule count as “for myself”.</p>
+        ${wqBox()}
         <p><strong>🤝 Deal:</strong> if it worked out, one click on "Deal" marks <strong>both</strong> entries (search + offer) as done.<br>
         <strong>⏭ Pass:</strong> if it does not suit you right now, you drop <strong>one place</strong> – the next person gets a turn and you keep a second chance. You never fall behind a search only for others.<br>
         <strong>⏳ Deadline:</strong> if you do not react within the set time, the next person automatically takes over and you drop <strong>one place</strong>, just like a pass (remaining time shows on your match card; configurable in Setup). Note: the deadline also runs at night. If several people have passed or missed the deadline in a row, whoever did so less often goes first.<br>
@@ -2268,6 +2379,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $do$;`;
 // ── NAVIGATION ────────────────────────────────────────────────
 function go(tab){
   if(tab==='se'&&!adm){ openPin(tab); return; }
+  if(tab!=='he'&&wqTimer) wqPlay(false); // Beispiel-Animation der Hilfe nicht im Hintergrund weiterlaufen lassen
   cur=tab;
   document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
   document.querySelectorAll('.nb').forEach(el=>el.classList.remove('active'));
