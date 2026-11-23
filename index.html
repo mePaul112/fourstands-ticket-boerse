@@ -1089,7 +1089,7 @@ let me={nm:'',si:''};
 let expiryH=48, evaluating=false;
 let ruheVon='22:00', ruheBis='08:00';   // Ruhezeit der Match-Frist (config: ruhe_von, ruhe_bis; leer = aus)
 const RUHE_VOR_H=24;                    // so viele Stunden vor Anstoss gilt die Ruhezeit nicht mehr
-let maxSu=5, suTerminiert=true, maxBegleit=3; // Gesuch-Regeln (config: max_su, su_terminiert, max_begleit)
+let maxSu=5, suTerminiert=true; // Gesuch-Regeln (config: max_su, su_terminiert)
 let notif=false;                // Browser-Benachrichtigung bei eigenen Matches (opt-in)
 let adminPinHash=null; // globaler Admin-PIN (SHA-256-Hash, aus config-Tabelle) — geräteübergreifend
 const sha256hex=async s=>{ const b=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join(''); };
@@ -1151,7 +1151,7 @@ const I18N={
   wq_t4:'Deal',wq_c4:'Ben macht den Deal und ist raus. Cem rückt nach vorn. Anna bleibt einen Platz hinter ihrem ursprünglichen Platz.',
   wq_t5:'Mehrfach zurückgestuft',wq_c5:'Anna verpasst noch dreimal die Frist. Sie fällt ans Ende der Mitglieder, aber nie hinter Dana und Emil.',
   wq_t6:'Erst dann für andere',wq_c6:'Cem, Fee und Anna haben ihre Karten. Erst jetzt, wenn kein passendes Mitglieder-Gesuch mehr offen ist, kommt Dana an die Reihe.',
-  l_fuer:'Für wen? *',fuer_selbst:'🙋 Für mich selbst',fuer_selbst_beg:' (auch mit Begleitung)',fuer_andere:'👥 Nur für andere (ich gehe selbst nicht mit)',t_fuer:'Bitte angeben, für wen du das Ticket suchst',tag_andere:'👥 nur für andere',tag_andere_t:'Gesuch nur für andere (das Mitglied geht selbst nicht mit) – steht in der Warteschlange hinter allen Gesuchen, bei denen das Mitglied selbst mitgeht',su_rule_fuer:'Vorrang: Gesuche für dich selbst stehen vor Gesuchen nur für andere.',su_rule_begleit:'Mit Begleitung: bis zu % Begleit-Tickets zusätzlich zu deinem eigenen (insgesamt max. #).',su_rule_begleit0:'Für dich selbst: ein Ticket je Gesuch. Karten für andere suchst du mit einem eigenen Gesuch „nur für andere“.',t_begleit_max:'Für dich selbst ist die Anzahl auf % begrenzt.' },
+  l_fuer:'Für wen? *',fuer_selbst:'🙋 Für mich selbst',fuer_andere:'👥 Nur für andere (ich gehe selbst nicht mit)',t_fuer:'Bitte angeben, für wen du das Ticket suchst',tag_andere:'👥 nur für andere',tag_andere_t:'Gesuch nur für andere (das Mitglied geht selbst nicht mit) – steht in der Warteschlange hinter allen Gesuchen, bei denen das Mitglied selbst mitgeht',su_rule_fuer:'Vorrang: Gesuche für dich selbst stehen vor Gesuchen nur für andere.',su_rule_eins:'Für dich selbst: ein Ticket je Gesuch. Karten für andere suchst du mit einem eigenen Gesuch „nur für andere“.',t_selbst_eins:'Für dich selbst gilt ein Ticket je Gesuch.' },
  en:{ nav_ov:'Overview',nav_su:'Search',nav_bi:'Offer',nav_ta:'Swap',nav_sp:'Matches',nav_se:'Setup',nav_he:'Help',consent_label:'I consent to my name and Signal contact being stored and shown to all users of the board (details: Help → Privacy).',t_consent:'Please consent to data storage',consent_proof:'Consent given',consent_once:'By posting, your name + Signal contact are stored and shown to everyone – you already consented to this (details: Help → Privacy).',
   tb_share:'↗ Share',tb_help:'? Help', conn_live:'Live',conn_local:'Local',conn_off:'Offline',
   th_light:'☀ Light',th_dark:'🌙 Dark', sb_current:'Current match',archiv:'Archive',archiv_on:'Archive ✓',
@@ -1184,7 +1184,7 @@ const I18N={
   wq_t4:'Deal',wq_c4:'Ben closes the deal and leaves the queue. Cem moves up. Anna stays one place behind her original place.',
   wq_t5:'Moved back several times',wq_c5:'Anna misses the deadline three more times. She falls to the end of the members, but never behind Dana and Emil.',
   wq_t6:'Only then for others',wq_c6:'Cem, Fee and Anna have their tickets. Only now, with no matching member search left, is it Dana’s turn.',
-  l_fuer:'For whom? *',fuer_selbst:'🙋 For myself',fuer_selbst_beg:' (companions included)',fuer_andere:'👥 Only for others (I am not going myself)',t_fuer:'Please state who the ticket is for',tag_andere:'👥 only for others',tag_andere_t:'Search only for others (the member is not going) – queued behind all searches where the member is going',su_rule_fuer:'Priority: searches for yourself come before searches only for others.',su_rule_begleit:'With companions: up to % companion tickets on top of your own (max. # in total).',su_rule_begleit0:'For yourself: one ticket per search. Tickets for others go into a separate search “only for others”.',t_begleit_max:'For yourself the quantity is limited to %.' }
+  l_fuer:'For whom? *',fuer_selbst:'🙋 For myself',fuer_andere:'👥 Only for others (I am not going myself)',t_fuer:'Please state who the ticket is for',tag_andere:'👥 only for others',tag_andere_t:'Search only for others (the member is not going) – queued behind all searches where the member is going',su_rule_fuer:'Priority: searches for yourself come before searches only for others.',su_rule_eins:'For yourself: one ticket per search. Tickets for others go into a separate search “only for others”.',t_selbst_eins:'For yourself it is one ticket per search.' }
 };
 const t=k=>{ const v=(I18N[lang]&&I18N[lang][k]); return v!=null?v:(I18N.de[k]!=null?I18N.de[k]:k); };
 const ldlang=()=>{ try{const l=localStorage.getItem(KL); if(l==='de'||l==='en')lang=l;}catch(e){} };
@@ -1295,7 +1295,7 @@ async function nextGameSmart(){
 }
 // Warteschlangen-Reihenfolge der Suchen (Mitglieder-Feedback 09/2026):
 // "Mitglieder first" ohne Ausnahme seit 11/2026 (Anlass: Bochum-Heimspiel, Zurueckgestufte standen hinter 'andere'):
-//   1. fuer: Gesuche, bei denen das Mitglied selbst mitgeht (auch mit Begleitung), IMMER vor Gesuchen
+//   1. fuer: Gesuche, bei denen das Mitglied selbst mitgeht, IMMER vor Gesuchen
 //      nur fuer andere ('andere' steht hinter dem letzten Selbst-Gesuch, auch hinter spaeter eingetragenen
 //      und auch hinter zurueckgestuften). Alt-Eintraege ohne Angabe (fuer = NULL) zaehlen als 'selbst'.
 //   2. Innerhalb der Gruppe zeitlich. Jede Zurueckstufung (defer: Verzicht/abgelaufene Frist) schiebt
@@ -1444,7 +1444,7 @@ const TYP2DB={su:'suche',bi:'biete',ta:'tausch'};
 const DB2TYP={suche:'su',biete:'bi',tausch:'ta'};
 // pid/cvia/cend: Abschluss-Protokoll (wer mit wem, auf welchem Weg, wann) — nur von den
 // Schliess-Pfaden geschrieben, bewusst NICHT in todb(), damit Bearbeiten sie nicht ueberschreibt.
-// fu: fuer wen gesucht wird, nur bei Suche: 'selbst' = Mitglied geht mit (ggf. + Begleitung),
+// fu: fuer wen gesucht wird, nur bei Suche: 'selbst' = Mitglied geht mit (ein Ticket),
 //     'andere' = nur fuer andere; NULL = Alt-Eintrag, zaehlt als selbst
 const mapei=r=>({id:r.id,sid:r.spiel_id,typ:DB2TYP[r.typ]||r.typ,br:r.bereich,tg:r.tausch_gegen,tsp:r.tausch_spiel||null,nm:r.name,si:r.signal_kontakt,az:r.anzahl||1,no:r.notiz,fu:r.fuer||null,s:(r.status==='erledigt'?'erledigt':r.status==='entfernt'?'entfernt':'o'),ts:r.created_at,cat:r.consent_at||null,defer:r.defer||0,msince:r.match_since||null,pid:r.partner_id||null,cvia:r.closed_via||null,cend:r.closed_at||null});
 const todb=e=>({spiel_id:e.sid,typ:TYP2DB[e.typ]||e.typ,bereich:e.br,tausch_gegen:e.tg||null,tausch_spiel:e.tsp||null,name:e.nm,signal_kontakt:e.si||null,anzahl:e.az||1,notiz:e.no||null,fuer:e.typ==='su'?(e.fu||null):null,status:(e.s==='erledigt'?'erledigt':e.s==='entfernt'?'entfernt':'offen'),consent_at:e.cat||null,defer:e.defer||0});
@@ -1512,7 +1512,6 @@ async function loadConfig(){
       if(m.ruhe_von!=null)ruheVon=m.ruhe_von; if(m.ruhe_bis!=null)ruheBis=m.ruhe_bis;
       const ms=parseInt(m.max_su); if(!isNaN(ms)&&ms>=0)maxSu=ms;
       if(m.su_terminiert!=null)suTerminiert=m.su_terminiert==='1';
-      const mb=parseInt(m.max_begleit); if(!isNaN(mb)&&mb>=0)maxBegleit=mb;
       adminPinHash=m.admin_pin||null; } }catch(e){}
 }
 // Clientseitige Auswertung der Ablauffristen: Match-Start setzen, abgelaufene zurueckrutschen lassen
@@ -1795,16 +1794,15 @@ function cgrp(typs){
 }
 
 // ── RENDER: FORMS ─────────────────────────────────────────────
-// Fuer wen: 'selbst' = Mitglied geht mit, ggf. mit bis zu maxBegleit Begleit-Tickets (Admin-Setup;
-// die Begleitung teilt den Vorrang), 'andere' = nur fuer andere (Anzahl wie bisher 1..AZ_MAX, steht hinten)
+// Fuer wen: 'selbst' = Mitglied geht mit (genau ein Ticket), 'andere' = nur fuer andere (1..AZ_MAX, steht hinten)
 const AZ_MAX=4;
-const azMax=fu=>fu==='selbst'?1+maxBegleit:AZ_MAX;
+const azMax=fu=>fu==='selbst'?1:AZ_MAX;
 const azOpts=(max,sl=1)=>Array.from({length:max},(_,i)=>i+1).map(n=>`<option${n===sl?' selected':''}>${n}</option>`).join('');
 function fuerChg(p){ // Anzahl-Auswahl an "Für wen" anpassen und ggf. auf die Grenze kappen
   const f=document.getElementById(p+'-f'), a=document.getElementById(p+'-a'); if(!f||!a)return;
   const mx=azMax(f.value); a.innerHTML=azOpts(mx,Math.min(parseInt(a.value)||1,mx));
 }
-const fuerOpts=(sl='')=>['selbst','andere'].map(v=>`<option value="${v}"${v===sl?' selected':''}>${t('fuer_'+v)}${v==='selbst'&&maxBegleit>0?t('fuer_selbst_beg'):''}</option>`).join('');
+const fuerOpts=(sl='')=>['selbst','andere'].map(v=>`<option value="${v}"${v===sl?' selected':''}>${t('fuer_'+v)}</option>`).join('');
 // Kein Aufklapp-Knopf mehr: Formulare oeffnet ausschliesslich der ➕-Knopf (war doppelt).
 function fSu(sp){
   // Fairness-Regel: Gesuche erst, wenn das Spiel zeitgenau terminiert ist (Anstosszeit bekannt)
@@ -1832,7 +1830,7 @@ ${sf.su?`<div class="form-panel su">
     <div class="fg" style="grid-column:1/-1"><label>${t('l_fuer')}</label><select id="su-f" onchange="fuerChg('su')"><option value="" disabled selected hidden>${t('opt_choose')}</option>${fuerOpts()}</select></div>
     <div class="fg" style="grid-column:1/-1"><label>${t('l_note')}</label><input id="su-no" placeholder="${t('ph_no_su')}"></div>
   </div>
-  <div style="margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu)">📋 ${t('su_rule_fuer')}<br>📋 ${maxBegleit>0?t('su_rule_begleit').replace('%',maxBegleit).replace('#',1+maxBegleit):t('su_rule_begleit0')}${maxSu>0?'<br>📋 '+t('su_rule_max').replace('%',maxSu):''}</div>
+  <div style="margin:0 0 12px;font-family:'Barlow Condensed';font-size:11px;line-height:1.4;color:var(--mu)">📋 ${t('su_rule_fuer')}<br>📋 ${t('su_rule_eins')}${maxSu>0?'<br>📋 '+t('su_rule_max').replace('%',maxSu):''}</div>
   ${consentBlock('su')}
   <button class="btn-primary su" onclick="addE('su')">${t('btn_su')}</button>
 </div>`:''}`;
@@ -2283,7 +2281,6 @@ INSERT INTO public.config(key,value) VALUES ('expiry_h','48') ON CONFLICT (key) 
 INSERT INTO public.config(key,value) VALUES ('ruhe_von','22:00') ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.config(key,value) VALUES ('ruhe_bis','08:00') ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.config(key,value) VALUES ('max_su','5') ON CONFLICT (key) DO NOTHING;
-INSERT INTO public.config(key,value) VALUES ('max_begleit','3') ON CONFLICT (key) DO NOTHING;
 INSERT INTO public.config(key,value) VALUES ('su_terminiert','1') ON CONFLICT (key) DO NOTHING;
 -- 6. Feedback (Testphase)
 CREATE TABLE IF NOT EXISTS public.feedback (
@@ -2328,7 +2325,7 @@ BEGIN
 END $fn$;
 GRANT EXECUTE ON FUNCTION public.deal_done(uuid,uuid)  TO anon;
 GRANT EXECUTE ON FUNCTION public.reopen_entry(uuid)    TO anon;
--- 8. Gesuch fuer wen: 'selbst' (Mitglied geht mit, ggf. + Begleitung) | 'andere' (nur fuer andere)
+-- 8. Gesuch fuer wen: 'selbst' (Mitglied geht mit, ein Ticket) | 'andere' (nur fuer andere)
 --    'andere' steht in der Warteschlange hinter allen 'selbst'-Gesuchen
 ALTER TABLE public.eintraege ADD COLUMN IF NOT EXISTS fuer text;
 DO $do$ BEGIN
@@ -2393,10 +2390,9 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $do$;`;
           <div class="fg"><label>Gesuche erst wenn Spiel terminiert</label>
             <select id="ru-term"><option value="1"${suTerminiert?' selected':''}>An – Anstoßzeit muss feststehen</option><option value="0"${suTerminiert?'':' selected'}>Aus – jederzeit möglich</option></select></div>
           <div class="fg"><label>Max. aktive Gesuche pro Person (0 = unbegrenzt)</label><input id="ru-max" type="number" min="0" value="${maxSu}"></div>
-          <div class="fg"><label>Max. Begleit-Tickets je Gesuch „für mich selbst" (zusätzlich zum eigenen, 0–9)</label><input id="ru-beg" type="number" min="0" max="9" value="${maxBegleit}"></div>
         </div>
         <button class="btn-primary" onclick="saveRules()">Regeln speichern</button>
-        <p style="font-size:11px;color:var(--mu);margin-top:8px">„Terminiert" heißt: Datum <strong>und</strong> Anstoßzeit stehen fest. „🔄 Termine aktualisieren" erkennt das automatisch: Solange die DFL/der DFB einen Spieltag noch nicht zeitgenau angesetzt hat, liegen bei OpenLigaDB <em>alle</em> Spiele des Spieltags auf einem einzigen Platzhalter-Termin – diese Platzhalterzeit wird nicht übernommen (bereits gespeicherte wird beim nächsten Update entfernt). Erst wenn die Anstoßzeiten streuen, gilt der Spieltag als terminiert. Bei manuell angelegten Spielen (z.&nbsp;B. Testspielen) das Anstoß-Feld im Spiel-Formular nutzen. Das Gesuch-Limit zählt nur offene Gesuche für anstehende Spiele (Identität = Signal-Kontakt). <strong>Begleit-Tickets:</strong> So viele Karten darf ein Mitglied bei einem Gesuch „für mich selbst" zusätzlich zum eigenen Ticket anfragen – sie teilen den Vorrang des Mitglieds (0 = nur das eigene Ticket). Gesuche „nur für andere" bleiben bei 1–4 Karten und stehen ohnehin hinten. Bestehende Gesuche über einer neu gesenkten Grenze bleiben unverändert.</p>
+        <p style="font-size:11px;color:var(--mu);margin-top:8px">„Terminiert" heißt: Datum <strong>und</strong> Anstoßzeit stehen fest. „🔄 Termine aktualisieren" erkennt das automatisch: Solange die DFL/der DFB einen Spieltag noch nicht zeitgenau angesetzt hat, liegen bei OpenLigaDB <em>alle</em> Spiele des Spieltags auf einem einzigen Platzhalter-Termin – diese Platzhalterzeit wird nicht übernommen (bereits gespeicherte wird beim nächsten Update entfernt). Erst wenn die Anstoßzeiten streuen, gilt der Spieltag als terminiert. Bei manuell angelegten Spielen (z.&nbsp;B. Testspielen) das Anstoß-Feld im Spiel-Formular nutzen. Das Gesuch-Limit zählt nur offene Gesuche für anstehende Spiele (Identität = Signal-Kontakt).</p>
       </div>
     </div>
 
@@ -2602,7 +2598,7 @@ async function searchLogo(gId,logoId){
   finally{ sld(false); }
 }
 
-// Je Spiel und Person (Signal-Kontakt) max. ein aktives Gesuch je Art: eins fuer mich (+ ggf. Begleitung)
+// Je Spiel und Person (Signal-Kontakt) max. ein aktives Gesuch je Art: eins fuer mich
 // und eins nur fuer andere (Fanclub first: das Andere-Gesuch steht ohnehin hinten). fuer = NULL zaehlt als selbst.
 const suArt=fu=>fu==='andere'?'andere':'selbst';
 const suDup=(sid,si,fu,exceptId=null)=>{ const nsi=(si||'').trim().toLowerCase();
@@ -2634,8 +2630,8 @@ async function addE(typ){
   if(!si){ toast(t('t_signal'),true); return; }
   if(!st.aktiv){ toast(t('t_nogame'),true); return; }
   if((typ==='bi'||typ==='ta') && !br){ toast(t('t_pickstand'),true); return; }
-  if(typ==='su' && !fu){ toast(t('t_fuer'),true); return; } // Pflichtangabe: fuer mich (+ Begleitung) / nur fuer andere
-  if(typ==='su' && fu==='selbst' && az>1+maxBegleit){ toast(t('t_begleit_max').replace('%',1+maxBegleit),true); return; }
+  if(typ==='su' && !fu){ toast(t('t_fuer'),true); return; } // Pflichtangabe: fuer mich / nur fuer andere
+  if(typ==='su' && fu==='selbst' && az>1){ toast(t('t_selbst_eins'),true); return; }
   if(typ==='ta'){
     if(!tsp){ toast(t('t_nogame'),true); return; }
     if(tsp===st.aktiv && (tg||'')===(br||'')){ toast(t('t_taself'),true); return; } // Habe == Will
@@ -2785,9 +2781,9 @@ async function saveEM(){
   const nm=document.getElementById('em-n').value.trim(); if(!nm){ toast(t('t_name'),true); return; }
   const si=normSi(document.getElementById('em-si').value); if(!si){ toast(t('t_signal'),true); return; }
   if(e.typ==='su'){ const fu=document.getElementById('em-f').value; if(!fu){ toast(t('t_fuer'),true); return; }
-    // Begleit-Grenze; unveraenderte Anzahl eines bisherigen Selbst-Gesuchs bleibt erlaubt (Bestandsschutz)
+    // 'selbst' = ein Ticket; unveraenderte Anzahl eines bisherigen Selbst-Gesuchs bleibt erlaubt (Bestandsschutz)
     const az=parseInt(document.getElementById('em-a').value)||1, keep=e.fu!=='andere'&&az===(e.az||1);
-    if(fu==='selbst'&&az>1+maxBegleit&&!keep){ toast(t('t_begleit_max').replace('%',1+maxBegleit),true); return; }
+    if(fu==='selbst'&&az>1&&!keep){ toast(t('t_selbst_eins'),true); return; }
     if(e.s==='o'&&suDup(e.sid,si,fu,e.id)){ toast(t('t_dupsu'),true); return; } // Umstellen darf kein zweites Gesuch derselben Art erzeugen
     e.fu=fu; }
   e.nm=nm; e.si=si;
@@ -2818,11 +2814,9 @@ async function saveRules(){
   const term=document.getElementById('ru-term').value==='1';
   const mx=parseInt(document.getElementById('ru-max').value);
   if(!(mx>=0)){ toast(t('t_err')+'Anzahl ≥ 0',true); return; }
-  const bg=parseInt(document.getElementById('ru-beg').value);
-  if(!(bg>=0&&bg<=9)){ toast(t('t_err')+'Begleit-Tickets 0–9',true); return; }
   try{ sld(true);
-    if(sb){ const{error}=await sb.from('config').upsert([{key:'su_terminiert',value:term?'1':'0'},{key:'max_su',value:String(mx)},{key:'max_begleit',value:String(bg)}],{onConflict:'key'}); if(error)throw error; }
-    suTerminiert=term; maxSu=mx; maxBegleit=bg; ren(); go('se'); toast(t('t_saved'));
+    if(sb){ const{error}=await sb.from('config').upsert([{key:'su_terminiert',value:term?'1':'0'},{key:'max_su',value:String(mx)}],{onConflict:'key'}); if(error)throw error; }
+    suTerminiert=term; maxSu=mx; ren(); go('se'); toast(t('t_saved'));
   }catch(e){ toast(t('t_err')+(e.message||e),true); }
   finally{ sld(false); }
 }

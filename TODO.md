@@ -14,6 +14,9 @@ Lebende Liste offener Punkte. Stand: 2026-09-26.
     (Mitglied immer vor „für andere“), Zurückstufung nur noch **ein Platz** nach hinten. Hilfe DE/EN und
     `aktivitaet.ps1` (`Sort-Su`) nachgezogen. Commit `f81a634`, live seit 21.11.2026; Hilfe-Abschnitt
     „Matches & Warteschlange“ (Vergabe, Verzicht, Frist) im Folge-Commit ergänzt.
+  - **Begleit-Funktion ausgebaut (Stephan, 22.11.2026):** „Für mich selbst“ = genau ein Ticket. Setup-Feld
+    und Logik zu `max_begleit` entfernt; der Key in der Tabelle `config` bleibt wirkungslos stehen.
+    Alte Gesuche mit höherer Anzahl behalten sie beim Bearbeiten (Bestandsschutz).
   - **Korrektur (Stephan, 26.09.2026):** „Für mich selbst" gilt auch **mit Begleitung** (Anzahl frei);
     „für andere" nur, wenn das Mitglied selbst **nicht** mitgeht. Die zuerst ausgelieferte Fassung
     (selbst = genau 1 Ticket, Begleitung als zweites Gesuch, ein Gesuch je Art) ist zurückgenommen —
